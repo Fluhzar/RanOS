@@ -1,0 +1,12 @@
+.vscode/
+
+Code/hardware/test/Macro\.hpp
+
+Code/animation_generator/build/
+
+Code/animation_generator/bin/
+/Code/animation_generator/dat/Output.bin
+*.~lock.*.odt\#
+
+build/
+bin/

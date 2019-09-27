@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP APA102-5050
+D RGB LED with integrated controller
+K RGB LED addressable 8bit pwm 5bit greyscale
+F https://cdn-shop.adafruit.com/datasheets/APA102.pdf
+$ENDCMP
+#
+#End Doc Library
