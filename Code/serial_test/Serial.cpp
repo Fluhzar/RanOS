@@ -9,6 +9,8 @@
 
 // Include Files							////////////////////////////////////
 
+#include <errno.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -53,6 +55,71 @@ namespace RanOS
 		if(m_Port < 0)
 		{
 			std::cerr << "Unable to open " << port << '\n';
+
+			switch(errno)
+			{
+				case EACCES:
+					std::cerr << "Search permission is denied\n";
+					break;
+				case EEXIST:
+					std::cerr << "Named files exists\n";
+					break;
+				case EINTR:
+					std::cerr << "A signal was caught during open()\n";
+					break;
+				case EINVAL:
+					std::cerr << "Implementation does not support synchronized I/O for this file\n";
+					break;
+				case EIO:
+					std::cerr << "The path argument names a STREAMS file and a hangup or error occurred during the open()\n";
+					break;
+				case EISDIR:
+					std::cerr << '"' << port << "\" is a directory\n";
+					break;
+				case ELOOP:
+					std::cerr << "A loop exists in symbolic links\n";
+					break;
+				case EMFILE:
+					std::cerr << "The maximum file descriptors are currently open in the calling process\n";
+					break;
+				case ENAMETOOLONG:
+					std::cerr << "The length of the path argument exceeds the maximum path name\n";
+					break;
+				case ENFILE:
+					std::cerr << "The maximum allowable number of files is currently open in the system\n";
+					break;
+				case ENOENT:
+					std::cerr << "File doesn't exist\n";
+					break;
+				case ENOSR:
+					std::cerr << "The path names a STREAMS-based file and the system is unable to allocate a STREAM\n";
+					break;
+				case ENOSPC:
+					std::cerr << "Directory within path was unable to be expanded\n";
+					break;
+				case ENOTDIR:
+					std::cerr << "A component of the path is not a directory\n";
+					break;
+				case ENXIO:
+					std::cerr << "O_NONBLOCK is set, the named file is a FIFO, O_WRONLY is set, and no process has the file open for reading\n";
+					break;
+				case EOVERFLOW:
+					std::cerr << "The named file is a regular file and the size of the file cannot be represented correctly in an object of type off_t\n";
+					break;
+				case EROFS:
+					std::cerr << "The named file resides on a read-only file system and either O_WRONLY, O_RDWR, O_CREAT (if the file does not exist), or O_TRUNC is set in the oflag argument\n";
+					break;
+				case EAGAIN:
+					std::cerr << "The path argument names the slave side of a pseudo-terminal device that is locked\n";
+					break;
+				case ENOMEM:
+					std::cerr << "The path argument names a STREAMS file and the system is unable to allocate resources\n";
+					break;
+				case ETXTBSY:
+					std::cerr << "The file is a pure procedure (shared text) file that is being executed and oflag is O_WRONLY or O_RDWR\n";
+					break;
+			};
+
 			return false;
 		}
 
