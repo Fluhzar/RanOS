@@ -21,10 +21,6 @@
 
 // Public Macros				////////////////////////////////////////////////
 
-#ifndef SERIALIO_BLOCK
-	#define SERIALIO_BLOCK (false)
-#endif
-
 #ifndef SERIALIO_MAXBUF
 	#define SERIALIO_MAXBUF (16 << 10)
 #endif
@@ -34,12 +30,6 @@
 // Public Enums					////////////////////////////////////////////////
 
 // Public Objects				////////////////////////////////////////////////
-
-#if !SERIALIO_BLOCK
-	#include <thread>
-	#include <mutex>
-	#include <deque>
-#endif
 
 namespace RanOS
 {
@@ -59,22 +49,6 @@ namespace RanOS
 
 		int32_t m_Port;
 		termios m_Settings;
-
-		#if !SERIALIO_BLOCK
-			using mutex_t = std::mutex;
-			using lock_t = std::unique_lock<mutex_t>;
-			using thread_t = std::thread;
-			using deque_t = std::deque<byte_t>;
-
-			mutex_t m_Mutex;
-			lock_t m_Lock;
-			thread_t m_Thread;
-
-			deque_t m_WriteQueue;
-			deque_t m_ReadQueue;
-
-			bool m_IsOpen;
-		#endif
 
 	public:
 
@@ -101,12 +75,7 @@ namespace RanOS
 
 		// Functions			///////////////////////
 
-		bytevec_t PureRead();
-		void PureWrite(bytevec_t const &);
-
-		#if !SERIALIO_BLOCK
-			static void ThreadMain(Serial *);
-		#endif
+		static void ReportError(std::string const &);
 
 	}; // class Serial
 } // namespace RanOS
