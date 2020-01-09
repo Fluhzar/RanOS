@@ -1,0 +1,10 @@
+[package]
+name = "gain-test"
+version = "0.1.0"
+authors = ["Chyler Morrison <contact@chyler.info>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wav = "0.1"
