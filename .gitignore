@@ -10,3 +10,5 @@ Code/animation_generator/bin/
 
 build/
 bin/
+target/
+Cargo.lock
