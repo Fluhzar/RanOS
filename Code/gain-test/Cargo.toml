@@ -5,4 +5,4 @@ authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"
 
 [dependencies]
-riff = "0.1"
+wav = "0.1"
