@@ -63,7 +63,7 @@ AudioData ReadWAV(std::string const & filename)
         if(header->BitsPerSample == 8)
         {
             uint8_t const * rdata = reinterpret_cast<uint8_t const *>(data);
-            output.data.push_back(double(int8_t(*rdata)-128)/double(std::numeric_limits<int8_t>::max()));
+            output.data.push_back(double(int16_t(*rdata)-128)/double(std::numeric_limits<int8_t>::max()));
         }
         else  // assume 16-bit audio is being used
         {
