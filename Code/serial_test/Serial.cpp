@@ -86,6 +86,9 @@ namespace RanOS
 		if(n < 1)
 		{
 			std::cerr << "Error reading from port " << m_Port << '\n';
+
+			ReportError(__func__);
+
 			return bytevec_t();
 		}
 
@@ -104,6 +107,9 @@ namespace RanOS
 			if(tmp < 1)
 			{
 				std::cerr << "Error writing to port " << m_Port << '\n';
+
+				ReportError(__func__);
+
 				return;
 			}
 			n += tmp;
@@ -126,6 +132,12 @@ namespace RanOS
 				break;
 			case EEXIST:
 				std::cerr << "Named files exists\n";
+				break;
+			case EBADF:
+				std::cerr << "The file descriptor is not a valid file descriptor or is not open for reading\n";
+				break;
+			case EFAULT:
+				std::cerr << "The supplied buffer is outside the accessible address space\n";
 				break;
 			case EINTR:
 				std::cerr << "A signal was caught during open()\n";

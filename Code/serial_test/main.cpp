@@ -11,6 +11,7 @@
 
 #include <cstdint>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -29,6 +30,17 @@
 
 int main(int argc, char * argv[])
 {
+	if(argc != 2)
+	{
+		std::cerr << "Incorrect command-line parameters given\n\n";
+		std::cerr << "Usage:\n";
+		std::string arg0(argv[0]);
+		std::cerr << "\t" << arg0.substr(arg0.find_last_of('/')) << " /path/to/teensy/device\n";
+		std::cerr << "\t\tLikely /dev/tty[teensy something]\n";
+
+		return -1;
+	}
+
 	RanOS::Serial teensy;
 
 	char str[] = "12345teststr";
@@ -43,7 +55,14 @@ int main(int argc, char * argv[])
 	teensy.Write(vec);
 	auto data = teensy.Read();
 
-	std::string original(str), returned(reinterpret_cast<char const *>(&data[0]));
+	if(data.size() == 0)
+	{
+		std::cerr << "Read failed, exiting\n";
+		return -1;
+	}
+
+	std::string original(str);
+	std::string returned(reinterpret_cast<char const *>(&data[0]));
 
 	std::cout << "Original string: " << original << "\nReturned string: " << returned << '\n';
 
