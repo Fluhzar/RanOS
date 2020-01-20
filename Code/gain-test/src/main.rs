@@ -57,6 +57,53 @@ impl StereoData {
 	}
 }
 
+impl std::ops::Neg for StereoData {
+	type Output = Self;
+
+	fn neg(self) -> Self::Output {
+		StereoData {
+			left: -self.left,
+			right: -self.right,
+		}
+	}
+}
+
+impl std::ops::Add<StereoData> for StereoData {
+	type Output = Self;
+
+	fn add(self, rhs: StereoData) -> Self::Output {
+		StereoData {
+			left: self.left + rhs.left,
+			right: self.right + rhs.right,
+		}
+	}
+}
+
+impl std::ops::AddAssign<StereoData> for StereoData {
+	fn add_assign(&mut self, rhs: StereoData) {
+		self.left += rhs.left;
+		self.right += rhs.right;
+	}
+}
+
+impl std::ops::Sub<StereoData> for StereoData {
+	type Output = Self;
+
+	fn sub(self, rhs: StereoData) -> Self {
+		StereoData {
+			left: self.left - rhs.left,
+			right: self.right - rhs.right,
+		}
+	}
+}
+
+impl std::ops::SubAssign<StereoData> for StereoData {
+	fn sub_assign(&mut self, rhs: StereoData) {
+		self.left -= rhs.left();
+		self.right -= rhs.right();
+	}
+}
+
 impl std::ops::Mul<SampleT> for StereoData {
 	/// Output type of the multiplication
 	type Output = StereoData;
@@ -67,6 +114,23 @@ impl std::ops::Mul<SampleT> for StereoData {
 			left: self.left * rhs,
 			right: self.right * rhs,
 		}
+	}
+}
+impl std::ops::Mul<StereoData> for SampleT {
+	type Output = StereoData;
+
+	fn mul(self, rhs: StereoData) -> Self::Output {
+		StereoData {
+			left: self * rhs.left,
+			right: self * rhs.right,
+		}
+	}
+}
+
+impl std::ops::MulAssign<SampleT> for StereoData {
+	fn mul_assign(&mut self, rhs: SampleT) {
+		self.left *= rhs;
+		self.right *= rhs;
 	}
 }
 
@@ -82,6 +146,23 @@ impl std::ops::Mul<MathT> for StereoData {
 		}
 	}
 }
+impl std::ops::Mul<StereoData> for MathT {
+	type Output = StereoData;
+
+	fn mul(self, rhs: StereoData) -> Self::Output {
+		StereoData {
+			left: self as SampleT * rhs.left,
+			right: self as SampleT * rhs.right
+		}
+	}
+}
+
+impl std::ops::MulAssign<MathT> for StereoData {
+	fn mul_assign(&mut self, rhs: MathT) {
+		self.left *= rhs as SampleT;
+		self.right *= rhs as SampleT;
+	}
+}
 
 impl Into<Vec<u8>> for StereoData {
 	/// Converts the StereoData into a vector of bytes.
@@ -89,12 +170,12 @@ impl Into<Vec<u8>> for StereoData {
 		let mut v = Vec::new();
 
 			// Converts the left sample from SampleT (f32) to i16, then to bytes
-		let n = ((self.left * 0x8000 as SampleT) as i16).to_le_bytes();
+		let n = ((self.left * 0x80_00 as SampleT) as i16).to_le_bytes();
 		v.push(n[0]);
 		v.push(n[1]);
 
 			// Converts the right sample from SampleT (f32) to i16, then to bytes
-		let n = ((self.right * 0x8000 as SampleT) as i16).to_le_bytes();
+		let n = ((self.right * 0x80_00 as SampleT) as i16).to_le_bytes();
 		v.push(n[0]);
 		v.push(n[1]);
 
@@ -167,6 +248,10 @@ pub fn sample_from_i16(v:[u8;2]) -> SampleT {
 	(i16::from_le_bytes(v) as SampleT) / (0x8000 as SampleT)
 }
 
+pub fn sample_from_i16_val(v: i16) -> SampleT {
+	sample_from_i16(v.to_le_bytes())
+}
+
 /// Converts raw bytes to a Sample
 /// It is assumed that the bytes are 24-bit signed audio samples.
 /// 
@@ -191,15 +276,76 @@ pub fn linear_db(g:MathT) -> MathT {
 
 type TrackT = Vec<StereoData>;
 
+fn vec2track(v: Vec<i16>) -> TrackT {
+	let mut t = TrackT::new();
+
+	let mut i = 0;
+	while i < v.len() {
+		t.push(
+			StereoData::from_stereo(
+				sample_from_i16_val(v[i]),
+				sample_from_i16_val(v[i+1])
+			)
+		);
+
+		i+=2;
+	}
+
+	t
+}
+
+fn track2vec(t: TrackT) -> Vec<i16> {
+	let mut v = Vec::new();
+
+	for s in t {
+		let b:Vec<u8> = s.into();
+		v.push(i16::from_le_bytes([b[0], b[1]]));
+		v.push(i16::from_le_bytes([b[2], b[3]]));
+	}
+
+	v
+}
+
 fn main() {
 	for f in std::env::args() {
 		match f.find(".wav") {
 			Some(_) => {
 				let (w,t) = wav::read_file(std::path::Path::new(f.as_str())).unwrap();
+
+				println!("{:?}", w);
+
+				match t {
+					wav::BitDepth::Sixteen(v) => {
+						let t = vec2track(v);
+
+						let mut largest = 0.0;
+						let mut i = 0;
+						let mut gain = TrackT::new();
+
+						while i < t.len()-((w.sampling_rate/100) as usize) {
+							for s in 0..(w.sampling_rate/100) {
+								let g = t[s as usize + i].left().abs();
+
+								if g > largest {
+									largest = g;
+								}
+
+								// println!("g: {} \t largest:{}", g, largest);
+							}
+
+							for _ in 0..(w.sampling_rate/100) {
+								gain.push(StereoData::from_stereo(largest, largest));
+							}
+							largest = 0.0;
+							i += (w.sampling_rate/100) as usize;
+						}
+
+						wav::write_wav(w, wav::BitDepth::Sixteen(track2vec(gain)), &std::path::Path::new("gain.wav")).unwrap();
+					}
+					_ => ()
+				};
 			},
 			None => (),
 		};
 	}
-
-	println!("Hello, world!");
 }
