@@ -2,7 +2,7 @@
 use gain::*;
 
 /// Size of the processing chunk
-const CHUNK_SIZE: usize = 1 << 10;
+const CHUNK_SIZE: usize = 1 << 12; // 4096
 
 fn calc_gain(t: SampleTrackT) -> SampleTrackT {
     t.chunks_exact(CHUNK_SIZE)
