@@ -1,8 +1,8 @@
 [package]
-name = "gain-test"
+name = "gain"
 version = "0.1.0"
 authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"
 
 [dependencies]
-wav = "0.1"
+wav = "0.4"
