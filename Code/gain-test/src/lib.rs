@@ -11,8 +11,11 @@
 
 extern crate wav;
 
+pub mod gain;
 pub mod mono;
 pub mod stereo;
+
+pub use gain::*;
 pub use mono::*;
 pub use stereo::*;
 
@@ -263,6 +266,20 @@ pub fn normalize(db: MathT, t: &mut SampleTrackT) {
     for s in t {
         *s = (*s - dc) * factor;
     }
+}
+
+/// Same as `normalize`, just on the range of [0,1]
+pub fn positive_normalize(t: &mut SampleTrackT) {
+    let dc = t.clone().iter().sum::<SampleT>() / (t.len() as SampleT);
+
+    let mut max = 0.0;
+    t.iter()
+        .map(|&s| (s-dc).abs())
+        .for_each(|s| if s > max { max = s; });
+
+    t.iter_mut()
+        .map(|x| {*x = (*x-dc) / (2.0*max) + 0.5; *x})
+        .for_each(|_| ());
 }
 
 /// Takes the given path and reads the track data from the WAV file at the given

@@ -1,5 +1,5 @@
 [package]
-name = "gain"
+name = "audio"
 version = "0.1.0"
 authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"
