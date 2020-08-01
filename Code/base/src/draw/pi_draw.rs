@@ -27,9 +27,7 @@ impl APA102CPiDraw {
     /// 
     /// * `data` - The data pin for the LEDs
     /// * `clock` - The clock pin for the LEDs
-    /// * `brightness` - Value in the range of \[0, 1\]. Note: the actual value
-    ///                  sent to LEDs is an integer value in the range of
-    ///                  \[0, 31\].
+    /// * `brightness` - Value in the range of \[0, 1\]. Note: the actual value sent to LEDs is an integer value in the range of \[0, 31\].
     /// * `size` - The number of LEDs the drawer will draw to.
     pub fn new(data: gpio::OutputPin, clock: gpio::OutputPin, brightness: f32, size: usize) -> Self {
         Self {
@@ -125,7 +123,7 @@ impl APA102CPiDraw {
 impl Draw for APA102CPiDraw {
     /// Writes a frame to the LEDs. Uses color order BGR as defined in the
     /// datasheet.
-    fn write_frame(&mut self) {
+    fn write_frame(&mut self) -> Result<(), String> {
         self.start_frame();
 
         for led in self.frame.iter() {
@@ -135,6 +133,8 @@ impl Draw for APA102CPiDraw {
             self.write_byte(led.red());
         }
         self.end_frame(self.frame.len());
+
+        Ok(())
     }
 
     fn as_slice(&self) -> &[RGB] {

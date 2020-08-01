@@ -33,8 +33,7 @@ impl Breath {
     /// 
     /// # Parameters
     /// 
-    /// * `breath_duration` - The duration a single color is drawn for, from
-    ///                       black up to full color back down to black.
+    /// * `breath_duration` - The duration a single color is drawn for, from black up to full color back down to black.
     /// * `order` - A given order that the animation cycles through.
     pub fn new(breath_duration: Duration, order: ColorOrder) -> Self {
         Self {

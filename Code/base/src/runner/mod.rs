@@ -47,13 +47,15 @@ where
 
     /// Runs for the set max duration of time, updating the animation each loop
     /// before drawing the animation.
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<(), String> {
         let begin = Instant::now();
 
         while Instant::now() - begin < self.max_duration {
             let dt = self.timer.ping();
             self.animation.update(dt, self.drawer.as_mut_slice());
-            self.drawer.write_frame();
+            self.drawer.write_frame()?;
         }
+
+        Ok(())
     }
 }

@@ -18,7 +18,7 @@ pub mod term_draw;
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
     /// Draws the internal frame to its destination.
-    fn write_frame(&mut self);
+    fn write_frame(&mut self) -> Result<(), String>;
 
     /// Returns the internal frame as a immutable slice.
     fn as_slice(&self) -> &[RGB];
