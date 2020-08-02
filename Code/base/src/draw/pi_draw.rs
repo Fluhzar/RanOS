@@ -157,4 +157,3 @@ impl Draw for APA102CPiDraw {
         self.frame.as_mut_slice()
     }
 }
-F
