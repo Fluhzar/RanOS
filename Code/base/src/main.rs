@@ -19,7 +19,7 @@ fn main() {
             };
 
             #[cfg(feature = "term_draw")]
-            let drawer = TermDraw::new(16, 1.0, 256) ;
+            let drawer = TermDraw::new(16, 1.0, 256);
 
             use base::util::rgb::RGB;
             let order = ColorOrder::Ordered(vec![RGB::from_hsv(0.0, 1.0, 1.0), RGB::from_hsv(30.0, 1.0, 1.0), RGB::from_hsv(60.0, 1.0, 1.0), RGB::from_hsv(120.0, 1.0, 1.0), RGB::from_hsv(210.0, 1.0, 1.0), RGB::from_hsv(280.0, 1.0,1.0)]);

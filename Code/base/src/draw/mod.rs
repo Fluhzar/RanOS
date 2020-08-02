@@ -15,6 +15,8 @@ pub mod pi_draw;
 #[cfg(feature = "term_draw")]
 pub mod term_draw;
 
+pub mod null_draw;
+
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
     /// Draws the internal frame to its destination.
