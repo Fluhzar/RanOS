@@ -2,11 +2,11 @@
 
 use super::*;
 
-use crate::util::{frame::Frame, rgb::RGB};
+use crate::util::{frame::Frame, rgb::*};
 use rppal::gpio;
 use std::cell::RefCell;
 
-/// Type used to represent a GPIO pin with interior mutability.
+/// Type used to represent a GPIO pin with interior mutability. This is required bc iterating over a frame borrows `self`, and setting the pin values requires mutation through `self` inside the iteration.
 pub type Pin = RefCell<gpio::OutputPin>;
 
 /// Struct that draws [APA102C][0] LEDs through the Raspberry Pi's GPIO pins.
@@ -128,9 +128,10 @@ impl Draw for APA102CPiDraw {
 
         for led in self.frame.iter() {
             self.write_byte(self.frame.brightness_apa102c());
-            self.write_byte(led.blue());
-            self.write_byte(led.green());
-            self.write_byte(led.red());
+            let color = led.as_tuple(RGBOrder::BGR);
+            self.write_byte(color.0);
+            self.write_byte(color.1);
+            self.write_byte(color.2);
         }
         self.end_frame(self.frame.len());
 
