@@ -214,3 +214,86 @@ impl RGB {
         }
     }
 }
+
+#[cfg(test)]
+mod rgb_test {
+    use super::*;
+
+    #[test]
+    fn rgb_order() {
+        let sample = (0, 1, 2);
+
+        let rgb = RGB::from_tuple(sample, RGBOrder::RGB);
+        assert_eq!(rgb.red(), 0);
+        assert_eq!(rgb.green(), 1);
+        assert_eq!(rgb.blue(), 2);
+
+        let result = rgb.as_tuple(RGBOrder::RGB);
+        assert_eq!(sample, result);
+    }
+
+    #[test]
+    fn rbg_order() {
+        let sample = (0, 1, 2);
+
+        let rbg = RGB::from_tuple(sample, RGBOrder::RBG);
+        assert_eq!(rbg.red(), 0);
+        assert_eq!(rbg.green(), 2);
+        assert_eq!(rbg.blue(), 1);
+
+        let result = rbg.as_tuple(RGBOrder::RBG);
+        assert_eq!(sample, result);
+    }
+
+    #[test]
+    fn grb_order() {
+        let sample = (0, 1, 2);
+
+        let grb = RGB::from_tuple(sample, RGBOrder::GRB);
+        assert_eq!(grb.red(), 1);
+        assert_eq!(grb.green(), 0);
+        assert_eq!(grb.blue(), 2);
+
+        let result = grb.as_tuple(RGBOrder::GRB);
+        assert_eq!(sample, result);
+    }
+
+    #[test]
+    fn gbr_order() {
+        let sample = (0, 1, 2);
+
+        let gbr = RGB::from_tuple(sample, RGBOrder::GBR);
+        assert_eq!(gbr.red(), 2);
+        assert_eq!(gbr.green(), 0);
+        assert_eq!(gbr.blue(), 1);
+
+        let result = gbr.as_tuple(RGBOrder::GBR);
+        assert_eq!(sample, result);
+    }
+
+    #[test]
+    fn brg_order() {
+        let sample = (0, 1, 2);
+
+        let brg = RGB::from_tuple(sample, RGBOrder::BRG);
+        assert_eq!(brg.red(), 1);
+        assert_eq!(brg.green(), 2);
+        assert_eq!(brg.blue(), 0);
+
+        let result = brg.as_tuple(RGBOrder::BRG);
+        assert_eq!(sample, result);
+    }
+
+    #[test]
+    fn bgr_order() {
+        let sample = (0, 1, 2);
+
+        let bgr = RGB::from_tuple(sample, RGBOrder::BGR);
+        assert_eq!(bgr.red(), 2);
+        assert_eq!(bgr.green(), 1);
+        assert_eq!(bgr.blue(), 0);
+
+        let result = bgr.as_tuple(RGBOrder::BGR);
+        assert_eq!(sample, result);
+    }
+}
