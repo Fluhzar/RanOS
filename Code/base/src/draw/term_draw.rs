@@ -9,6 +9,8 @@ use colored::Colorize;
 
 lazy_static! {
     static ref SIGINT: Arc<AtomicBool> = {
+        println!("{}", "\x1B[2J"); // ANSI clear screen code
+
         let arc = Arc::new(AtomicBool::new(false));
 
         {
@@ -43,7 +45,6 @@ impl TermDraw {
     /// * `brightness` - Value in the range of \[0, 1\]. Note: the actual value sent to LEDs is an integer value in the range of \[0, 32).
     /// * `size` - The number of LEDs the drawer will draw to.
     pub fn new(max_width: usize, brightness: f32, size: usize) -> Self {
-        println!("{}", "\x1B[2J"); // ANSI clear screen code
         Self {
             max_width,
 
