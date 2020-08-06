@@ -44,7 +44,7 @@ fn main() {
             #[cfg(feature = "term_draw")]
             let drawer = TermDraw::new(16, 1.0, 256);
 
-            let rainbow = Rainbow::new(Duration::from_secs_f64(5.0), 0.75, 0.75, 1.0, 1);
+            let rainbow = Rainbow::new(Duration::from_secs_f64(5.0), 1.0, 1.0, 1.0, 16*4);
             let mut rainbow_runner = Runner::new(rainbow, drawer, Some(Duration::from_secs_f64(1.0/60.0)), Duration::from_secs(16));
 
             if let Err(s) = rainbow_runner.run() {
