@@ -3,7 +3,7 @@
 pub mod breath;
 pub mod rainbow;
 
-use crate::draw::Draw;
+use crate::draw::{DrawStats, Draw};
 use crate::util::rgb::RGB;
 use crate::util::timer::Timer;
 use std::time::{Instant, Duration};
@@ -57,5 +57,9 @@ where
         }
 
         Ok(())
+    }
+
+    pub fn stats(&self) -> DrawStats {
+        self.drawer.stats()
     }
 }

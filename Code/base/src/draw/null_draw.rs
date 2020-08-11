@@ -7,9 +7,11 @@ use crate::util::{frame::Frame, rgb::RGB};
 /// 
 /// [0]: ../../util/frame/struct.Frame.html
 /// [1]: ../trait.Draw.html
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct NullDraw{
     frame: Frame,
+
+    stats: DrawStats,
 }
 
 impl NullDraw {
@@ -17,12 +19,16 @@ impl NullDraw {
     pub fn new(brightness: f32, size: usize) -> Self {
         Self {
             frame: Frame::new(brightness, size),
+
+            stats: DrawStats::new(),
         }
     }
 }
 
 impl Draw for NullDraw {
     fn write_frame(&mut self) -> Result<(), String> {
+        self.stats.inc_frames();
+        self.stats.end();
         Ok(())
     }
 
@@ -32,5 +38,9 @@ impl Draw for NullDraw {
 
     fn as_mut_slice(&mut self) -> &mut [RGB] {
         self.frame.as_mut_slice()
+    }
+
+    fn stats(&self) -> DrawStats {
+        self.stats
     }
 }

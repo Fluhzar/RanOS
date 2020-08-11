@@ -30,10 +30,10 @@ lazy_static! {
 #[derive(Debug, Clone)]
 pub struct TermDraw {
     max_width: usize,
-
     frame: Frame,
 
     should_exit: Arc<AtomicBool>,
+    stats: DrawStats,
 }
 
 impl TermDraw {
@@ -47,10 +47,10 @@ impl TermDraw {
     pub fn new(max_width: usize, brightness: f32, size: usize) -> Self {
         Self {
             max_width,
-
             frame: Frame::new(brightness, size),
 
             should_exit: SIGINT.clone(),
+            stats: DrawStats::new(),
         }
     }
 }
@@ -72,6 +72,9 @@ impl Draw for TermDraw {
 
         println!("{}", output);
 
+        self.stats.inc_frames();
+        self.stats.end();
+
         if self.should_exit.load(Ordering::Relaxed) == true {
             for _ in 0..((self.frame.len()/self.max_width + 1)*2) {
                 println!("{}", "\x1B[2T");
@@ -90,5 +93,9 @@ impl Draw for TermDraw {
 
     fn as_mut_slice(&mut self) -> &mut [RGB] {
         self.frame.as_mut_slice()
+    }
+
+    fn stats(&self) -> DrawStats {
+        self.stats
     }
 }

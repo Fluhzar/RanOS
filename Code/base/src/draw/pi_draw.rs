@@ -52,6 +52,7 @@ pub struct APA102CPiDraw {
     frame: Frame,
 
     should_exit: Arc<AtomicBool>,
+    stats: DrawStats,
 }
 
 impl APA102CPiDraw {
@@ -71,6 +72,7 @@ impl APA102CPiDraw {
             frame: Frame::new(brightness, size),
 
             should_exit: SIGINT.clone(),
+            stats: DrawStats::new(),
         }
     }
 
@@ -149,6 +151,18 @@ impl APA102CPiDraw {
         self.data.borrow_mut().set_low();
         self.clock.borrow_mut().set_low();
     }
+
+    #[inline]
+    fn stop(&mut self) {
+        self.start_frame();
+        for _ in 0..self.frame.len() {
+            self.write_byte(0xE0);
+            self.write_byte(0);
+            self.write_byte(0);
+            self.write_byte(0);
+        }
+        self.end_frame();
+    }
 }
 
 impl Draw for APA102CPiDraw {
@@ -166,15 +180,11 @@ impl Draw for APA102CPiDraw {
         }
         self.end_frame();
 
+        self.stats.inc_frames();
+        self.stats.end();
+
         if self.should_exit.load(Ordering::Relaxed) == true {
-            self.start_frame();
-            for _ in 0..self.frame.len() {
-                self.write_byte(0xE0);
-                self.write_byte(0);
-                self.write_byte(0);
-                self.write_byte(0);
-            }
-            self.end_frame();
+            self.stop();
 
             Err("\nCaught SIGINT, stopping".to_owned())
         } else {
@@ -188,5 +198,15 @@ impl Draw for APA102CPiDraw {
 
     fn as_mut_slice(&mut self) -> &mut [RGB] {
         self.frame.as_mut_slice()
+    }
+
+    fn stats(&self) -> DrawStats {
+        self.stats
+    }
+}
+
+impl Drop for APA102CPiDraw {
+    fn drop(&mut self) {
+        self.stop();
     }
 }
