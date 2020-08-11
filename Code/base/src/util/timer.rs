@@ -31,6 +31,8 @@ impl Timer {
             while (self.ctime - self.ptime) < target_dt {
                 self.ctime = Instant::now();
             }
+        } else {
+            self.ctime = Instant::now();
         }
 
         self.dt = self.ctime - self.ptime;
