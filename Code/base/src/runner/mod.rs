@@ -59,6 +59,8 @@ where
         Ok(())
     }
 
+    /// Returns the statistics object tracking the performance of the `Draw`
+    /// object.
     pub fn stats(&self) -> DrawStats {
         self.drawer.stats()
     }

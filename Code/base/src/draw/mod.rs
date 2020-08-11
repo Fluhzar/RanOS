@@ -9,7 +9,7 @@
 
 use crate::util::rgb::RGB;
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use std::{ops, fmt};
 
 #[cfg(feature = "pi_draw")]
@@ -31,9 +31,11 @@ pub trait Draw {
     /// Returns the internal frame as a mutable slice.
     fn as_mut_slice(&mut self) -> &mut [RGB];
 
+    /// Returns the statistics tracking object.
     fn stats(&self) -> DrawStats;
 }
 
+/// Type for tracking statistics about the drawing.
 #[derive(Debug, Copy, Clone)]
 pub struct DrawStats {
     start: Instant,
@@ -42,6 +44,8 @@ pub struct DrawStats {
 }
 
 impl DrawStats {
+    /// Creates a new statistics object. Start time is set to the the instant
+    /// that this object is created.
     pub fn new() -> Self {
         Self {
             start: Instant::now(),
@@ -50,23 +54,31 @@ impl DrawStats {
         }
     }
 
+    /// Increments the number of frames.
     #[inline]
     pub fn inc_frames(&mut self) {
         self.frames += 1;
     }
 
+    /// Sets the end time.
     #[inline]
     pub fn end(&mut self) {
         self.end = Instant::now();
     }
 }
 
+/// # Pretty printing.
+/// 
+/// Displays the duration that statistics were tracked for, the number of frames
+/// tracked, and the average frames per second across the entire run-time.
 impl fmt::Display for DrawStats {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Drawing statistics: \nDuration: {}s \tFrame count: {} \nAvg frame rate: {} fps", self.end.duration_since(self.start).as_secs_f64(), self.frames, self.frames as f64 / (self.end - self.start).as_secs_f64())
     }
 }
 
+/// Adds two statistic objects together, accounting for the time between the end
+/// of one statistic and the start of the next.
 impl ops::Add<DrawStats> for DrawStats {
     type Output = Self;
 
@@ -79,6 +91,7 @@ impl ops::Add<DrawStats> for DrawStats {
     }
 }
 
+/// Like ops::Add, but assigns to self.
 impl ops::AddAssign<DrawStats> for DrawStats {
     fn add_assign(&mut self, rhs: Self) {
         self.start += rhs.start - self.end;
