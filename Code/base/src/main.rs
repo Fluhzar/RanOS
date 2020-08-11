@@ -13,13 +13,12 @@ use base::draw::term_draw::TermDraw;
 fn main() {
     let mut stats = DrawStats::new();
 
-    loop {
+    /*loop*/ {
         {
             let drawer: Box<dyn Draw> = {
-                #[cfg(feature = "pi_draw")]
-                {
+                #[cfg(feature = "pi_draw")] {
                     let gpio = gpio::Gpio::new().unwrap();
-                    Box::new(APA102CPiDraw::new(gpio.get(17).unwrap().into_output(), gpio.get(27).unwrap().into_output(), 1.0, 256)) as Box<dyn Draw>
+                    Box::new(APA102CPiDraw::new(gpio.get(17).unwrap().into_output(), gpio.get(27).unwrap().into_output(), 0.125, 256)) as Box<dyn Draw>
                 }
                 #[cfg(feature = "term_draw")]
                 {
@@ -27,17 +26,17 @@ fn main() {
                 }
             };
 
-            use base::util::rgb::RGB;
-            let order = ColorOrder::Ordered(vec![RGB::from_hsv(0.0, 1.0, 1.0), RGB::from_hsv(30.0, 1.0, 1.0), RGB::from_hsv(60.0, 1.0, 1.0), RGB::from_hsv(120.0, 1.0, 1.0), RGB::from_hsv(210.0, 1.0, 1.0), RGB::from_hsv(280.0, 1.0,1.0)]);
-            // let order = ColorOrder::Random;
+            //use base::util::rgb::RGB;
+            //let order = ColorOrder::Ordered(vec![RGB::from_hsv(0.0, 1.0, 1.0), RGB::from_hsv(30.0, 1.0, 1.0), RGB::from_hsv(60.0, 1.0, 1.0), RGB::from_hsv(120.0, 1.0, 1.0), RGB::from_hsv(210.0, 1.0, 1.0), RGB::from_hsv(280.0, 1.0,1.0)]);
+            let order = ColorOrder::Random;
 
             let breath = Breath::new(Duration::from_secs(2), order);
-            let mut breath_runner = Runner::new(breath, drawer, Some(Duration::from_secs_f64(1.0/144.0)), Duration::from_secs(16));
+            let mut breath_runner = Runner::new(breath, drawer, None/*Some(Duration::from_secs_f64(1.0/144.0))*/, Duration::from_secs(16));
 
             if let Err(s) = breath_runner.run() {
                 stats += breath_runner.stats();
                 println!("{}\nExiting", s);
-                break;
+                return;//break;
             } else {
                 stats += breath_runner.stats();
             }
@@ -48,7 +47,7 @@ fn main() {
                 #[cfg(feature = "pi_draw")]
                 {
                     let gpio = gpio::Gpio::new().unwrap();
-                    Box::new(APA102CPiDraw::new(gpio.get(17).unwrap().into_output(), gpio.get(27).unwrap().into_output(), 1.0, 256)) as Box<dyn Draw>
+                    Box::new(APA102CPiDraw::new(gpio.get(17).unwrap().into_output(), gpio.get(27).unwrap().into_output(), 0.125, 256)) as Box<dyn Draw>
                 }
                 #[cfg(feature = "term_draw")]
                 {
@@ -56,13 +55,13 @@ fn main() {
                 }
             };
 
-            let rainbow = Rainbow::new(Duration::from_secs_f64(5.0), 1.0, 1.0, 1.0, 16*4);
-            let mut rainbow_runner = Runner::new(rainbow, drawer, Some(Duration::from_secs_f64(1.0/144.0)), Duration::from_secs(16));
+            let rainbow = Rainbow::new(Duration::from_secs_f64(5.0), 1.0, 1.0, 1.0, 8*1);
+            let mut rainbow_runner = Runner::new(rainbow, drawer, None/*Some(Duration::from_secs_f64(1.0/144.0))*/, Duration::from_secs(16));
 
             if let Err(s) = rainbow_runner.run() {
                 stats += rainbow_runner.stats();
                 println!("{}\nExiting", s);
-                break;
+                return;//break;
             } else {
                 stats += rainbow_runner.stats();
             }
