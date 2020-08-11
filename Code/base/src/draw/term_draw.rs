@@ -78,7 +78,7 @@ impl Draw for TermDraw {
             }
             println!("{}", "\x1B[1;1H");
 
-            Err("Caught SIGINT, stopping".to_owned())
+            Err("\nCaught SIGINT, stopping".to_owned())
         } else {
             Ok(())
         }

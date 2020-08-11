@@ -3,8 +3,24 @@
 use super::*;
 
 use crate::util::{frame::Frame, rgb::*};
+
 use rppal::gpio;
+
 use std::cell::RefCell;
+use std::sync::{Arc, atomic::{Ordering, AtomicBool}};
+
+lazy_static! {
+    static ref SIGINT: Arc<AtomicBool> = {
+        let arc = Arc::new(AtomicBool::new(false));
+
+        {
+            let arc = arc.clone();
+            ctrlc::set_handler(move || arc.store(true, Ordering::Relaxed)).unwrap();
+        }
+
+        arc
+    };
+}
 
 /// Type used to represent a GPIO pin with interior mutability. This is required bc iterating over a frame borrows `self`, and
 /// setting the pin values requires mutation through `self` inside the iteration.
@@ -34,6 +50,8 @@ pub struct APA102CPiDraw {
     clock: Pin,
 
     frame: Frame,
+
+    should_exit: Arc<AtomicBool>,
 }
 
 impl APA102CPiDraw {
@@ -51,6 +69,8 @@ impl APA102CPiDraw {
             clock: RefCell::new(clock),
 
             frame: Frame::new(brightness, size),
+
+            should_exit: SIGINT.clone(),
         }
     }
 
@@ -146,7 +166,20 @@ impl Draw for APA102CPiDraw {
         }
         self.end_frame();
 
-        Ok(())
+        if self.should_exit.load(Ordering::Relaxed) == true {
+            self.start_frame();
+            for _ in 0..self.frame.len() {
+                self.write_byte(0xE0);
+                self.write_byte(0);
+                self.write_byte(0);
+                self.write_byte(0);
+            }
+            self.end_frame();
+
+            Err("\nCaught SIGINT, stopping".to_owned())
+        } else {
+            Ok(())
+        }
     }
 
     fn as_slice(&self) -> &[RGB] {

@@ -18,25 +18,25 @@ pub trait Animation {
 /// This struct is the manager of all the other systems. It ensures that an
 /// animation is updated before being drawn and properly tracks the passage of
 /// time to provide accurate delta-time readings to the animation.
-pub struct Runner<A, D>
+pub struct Runner<A>//, D>
 where
     A: Animation,
-    D: Draw
+    //D: Draw
 {
     animation: A,
-    drawer: D,
+    drawer: Box<dyn Draw>,//D,
     timer: Timer,
     max_duration: Duration,
 }
 
-impl<A, D> Runner<A, D>
+impl<A>/*, D>*/ Runner<A>//, D>
 where
     A: Animation,
-    D: Draw
+    //D: Draw
 {
     /// Constructs a `Runner` from the given animation and drawer, and with a
     /// maximum duration that `Runner::run` is allowed to run for.
-    pub fn new(animation: A, drawer: D, target_frame_duration: Option<Duration>, max_duration: Duration) -> Self {
+    pub fn new(animation: A, drawer: Box<dyn Draw>, target_frame_duration: Option<Duration>, max_duration: Duration) -> Self {
         Self {
             animation,
             drawer,

@@ -9,7 +9,7 @@ edition = "2018"
 [features]
 default = ["term_draw"]
 term_draw = ["colored", "ctrlc", "lazy_static"]
-pi_draw = ["rppal"]
+pi_draw = ["rppal", "ctrlc"]
 
 [dependencies]
 rand = "0.7"
