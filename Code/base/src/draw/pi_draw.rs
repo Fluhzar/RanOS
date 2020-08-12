@@ -222,7 +222,7 @@ impl Draw for APA102CPiDraw {
             if self.should_exit.load(Ordering::Relaxed) == true {
                 self.stop(self.known_len);
 
-                return Err("\nCaught SIGINT, stopping".to_owned())
+                return Err("Caught SIGINT, stopping".to_owned())
             }
         }
 

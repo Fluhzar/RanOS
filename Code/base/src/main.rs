@@ -44,6 +44,8 @@ fn main() {
     drawer.push_queue(Box::new(breath.clone()));
     drawer.push_queue(Box::new(rainbow.clone()));
 
+    println!("\n");
+
     if let Err(s) = drawer.run() {
         eprintln!("Unexpected exit: \t{}", s);
     }
