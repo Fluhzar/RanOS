@@ -7,7 +7,7 @@
 //! the second is an emulated LED setup that draws to "LEDs" on the terminal
 //! with a configurable number of "LEDs" per row.
 
-use crate::util::rgb::RGB;
+use crate::animation::Animation;
 
 use std::time::Instant;
 use std::{ops, fmt};
@@ -20,16 +20,27 @@ pub mod term_draw;
 
 pub mod null_draw;
 
+/// Result type used for [`Draw::run`][0], indicating the success of the
+/// function. Usually `Err` is returned when `SIGINT` is handled, shutting the
+/// system down.
+/// 
+/// [0]: ./trait.Draw.html#method.Run
+pub type Result = std::result::Result<(), String>;
+
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
+    /// Adds an [`Animation`][0] to the queue.
+    /// 
+    /// [0]: ../animation/trait.Animation.html
+    fn push_queue(&mut self, a: Box<dyn Animation>);
+
+    /// Returns the number of [`Animation`][0]s in the queue.
+    /// 
+    /// [0]: ../animation/trait.Animation.html
+    fn queue_len(&self) -> usize;
+
     /// Draws the internal frame to its destination.
-    fn write_frame(&mut self) -> Result<(), String>;
-
-    /// Returns the internal frame as a immutable slice.
-    fn as_slice(&self) -> &[RGB];
-
-    /// Returns the internal frame as a mutable slice.
-    fn as_mut_slice(&mut self) -> &mut [RGB];
+    fn run(&mut self) -> Result;
 
     /// Returns the statistics tracking object.
     fn stats(&self) -> DrawStats;

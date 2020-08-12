@@ -30,6 +30,13 @@ impl Frame {
         (self.brightness.min(1.0).max(0.0) * 0x1F as f32) as u8
     }
 
+    /// Same as [`Frame::brightness_sk9822`][0], just a new name for niceness.
+    /// 
+    /// [0]: ./struct.Frame.html#method.brightness_apa102c
+    pub fn brightness_sk9822(&self) -> u8 {
+        self.brightness_apa102c()
+    }
+
     /// Returns the length of the internal buffer.
     pub fn len(&self) -> usize {
         self.leds.len()

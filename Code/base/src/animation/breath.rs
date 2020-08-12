@@ -16,7 +16,11 @@ pub enum ColorOrder {
 }
 
 /// Struct for an animated breathing display that will
+#[derive(Debug, Clone)]
 pub struct Breath {
+    time_remaining: Duration,
+    frame: Frame,
+
     order: ColorOrder,
     ind: usize,
     current_color: RGB,
@@ -33,10 +37,16 @@ impl Breath {
     /// 
     /// # Parameters
     /// 
+    /// * `duration` - The length of time this animation will run.
     /// * `breath_duration` - The duration a single color is drawn for, from black up to full color back down to black.
+    /// * `brightness` - The brightness value to use. Should be in range [0, 1].
+    /// * `size` - The number of LEDs this animation will animate for.
     /// * `order` - A given order that the animation cycles through.
-    pub fn new(breath_duration: Duration, order: ColorOrder) -> Self {
+    pub fn new(duration: Duration, breath_duration: Duration, brightness: f32, size: usize, order: ColorOrder) -> Self {
         Self {
+            time_remaining: duration,
+            frame: Frame::new(brightness, size),
+
             order: order.clone(),
             ind: 0,
             current_color: match order {
@@ -54,7 +64,13 @@ impl Breath {
 }
 
 impl Animation for Breath {
-    fn update(&mut self, dt: Duration, frame: &mut [RGB]) {
+    fn update(&mut self, dt: Duration) {
+        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
+            d
+        } else {
+            Duration::new(0, 0)
+        };
+
         self.vel += self.acc * dt.as_secs_f32();
         self.brightness += self.vel * dt.as_secs_f32();
 
@@ -71,8 +87,16 @@ impl Animation for Breath {
             }
         }
 
-        for led in frame {
+        for led in self.frame.iter_mut() {
             *led = self.current_color.scale(self.brightness);
         }
+    }
+
+    fn frame(&self) -> &Frame {
+        return &self.frame
+    }
+
+    fn time_remaining(&self) -> Duration {
+        self.time_remaining
     }
 }

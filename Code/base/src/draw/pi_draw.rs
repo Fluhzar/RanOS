@@ -2,12 +2,16 @@
 
 use super::*;
 
-use crate::util::{frame::Frame, rgb::*};
+use crate::util::frame::Frame;
+use crate::util::rgb::*;
+use crate::util::timer::Timer;
 
 use rppal::gpio;
 
 use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::sync::{Arc, atomic::{Ordering, AtomicBool}};
+use std::time::Duration;
 
 lazy_static! {
     static ref SIGINT: Arc<AtomicBool> = {
@@ -49,7 +53,10 @@ pub struct APA102CPiDraw {
     data: Pin,
     clock: Pin,
 
-    frame: Frame,
+    queue: VecDeque<Box<dyn Animation>>,
+    timer: Timer,
+
+    known_len: usize,
 
     should_exit: Arc<AtomicBool>,
     stats: DrawStats,
@@ -60,16 +67,17 @@ impl APA102CPiDraw {
     /// 
     /// # Parameters
     /// 
-    /// * `data` - The data pin for the LEDs
-    /// * `clock` - The clock pin for the LEDs
-    /// * `brightness` - Value in the range of \[0, 1\]. Note: the actual value sent to LEDs is an integer value in the range of \[0, 31\].
-    /// * `size` - The number of LEDs the drawer will draw to.
-    pub fn new(data: gpio::OutputPin, clock: gpio::OutputPin, brightness: f32, size: usize) -> Self {
+    /// * `data` - The data pin for the LEDs.
+    /// * `clock` - The clock pin for the LEDs.
+    pub fn new(data: gpio::OutputPin, clock: gpio::OutputPin) -> Self {
         Self {
             data: RefCell::new(data),
             clock: RefCell::new(clock),
 
-            frame: Frame::new(brightness, size),
+            queue: VecDeque::new(),
+            timer: Timer::new(None),
+
+            known_len: 0,
 
             should_exit: SIGINT.clone(),
             stats: DrawStats::new(),
@@ -99,8 +107,8 @@ impl APA102CPiDraw {
     /// [1]: https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled/
     /// [2]: https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
     #[inline]
-    fn end_frame(&mut self) {
-        for _ in 0..(self.frame.len()>>4) {
+    fn end_frame(&mut self, len: usize) {
+        for _ in 0..(len>>4) {
             self.write_byte(0x00);
         }
     }
@@ -139,7 +147,7 @@ impl APA102CPiDraw {
         self.clock.borrow_mut().toggle();
         self.clock.borrow_mut().toggle();
 
-        self.data.borrow_mut().write(if byte & 1 > 0 { Level::High } else { Level::Low });
+        self.data.borrow_mut().write(if byte>>0 & 1 > 0 { Level::High } else { Level::Low });
         self.clock.borrow_mut().toggle();
         self.clock.borrow_mut().toggle();
     }
@@ -152,52 +160,73 @@ impl APA102CPiDraw {
         self.clock.borrow_mut().set_low();
     }
 
-    #[inline]
-    fn stop(&mut self) {
+    /// Sets all LEDs up to `len` to black with 0 brightness, effectively
+    /// turning the LEDs off. Used in system shutdown code, as well as `SIGINT`
+    /// handling.
+    fn stop(&mut self, len: usize) {
         self.start_frame();
-        for _ in 0..self.frame.len() {
+
+        for _ in 0..len {
             self.write_byte(0xE0);
             self.write_byte(0);
             self.write_byte(0);
             self.write_byte(0);
         }
-        self.end_frame();
-    }
-}
 
-impl Draw for APA102CPiDraw {
+        self.end_frame(len);
+    }
+
     /// Writes a frame to the LEDs. Uses color order BGR as defined in the
     /// datasheet.
-    fn write_frame(&mut self) -> Result<(), String> {
+    fn write_frame(&mut self, frame: &Frame) {
         self.start_frame();
 
-        for led in self.frame.iter() {
-            self.write_byte(0xE0 | self.frame.brightness_apa102c());
+        for led in frame.iter() {
+            self.write_byte(0xE0 | frame.brightness_apa102c());
             let color = led.as_tuple(RGBOrder::BGR);
             self.write_byte(color.0);
             self.write_byte(color.1);
             self.write_byte(color.2);
         }
-        self.end_frame();
 
-        self.stats.inc_frames();
-        self.stats.end();
+        self.end_frame(frame.len());
+    }
+}
 
-        if self.should_exit.load(Ordering::Relaxed) == true {
-            self.stop();
+impl Draw for APA102CPiDraw {
+    fn push_queue(&mut self, a: Box<dyn Animation>) {
+        self.queue.push_back(a);
+    }
 
-            Err("\nCaught SIGINT, stopping".to_owned())
-        } else {
-            Ok(())
+    fn queue_len(&self) -> usize {
+        self.queue.len()
+    }
+
+    fn run(&mut self) -> Result {
+        let zero_duration = Duration::new(0, 0);
+
+        while let Some(mut ani) = self.queue.pop_front() {
+            if ani.frame().len() > self.known_len {
+                self.known_len = ani.frame().len();
+            }
+
+            while ani.time_remaining() > zero_duration {
+                ani.update(self.timer.ping());
+                self.write_frame(ani.frame());
+
+                self.stats.inc_frames();
+            }
+
+            self.stats.end();
+
+            if self.should_exit.load(Ordering::Relaxed) == true {
+                self.stop(self.known_len);
+
+                return Err("\nCaught SIGINT, stopping".to_owned())
+            }
         }
-    }
 
-    fn as_slice(&self) -> &[RGB] {
-        self.frame.as_slice()
-    }
-
-    fn as_mut_slice(&mut self) -> &mut [RGB] {
-        self.frame.as_mut_slice()
+        Ok(())
     }
 
     fn stats(&self) -> DrawStats {
@@ -207,6 +236,6 @@ impl Draw for APA102CPiDraw {
 
 impl Drop for APA102CPiDraw {
     fn drop(&mut self) {
-        self.stop();
+        self.stop(self.known_len);
     }
 }
