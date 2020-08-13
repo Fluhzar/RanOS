@@ -50,8 +50,14 @@ pub type SK9822PiDraw = APA102CPiDraw;
 /// [1]: https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
 #[derive(Debug)]
 pub struct APA102CPiDraw {
-    data: Pin,
-    clock: Pin,
+    data0: Pin,
+    data1: Pin,
+    data2: Pin,
+    data3: Pin,
+    clock0: Pin,
+    clock1: Pin,
+    clock2: Pin,
+    clock3: Pin,
 
     queue: VecDeque<Box<dyn Animation>>,
     timer: Timer,
@@ -69,10 +75,18 @@ impl APA102CPiDraw {
     /// 
     /// * `data` - The data pin for the LEDs.
     /// * `clock` - The clock pin for the LEDs.
-    pub fn new(data: gpio::OutputPin, clock: gpio::OutputPin) -> Self {
+    pub fn new(/*data: gpio::OutputPin, clock: gpio::OutputPin*/) -> Self {
+        let gpio = gpio::Gpio::new().unwrap();
+
         Self {
-            data: RefCell::new(data),
-            clock: RefCell::new(clock),
+            data0: RefCell::new(gpio.get(6).unwrap().into_output()),
+            data1: RefCell::new(gpio.get(13).unwrap().into_output()),
+            data2: RefCell::new(gpio.get(19).unwrap().into_output()),
+            data3: RefCell::new(gpio.get(26).unwrap().into_output()),
+            clock0: RefCell::new(gpio.get(1).unwrap().into_output()),
+            clock1: RefCell::new(gpio.get(7).unwrap().into_output()),
+            clock2: RefCell::new(gpio.get(8).unwrap().into_output()),
+            clock3: RefCell::new(gpio.get(25).unwrap().into_output()),
 
             queue: VecDeque::new(),
             timer: Timer::new(None),
@@ -119,45 +133,98 @@ impl APA102CPiDraw {
     fn write_byte(&self, byte: u8) {
         use rppal::gpio::Level;
 
-        self.data.borrow_mut().write(if byte>>7 & 1 > 0 { Level::High } else { Level::Low });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        let mut data = [self.data0.borrow_mut(), self.data1.borrow_mut(), self.data2.borrow_mut(), self.data3.borrow_mut()];
+        let mut clock = [self.clock0.borrow_mut(), self.clock1.borrow_mut(), self.clock2.borrow_mut(), self.clock3.borrow_mut()];
 
-        self.data.borrow_mut().write(if byte>>6 & 1 > 0 { Level::High } else { Level::Low });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        data[0].write(if byte>>7 & 1 > 0 { Level::High } else { Level::Low });
+        clock[0].toggle();
+        clock[0].toggle();
+        data[0].set_low();
 
-        self.data.borrow_mut().write(if byte>>5 & 1 > 0 { Level::High } else { Level::Low });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        data[1].write(if byte>>6 & 1 > 0 { Level::High } else { Level::Low });
+        clock[1].toggle();
+        clock[1].toggle();
+        data[1].set_low();
 
-        self.data.borrow_mut().write(if byte>>4 & 1 > 0 { Level::High } else { Level::Low });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        data[2].write(if byte>>5 & 1 > 0 { Level::High } else { Level::Low });
+        clock[2].toggle();
+        clock[2].toggle();
+        data[2].set_low();
 
-        self.data.borrow_mut().write(if byte>>3 & 1 > 0 { Level::High } else { Level::Low });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        data[3].write(if byte>>4 & 1 > 0 { Level::High } else { Level::Low });
+        clock[3].toggle();
+        clock[3].toggle();
+        data[3].set_low();
 
-        self.data.borrow_mut().write(if byte>>2 & 1 > 0 { Level::High } else { Level::Low });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        data[0].write(if byte>>3 & 1 > 0 { Level::High } else { Level::Low });
+        clock[0].toggle();
+        clock[0].toggle();
+        data[0].set_low();
 
-        self.data.borrow_mut().write(if byte>>1 & 1 > 0 { Level::High } else { Level::Low });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        data[1].write(if byte>>2 & 1 > 0 { Level::High } else { Level::Low });
+        clock[1].toggle();
+        clock[1].toggle();
+        data[1].set_low();
 
-        self.data.borrow_mut().write(if byte>>0 & 1 > 0 { Level::High } else { Level::Low });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        data[2].write(if byte>>1 & 1 > 0 { Level::High } else { Level::Low });
+        clock[2].toggle();
+        clock[2].toggle();
+        data[2].set_low();
+
+        data[3].write(if byte>>0 & 1 > 0 { Level::High } else { Level::Low });
+        clock[3].toggle();
+        clock[3].toggle();
+        data[3].set_low();
+
+        // self.data.borrow_mut().write(if byte>>7 & 1 > 0 { Level::High } else { Level::Low });
+        // self.clock.borrow_mut().toggle();
+        // self.clock.borrow_mut().toggle();
+
+        // self.data.borrow_mut().write(if byte>>6 & 1 > 0 { Level::High } else { Level::Low });
+        // self.clock.borrow_mut().toggle();
+        // self.clock.borrow_mut().toggle();
+
+        // self.data.borrow_mut().write(if byte>>5 & 1 > 0 { Level::High } else { Level::Low });
+        // self.clock.borrow_mut().toggle();
+        // self.clock.borrow_mut().toggle();
+
+        // self.data.borrow_mut().write(if byte>>4 & 1 > 0 { Level::High } else { Level::Low });
+        // self.clock.borrow_mut().toggle();
+        // self.clock.borrow_mut().toggle();
+
+        // self.data.borrow_mut().write(if byte>>3 & 1 > 0 { Level::High } else { Level::Low });
+        // self.clock.borrow_mut().toggle();
+        // self.clock.borrow_mut().toggle();
+
+        // self.data.borrow_mut().write(if byte>>2 & 1 > 0 { Level::High } else { Level::Low });
+        // self.clock.borrow_mut().toggle();
+        // self.clock.borrow_mut().toggle();
+
+        // self.data.borrow_mut().write(if byte>>1 & 1 > 0 { Level::High } else { Level::Low });
+        // self.clock.borrow_mut().toggle();
+        // self.clock.borrow_mut().toggle();
+
+        // self.data.borrow_mut().write(if byte>>0 & 1 > 0 { Level::High } else { Level::Low });
+        // self.clock.borrow_mut().toggle();
+        // self.clock.borrow_mut().toggle();
     }
 
     /// Simple function used to ensure the pins are set to low before sending a
     /// message to the LEDs.
     #[inline]
     fn set_pins_low(&mut self) {
-        self.data.borrow_mut().set_low();
-        self.clock.borrow_mut().set_low();
+        let mut data = [self.data0.borrow_mut(), self.data1.borrow_mut(), self.data2.borrow_mut(), self.data3.borrow_mut()];
+        let mut clock = [self.clock0.borrow_mut(), self.clock1.borrow_mut(), self.clock2.borrow_mut(), self.clock3.borrow_mut()];
+
+        for pin in data.iter_mut() {
+            pin.set_low();
+        }
+        for pin in clock.iter_mut() {
+            pin.set_low();
+        }
+
+        // self.data.borrow_mut().set_low();
+        // self.clock.borrow_mut().set_low();
     }
 
     /// Sets all LEDs up to `len` to black with 0 brightness, effectively
