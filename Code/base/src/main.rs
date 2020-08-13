@@ -32,7 +32,7 @@ fn main() {
         #[cfg(feature = "pi_draw")]
         {
             let gpio = gpio::Gpio::new().unwrap();
-            Box::new(APA102CPiDraw::new(gpio.get(17).unwrap().into_output(), gpio.get(27).unwrap().into_output())) as Box<dyn Draw>
+            Box::new(APA102CPiDraw::new(gpio.get(26).unwrap().into_output(), gpio.get(25).unwrap().into_output())) as Box<dyn Draw>
         }
         #[cfg(feature = "term_draw")]
         {
@@ -55,11 +55,9 @@ fn main() {
     drawer.push_queue(Box::new(breath.clone()));
     drawer.push_queue(Box::new(rainbow.clone()));
 
-    println!("\n");
-
     if let Err(s) = drawer.run() {
-        eprintln!("Unexpected exit: \t{}", s);
+        eprintln!("\nUnexpected exit: {}", s);
     }
 
-    println!("Stats:\n \t{}", drawer.stats());
+    println!("\nStats:\n \t{}", drawer.stats());
 }
