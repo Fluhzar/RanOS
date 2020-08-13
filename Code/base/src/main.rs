@@ -15,7 +15,7 @@ use base::draw::null_draw::NullDraw;
 fn main() {
     let args: Vec<_> = std::env::args().collect();
 
-    let size = 16; // Safe default value in case no args can be converted to a usize
+    let mut size = 16; // Safe default value in case no args can be converted to a usize
 
     for arg in args {
         if let Ok(s) = arg.parse::<usize>() {
