@@ -32,34 +32,34 @@ namespace RanOS
         switch (o)
         {
         case O_RGB:
-            out.red = u8((x & 0x00FF0000) >> 16);
-            out.green = u8((x & 0x00FF0000) >> 8);
-            out.blue = u8((x & 0x00FF0000) >> 0);
+            out.red   = u8((x & 0x00FF0000) >> 16);
+            out.green = u8((x & 0x0000FF00) >> 8);
+            out.blue  = u8((x & 0x000000FF) >> 0);
             break;
         case O_RBG:
-            out.red = u8((x & 0x00FF0000) >> 16);
-            out.green = u8((x & 0x00FF0000) >> 8);
-            out.blue = u8((x & 0x00FF0000) >> 0);
+            out.red   = u8((x & 0x00FF0000) >> 16);
+            out.blue  = u8((x & 0x0000FF00) >> 8);
+            out.green = u8((x & 0x000000FF) >> 0);
             break;
         case O_GRB:
             out.green = u8((x & 0x00FF0000) >> 16);
-            out.red = u8((x & 0x00FF0000) >> 8);
-            out.blue = u8((x & 0x00FF0000) >> 0);
+            out.red   = u8((x & 0x0000FF00) >> 8);
+            out.blue  = u8((x & 0x000000FF) >> 0);
             break;
         case O_GBR:
             out.green = u8((x & 0x00FF0000) >> 16);
-            out.blue = u8((x & 0x00FF0000) >> 8);
-            out.red = u8((x & 0x00FF0000) >> 0);
+            out.blue  = u8((x & 0x0000FF00) >> 8);
+            out.red   = u8((x & 0x000000FF) >> 0);
             break;
         case O_BRG:
-            out.blue = u8((x & 0x00FF0000) >> 16);
-            out.red = u8((x & 0x00FF0000) >> 8);
-            out.green = u8((x & 0x00FF0000) >> 0);
+            out.blue  = u8((x & 0x00FF0000) >> 16);
+            out.red   = u8((x & 0x0000FF00) >> 8);
+            out.green = u8((x & 0x000000FF) >> 0);
             break;
         case O_BGR:
-            out.blue = u8((x & 0x00FF0000) >> 16);
-            out.green = u8((x & 0x00FF0000) >> 8);
-            out.red = u8((x & 0x00FF0000) >> 0);
+            out.blue  = u8((x & 0x00FF0000) >> 16);
+            out.green = u8((x & 0x0000FF00) >> 8);
+            out.red   = u8((x & 0x000000FF) >> 0);
             break;
         }
 
