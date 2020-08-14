@@ -50,11 +50,10 @@ namespace RanOS
 
             while(ani->time_remaining() > zero_duration) {
                 ani->update(self.timer.ping());
+                Frame const & frame = ani->frame();
 
                 for (usize i = 0; i < NUM_BUSY_LOOPS; ++i) {
-                    Frame const &interp = ani->frame();
-
-                    self.write_frame(interp);
+                    self.write_frame(frame);
                     self.stats.inc_frames();
                 }
             }
