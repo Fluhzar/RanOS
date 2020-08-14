@@ -53,7 +53,7 @@ namespace RanOS
         static RGB random();
         static RGB from_hsv(f32 h, f32 s, f32 v);
 
-        //std::tuple<f32, f32, f32> into_hsv();
+        std::tuple<f32, f32, f32> into_hsv() const;
         RGB scale(f32 s) const;
         std::tuple<u8, u8, u8> into_tuple(RGBOrder o);
 

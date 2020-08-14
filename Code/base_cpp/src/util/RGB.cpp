@@ -124,6 +124,39 @@ namespace RanOS
         return out;
     }
 
+    std::tuple<f32, f32, f32> RGB::into_hsv() const {
+        auto r = f32(self.red) / 255.0;
+        auto g = f32(self.green) / 255.0;
+        auto b = f32(self.blue) / 255.0;
+
+        auto cmax = std::max(r, std::max(g, b));
+        auto cmin = std::min(r, std::min(g, b));
+
+        auto delta = cmax - cmin;
+
+        auto h = 0.0;
+        if(delta == 0.0) {
+            h = 0.0;
+        } else if(cmax == r) {
+            h = 60.0 * fmodf((g - b) / delta, 6.0);
+        } else if(cmax == g) {
+            h = 60.0 * (((b - r) / delta) + 2.0);
+        } else {
+            h = 60.0 * (((r - g) / delta) + 4.0);
+        }
+
+        auto s = 0.0;
+        if(cmax == 0.0) {
+            s = 0.0;
+        } else {
+            s = delta / cmax;
+        }
+
+        auto v = cmax;
+
+        return std::make_tuple(h, s, v);
+    }
+
     RGB RGB::scale(f32 s) const {
         RGB out;
 
