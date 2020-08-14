@@ -17,8 +17,8 @@
 RanOS::APA102CDraw drawer(DATA_PIN, CLOCK_PIN, TARGET_DT);
 RanOS::Vec<RanOS::RGB> colors{RanOS::RGB::from_hsv(0.0, 1.0, 1.0), RanOS::RGB::from_hsv(30.0, 1.0, 1.0), RanOS::RGB::from_hsv(60.0, 1.0, 1.0), RanOS::RGB::from_hsv(120.0, 1.0, 1.0), RanOS::RGB::from_hsv(210.0, 1.0, 1.0), RanOS::RGB::from_hsv(280.0, 1.0,1.0)};
 RanOS::Option<RanOS::Vec<RanOS::RGB>> order(RANDOM ? RanOS::Option<RanOS::Vec<RanOS::RGB>>::None() : RanOS::Option<RanOS::Vec<RanOS::RGB>>::Some(colors) );
-RanOS::Breath * breath = new RanOS::Breath(RanOS::Duration(4*6), RanOS::Duration(4), BRIGHTNESS, NUM_LEDS, order);
-RanOS::Rainbow * rainbow = new RanOS::Rainbow(RanOS::Duration(4 * 6), RanOS::Duration(4), BRIGHTNESS, NUM_LEDS, 1.0, 1.0, 1.0, 1);
+RanOS::Box<RanOS::Breath> breath = NEW_BOX(RanOS::Breath, RanOS::Duration(4*6), RanOS::Duration(4), BRIGHTNESS, NUM_LEDS, order);
+RanOS::Box<RanOS::Rainbow> rainbow = NEW_BOX(RanOS::Rainbow, RanOS::Duration(4 * 6), RanOS::Duration(4), BRIGHTNESS, NUM_LEDS, 1.0, 1.0, 1.0, 1);
 
 // RanOS::Duration start;
 
@@ -33,8 +33,8 @@ void setup()
 }
 
 void loop() {
-    drawer.push_queue(new RanOS::Breath(*breath));
-    drawer.push_queue(new RanOS::Rainbow(*rainbow));
+    drawer.push_queue(NEW_RC(RanOS::Breath, *breath));
+    drawer.push_queue(NEW_RC(RanOS::Rainbow, *rainbow));
     drawer.run();
 
     // if((TIME_NOW() - start) > WAIT) {

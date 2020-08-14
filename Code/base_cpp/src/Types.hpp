@@ -5,15 +5,19 @@
 
 #include <cstdint>
 #include <deque>
+#include <memory>
 #include <string>
 #include <vector>
 
 #define self (*this)
 #define null nullptr
 
+#define POP_FIRST(x, ...) x
+#define POP_REST(x, ...) __VA_ARGS__
+
 #define TIME_NOW() ::RanOS::f32(micros()) / ::RanOS::f32(1'000'000)
-
-
+#define NEW_BOX(T, ...) std::make_unique<T>(__VA_ARGS__)
+#define NEW_RC(T, ...) std::make_shared<T>(__VA_ARGS__)
 
 #define UNREFERENCED_PARAMATER(x) (void)(x)
 
@@ -37,6 +41,12 @@ namespace RanOS
     using f64 = double;
 
     using Pin = int;
+
+    template <typename T>
+    using Box = std::unique_ptr<T>;
+
+    template <typename T>
+    using Rc = std::shared_ptr<T>;
 
     template <typename T>
     using Queue = std::deque<T>;

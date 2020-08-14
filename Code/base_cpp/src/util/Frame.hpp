@@ -22,8 +22,12 @@ namespace RanOS
         // Con-/De- structors   ///////////////////////
 
         Frame(f32 b, usize s);
+        Frame(Frame const &) = default;
+        ~Frame() = default;
 
         // Operators            ///////////////////////
+
+        Frame & operator=(Frame const &) = default;
 
         // Accessors/Mutators   ///////////////////////
 

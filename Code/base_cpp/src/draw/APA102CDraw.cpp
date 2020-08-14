@@ -2,6 +2,8 @@
 
 #include "APA102CDraw.hpp"
 
+#define NUM_BUSY_LOOPS 16
+
 namespace RanOS
 {
     APA102CDraw::APA102CDraw(Pin d, Pin c, Option<Duration> target_dt) :
@@ -20,7 +22,7 @@ namespace RanOS
         self.stop(known_len);
     }
 
-    void APA102CDraw::push_queue(Animation * ani) {
+    void APA102CDraw::push_queue(Rc<Animation> ani) {
         self.queue.push_back(ani);
     }
 
@@ -48,12 +50,14 @@ namespace RanOS
 
             while(ani->time_remaining() > zero_duration) {
                 ani->update(self.timer.ping());
-                for (usize i = 0; i < 16; ++i) {
-                    self.write_frame(ani->frame());
+
+                for (usize i = 0; i < NUM_BUSY_LOOPS; ++i) {
+                    Frame const &interp = ani->frame();
+
+                    self.write_frame(interp);
                     self.stats.inc_frames();
                 }
             }
-
         }
 
         self.stats.end();

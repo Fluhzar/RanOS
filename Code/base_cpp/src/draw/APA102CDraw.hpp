@@ -20,7 +20,7 @@ namespace RanOS
         Pin data;
         Pin clock;
 
-        Queue<Animation *> queue;
+        Queue<Rc<Animation>> queue;
         Timer timer;
 
         usize known_len;
@@ -38,7 +38,7 @@ namespace RanOS
 
         // Accessors/Mutators   ///////////////////////
 
-        void push_queue(Animation * ani);
+        void push_queue(Rc<Animation> ani);
         usize queue_len() const;
 
         DrawStats get_stats() const;
