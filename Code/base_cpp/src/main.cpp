@@ -20,16 +20,16 @@ RanOS::Option<RanOS::Vec<RanOS::RGB>> order(RANDOM ? RanOS::Option<RanOS::Vec<Ra
 RanOS::Box<RanOS::Breath> breath = NEW_BOX(RanOS::Breath, RanOS::Duration(4*6), RanOS::Duration(4), BRIGHTNESS, NUM_LEDS, order);
 RanOS::Box<RanOS::Rainbow> rainbow = NEW_BOX(RanOS::Rainbow, RanOS::Duration(4 * 6), RanOS::Duration(4), BRIGHTNESS, NUM_LEDS, 1.0, 1.0, 1.0, 1);
 
-// RanOS::Duration start;
+RanOS::Duration start;
 
 void setup()
 {
     drawer.stop(NUM_LEDS*NUM_LEDS);
 
-    // Serial.begin(9600);
-    // while(!Serial) {}
+    Serial.begin(9600);
+    while(!Serial) {}
 
-    // start = TIME_NOW();
+    start = TIME_NOW();
 }
 
 void loop() {
@@ -37,8 +37,8 @@ void loop() {
     drawer.push_queue(NEW_RC(RanOS::Rainbow, *rainbow));
     drawer.run();
 
-    // if((TIME_NOW() - start) > WAIT) {
-    //     Serial.println(drawer.get_stats().to_string().c_str());
-    //     start += WAIT;
-    // }
+    if((TIME_NOW() - start) > WAIT) {
+        Serial.println(drawer.get_stats().to_string().c_str());
+        start += WAIT;
+    }
 }
