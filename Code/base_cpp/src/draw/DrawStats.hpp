@@ -24,11 +24,12 @@ namespace RanOS
         // Con-/De- structors   ///////////////////////
 
         DrawStats();
-        DrawStats(DrawStats &&) = default;
         DrawStats(DrawStats const &) = default;
         ~DrawStats() = default;
 
         // Operators            ///////////////////////
+
+        DrawStats & operator=(DrawStats const &) = default;
 
         // Accessors/Mutators   ///////////////////////
 
@@ -37,6 +38,7 @@ namespace RanOS
         void inc_frames();
         void end();
         String to_string() const;
+        void reset();
 
     private:
 

@@ -28,4 +28,8 @@ namespace RanOS
 
         return ss.str();
     }
+
+    void DrawStats::reset() {
+        self = DrawStats();
+    }
 } // namespace RanOS

@@ -20,6 +20,8 @@ namespace RanOS
 
     public:
 
+        static void Wait(Duration t);
+
         // Con-/De- structors   ///////////////////////
 
         Timer(Option<Duration> target);
@@ -31,6 +33,7 @@ namespace RanOS
         // Functions            ///////////////////////
 
         Duration ping();
+        void reset();
 
     private:
 

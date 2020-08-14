@@ -10,7 +10,11 @@
 
 #define self (*this)
 #define null nullptr
+
 #define TIME_NOW() ::RanOS::f32(micros()) / ::RanOS::f32(1'000'000)
+
+
+
 #define UNREFERENCED_PARAMATER(x) (void)(x)
 
 #include "collections/Option.hpp"

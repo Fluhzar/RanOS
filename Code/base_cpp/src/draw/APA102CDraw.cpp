@@ -4,11 +4,11 @@
 
 namespace RanOS
 {
-    APA102CDraw::APA102CDraw(Pin d, Pin c) :
+    APA102CDraw::APA102CDraw(Pin d, Pin c, Option<Duration> target_dt) :
         data(d),
         clock(c),
         queue(),
-        timer(Option<Duration>::None()),
+        timer(target_dt),
         known_len(0),
         stats()
     {
@@ -33,6 +33,9 @@ namespace RanOS
     }
 
     void APA102CDraw::run() {
+        self.timer.reset();
+        self.stats.reset();
+
         auto zero_duration = Duration();
 
         while(self.queue.size() > 0) {
@@ -45,13 +48,15 @@ namespace RanOS
 
             while(ani->time_remaining() > zero_duration) {
                 ani->update(self.timer.ping());
-                self.write_frame(ani->frame());
-
-                self.stats.inc_frames();
+                for (usize i = 0; i < 16; ++i) {
+                    self.write_frame(ani->frame());
+                    self.stats.inc_frames();
+                }
             }
 
-            self.stats.end();
         }
+
+        self.stats.end();
     }
 
     void APA102CDraw::set_pins_low() {

@@ -2,6 +2,11 @@
 
 namespace RanOS
 {
+    void Timer::Wait(Duration t) {
+        auto ctime = TIME_NOW();
+        while(TIME_NOW()-ctime < t) {}
+    }
+
     Timer::Timer(Option<Duration> target):
         ctime(TIME_NOW()),
         ptime(TIME_NOW()),
@@ -25,5 +30,9 @@ namespace RanOS
 
         self.dt = self.ctime - self.ptime;
         return self.dt;
+    }
+
+    void Timer::reset() {
+        self = Timer(self.target_dt);
     }
 }

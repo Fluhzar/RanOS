@@ -31,7 +31,7 @@ namespace RanOS
 
         // Con-/De- structors   ///////////////////////
 
-        APA102CDraw(Pin data, Pin clock);
+        APA102CDraw(Pin data, Pin clock, Option<Duration> target_dt);
         ~APA102CDraw();
 
         // Operators            ///////////////////////
