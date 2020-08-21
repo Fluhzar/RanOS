@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::frame::Frame;
+use crate::ds::collections::frame::Frame;
 use colored::Colorize;
 
 lazy_static! {

@@ -48,7 +48,7 @@ fn main() {
     let order: ColorOrder = if random {
         ColorOrder::Random
     } else {
-        use base::util::rgb::RGB;
+        use base::ds::rgb::RGB;
         ColorOrder::Ordered(vec![
             RGB::from_hsv(0.0, 1.0, 1.0),
             RGB::from_hsv(30.0, 1.0, 1.0),

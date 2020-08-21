@@ -1,5 +1,7 @@
 //! # RGB
 
+use std::io;
+
 /// Enum defining all possible combinations of color order.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum RGBOrder {
@@ -18,6 +20,7 @@ pub enum RGBOrder {
 }
 
 /// Simple RGB struct that holds the color as a single `u32` value.
+#[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct RGB(u8, u8, u8);
 
@@ -28,7 +31,138 @@ impl RGB {
         Default::default()
     }
 
-    /// Creates a new `RGB` value from the given `u32` color code, interepreted as in the specified order.
+    /// Attempts to read an `RGB` value from the `reader` in the given `order`, returning the resulting `RGB` value.
+    /// 
+    /// # Errors
+    /// 
+    /// This function returns an error if `reader` encounters an error during reading.
+    pub fn read<R: io::Read>(reader: &mut R, order: RGBOrder) -> io::Result<RGB> {
+        use std::mem::size_of;
+        let mut r_buf = [0_u8; size_of::<u8>()];
+        let mut g_buf = [0_u8; size_of::<u8>()];
+        let mut b_buf = [0_u8; size_of::<u8>()];
+
+        match order {
+            RGBOrder::RGB => {
+                reader.read_exact(&mut r_buf)?;
+                reader.read_exact(&mut g_buf)?;
+                reader.read_exact(&mut b_buf)?;
+            }
+            RGBOrder::RBG => {
+                reader.read_exact(&mut r_buf)?;
+                reader.read_exact(&mut b_buf)?;
+                reader.read_exact(&mut g_buf)?;
+            }
+            RGBOrder::GRB => {
+                reader.read_exact(&mut g_buf)?;
+                reader.read_exact(&mut r_buf)?;
+                reader.read_exact(&mut b_buf)?;
+            }
+            RGBOrder::GBR => {
+                reader.read_exact(&mut g_buf)?;
+                reader.read_exact(&mut b_buf)?;
+                reader.read_exact(&mut r_buf)?;
+            }
+            RGBOrder::BRG => {
+                reader.read_exact(&mut b_buf)?;
+                reader.read_exact(&mut r_buf)?;
+                reader.read_exact(&mut g_buf)?;
+            }
+            RGBOrder::BGR => {
+                reader.read_exact(&mut b_buf)?;
+                reader.read_exact(&mut g_buf)?;
+                reader.read_exact(&mut r_buf)?;
+            }
+        }
+
+        Ok(Self(
+            u8::from_ne_bytes(r_buf),
+            u8::from_ne_bytes(g_buf),
+            u8::from_ne_bytes(b_buf),
+        ))
+    }
+
+    /// Attempts to read a `n`umber of `RGB`s from the `reader` in the given `order`, returning the resulting [`Vec`][0].
+    /// 
+    /// # Errors
+    /// 
+    /// This function returns an error if the `reader` encounters an error during reading.
+    pub fn read_n<R: io::Read>(reader: &mut R, n: usize, order: RGBOrder) -> io::Result<Vec<RGB>> {
+        let mut out = Vec::with_capacity(n);
+
+        for _ in 0..n {
+            out.push(RGB::read(reader, order)?);
+        }
+
+        Ok(out)
+    }
+
+    /// Attempts to write `self` to the `writer` in the given `order`, returning the number of bytes written.
+    /// 
+    /// # Errors
+    /// 
+    /// This function returns an error if the `writer` encounters an error during writing.
+    pub fn write<W: io::Write>(self, writer: &mut W, order: RGBOrder) -> io::Result<usize> {
+        let r_buf = self.0.to_ne_bytes();
+        let g_buf = self.1.to_ne_bytes();
+        let b_buf = self.2.to_ne_bytes();
+
+        match order {
+            RGBOrder::RGB => {
+                writer.write_all(&r_buf)?;
+                writer.write_all(&g_buf)?;
+                writer.write_all(&b_buf)?;
+            }
+            RGBOrder::RBG => {
+                writer.write_all(&r_buf)?;
+                writer.write_all(&b_buf)?;
+                writer.write_all(&g_buf)?;
+            }
+            RGBOrder::GRB => {
+                writer.write_all(&g_buf)?;
+                writer.write_all(&r_buf)?;
+                writer.write_all(&b_buf)?;
+            }
+            RGBOrder::GBR => {
+                writer.write_all(&g_buf)?;
+                writer.write_all(&b_buf)?;
+                writer.write_all(&r_buf)?;
+            }
+            RGBOrder::BRG => {
+                writer.write_all(&b_buf)?;
+                writer.write_all(&r_buf)?;
+                writer.write_all(&g_buf)?;
+            }
+            RGBOrder::BGR => {
+                writer.write_all(&b_buf)?;
+                writer.write_all(&g_buf)?;
+                writer.write_all(&r_buf)?;
+            }
+        }
+
+        Ok(r_buf.len() + g_buf.len() + b_buf.len())
+    }
+
+    /// Attempts to write a slice of `RGB` values to the `writer` in the given `order`, returning the number of bytes written.
+    /// 
+    /// # Errors
+    /// 
+    /// This function returns an error if the `writer` encounters an error during writing.
+    pub fn write_slice<W: io::Write>(
+        vec_self: &[Self],
+        writer: &mut W,
+        order: RGBOrder,
+    ) -> io::Result<usize> {
+        let mut count = 0;
+
+        for rgb in vec_self {
+            count += rgb.write(writer, order)?;
+        }
+
+        Ok(count)
+    }
+
+    /// Creates a new `RGB` value from the given `u32` color code, interpreted as in the specified order.
     #[inline]
     pub fn from_code(x: u32, o: RGBOrder) -> Self {
         match o {
@@ -65,7 +199,7 @@ impl RGB {
         }
     }
 
-    /// Creates a new `RGB` value from the given tuple, interepreted as in the specified order.
+    /// Creates a new `RGB` value from the given tuple, interpreted as in the specified order.
     #[inline]
     pub fn from_tuple(x: (u8, u8, u8), o: RGBOrder) -> Self {
         match o {
@@ -85,9 +219,13 @@ impl RGB {
     }
 
     /// Creates a new `RGB` value from HSV values.
+    /// 
+    /// Based on the algorithm found on [Wikipedia][0]
+    /// 
+    /// [0]: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
     #[inline]
     pub fn from_hsv(mut h: f32, s: f32, v: f32) -> Self {
-        h = h % 360.0;
+        h %= 360.0;
 
         let c = v * s;
         let x = c * (1.0 - (((h / 60.0) % 2.0) - 1.0).abs());
@@ -116,12 +254,16 @@ impl RGB {
 
     #[inline]
     /// Consumes `self` and returns an HSV tuple converted from itself.
+    /// 
+    /// Based on the algorithm found on [Wikipedia][0]
     ///
     /// # Example
     ///
     /// ```
     /// let (h, s, v) = RGB::random().into_hsv();
     /// ```
+    /// 
+    /// [0]: https://en.wikipedia.org/wiki/HSL_and_HSV#From_RGB
     pub fn into_hsv(self) -> (f32, f32, f32) {
         let r = self.red() as f32 / 255.0;
         let g = self.green() as f32 / 255.0;

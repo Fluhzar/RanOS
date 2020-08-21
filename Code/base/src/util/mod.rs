@@ -1,4 +1,5 @@
 //! # Util
+//!
+//! Module containing common utilities.
 
-pub mod rgb;
 pub mod timer;

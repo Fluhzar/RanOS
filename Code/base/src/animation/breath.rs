@@ -2,7 +2,7 @@
 
 use super::*;
 
-use crate::util::rgb::RGB;
+use crate::ds::rgb::RGB;
 
 use std::time::Duration;
 

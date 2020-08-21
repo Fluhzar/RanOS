@@ -2,8 +2,8 @@
 
 use super::*;
 
-use crate::frame::Frame;
-use crate::util::rgb::*;
+use crate::ds::collections::frame::Frame;
+use crate::ds::rgb::*;
 use crate::util::timer::Timer;
 
 use rppal::gpio;
