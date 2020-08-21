@@ -22,9 +22,9 @@ impl Frame {
     }
 
     /// Attempts to read a `Frame` from the `reader`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function returns an error if the `reader` encounters an error while reading.
     pub fn read<R: io::Read>(reader: &mut R) -> io::Result<Frame> {
         use std::mem::size_of;
@@ -43,9 +43,9 @@ impl Frame {
     }
 
     /// Attempts to write a `Frame` to the `writer`, returning the number of bytes written.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function returns an error if the `writer` encounters an error while writing.
     pub fn write<W: io::Write>(self, writer: &mut W) -> io::Result<usize> {
         let mut count = 0;

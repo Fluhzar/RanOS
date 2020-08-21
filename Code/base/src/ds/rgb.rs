@@ -32,9 +32,9 @@ impl RGB {
     }
 
     /// Attempts to read an `RGB` value from the `reader` in the given `order`, returning the resulting `RGB` value.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function returns an error if `reader` encounters an error during reading.
     pub fn read<R: io::Read>(reader: &mut R, order: RGBOrder) -> io::Result<RGB> {
         use std::mem::size_of;
@@ -83,9 +83,9 @@ impl RGB {
     }
 
     /// Attempts to read a `n`umber of `RGB`s from the `reader` in the given `order`, returning the resulting [`Vec`][0].
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function returns an error if the `reader` encounters an error during reading.
     pub fn read_n<R: io::Read>(reader: &mut R, n: usize, order: RGBOrder) -> io::Result<Vec<RGB>> {
         let mut out = Vec::with_capacity(n);
@@ -98,9 +98,9 @@ impl RGB {
     }
 
     /// Attempts to write `self` to the `writer` in the given `order`, returning the number of bytes written.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function returns an error if the `writer` encounters an error during writing.
     pub fn write<W: io::Write>(self, writer: &mut W, order: RGBOrder) -> io::Result<usize> {
         let r_buf = self.0.to_ne_bytes();
@@ -144,9 +144,9 @@ impl RGB {
     }
 
     /// Attempts to write a slice of `RGB` values to the `writer` in the given `order`, returning the number of bytes written.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function returns an error if the `writer` encounters an error during writing.
     pub fn write_slice<W: io::Write>(
         vec_self: &[Self],
@@ -219,9 +219,9 @@ impl RGB {
     }
 
     /// Creates a new `RGB` value from HSV values.
-    /// 
+    ///
     /// Based on the algorithm found on [Wikipedia][0]
-    /// 
+    ///
     /// [0]: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
     #[inline]
     pub fn from_hsv(mut h: f32, s: f32, v: f32) -> Self {
@@ -254,7 +254,7 @@ impl RGB {
 
     #[inline]
     /// Consumes `self` and returns an HSV tuple converted from itself.
-    /// 
+    ///
     /// Based on the algorithm found on [Wikipedia][0]
     ///
     /// # Example
@@ -262,7 +262,7 @@ impl RGB {
     /// ```
     /// let (h, s, v) = RGB::random().into_hsv();
     /// ```
-    /// 
+    ///
     /// [0]: https://en.wikipedia.org/wiki/HSL_and_HSV#From_RGB
     pub fn into_hsv(self) -> (f32, f32, f32) {
         let r = self.red() as f32 / 255.0;
