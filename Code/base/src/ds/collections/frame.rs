@@ -16,7 +16,7 @@ pub struct Frame {
 }
 
 impl Frame {
-    /// Creates a new `Frame` from a given brightness and size.
+    /// Creates a new `Frame` from a given possibly-controlled duration, brightness, and size.
     pub fn new(controlled_duration: Option<Duration>, brightness: f32, size: usize) -> Self {
         Self {
             controlled_duration,
@@ -37,17 +37,22 @@ impl Frame {
         reader.read_exact(&mut brightness_buf)?;
         let brightness = f32::from_ne_bytes(brightness_buf);
 
-        let mut is_controlled_buf = [0_u8; size_of::<bool>()];
+        let mut is_controlled_buf = [0_u8; size_of::<u32>()];
         reader.read_exact(&mut is_controlled_buf)?;
-        let is_controlled = bool::from_ne_bytes(is_controlled_buf);
+        let is_controlled = if u32::from_ne_bytes(is_controlled_buf) == 0 {
+            false
+        } else {
+            true
+        };
 
-        let duration = None;
-        if is_controlled {
+        let duration = if is_controlled {
             let mut duration_buf = [0_u8; size_of::<f64>()];
             reader.read_exact(&mut duration_buf)?;
             let duration_f64 = f64::from_ne_bytes(duration_buf);
-            duration = Some(Duration::from_secs_f64(duration_f64));
-        }
+            Some(Duration::from_secs_f64(duration_f64))
+        } else {
+            None
+        };
 
         let mut len_buf = [0_u8; size_of::<usize>()];
         reader.read_exact(&mut len_buf)?;
@@ -75,7 +80,7 @@ impl Frame {
         count += brightness_buf.len();
 
         if let Some(d) = self.controlled_duration {
-            let is_controlled_buf = true.to_ne_bytes();
+            let is_controlled_buf = 1_u32.to_ne_bytes();
             writer.write_all(&is_controlled_buf)?;
             count += is_controlled_buf.len();
 
@@ -83,7 +88,7 @@ impl Frame {
             writer.write_all(&duration_buf)?;
             count += duration_buf.len();
         } else {
-            let is_controlled_buf = false.to_ne_bytes();
+            let is_controlled_buf = 0_u32.to_ne_bytes();
             writer.write_all(&is_controlled_buf)?;
             count += is_controlled_buf.len();
         }
@@ -97,11 +102,12 @@ impl Frame {
         Ok(count)
     }
 
+    /// Returns the controlled_duration value.
     pub fn controlled_duration(&self) -> Option<Duration> {
         self.controlled_duration
     }
 
-    /// Returns the brightness in range [0, 1]
+    /// Returns the brightness in range [0, 1].
     pub fn brightness(&self) -> f32 {
         self.brightness
     }

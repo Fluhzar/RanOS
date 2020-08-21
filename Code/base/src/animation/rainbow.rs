@@ -47,7 +47,7 @@ impl Rainbow {
     ) -> Self {
         Self {
             time_remaining: duration,
-            frame: Frame::new(brightness, size),
+            frame: Frame::new(None, brightness, size),
 
             hue: 0.0,
             saturation,

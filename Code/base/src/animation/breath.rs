@@ -51,7 +51,7 @@ impl Breath {
     ) -> Self {
         Self {
             time_remaining: duration,
-            frame: Frame::new(brightness, size),
+            frame: Frame::new(None, brightness, size),
 
             order: order.clone(),
             ind: 0,
