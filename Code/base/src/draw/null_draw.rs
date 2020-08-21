@@ -42,6 +42,9 @@ impl Draw for NullDraw {
     }
 
     fn run(&mut self) -> Result {
+        self.timer.reset();
+        self.stats.reset();
+
         let zero_duration = Duration::new(0, 0);
 
         while let Some(mut ani) = self.queue.pop_front() {
