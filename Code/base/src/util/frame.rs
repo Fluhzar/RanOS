@@ -1,7 +1,7 @@
 //! # Frame
 
 use super::rgb::RGB;
-use std::slice::{IterMut, Iter};
+use std::slice::{Iter, IterMut};
 
 /// A struct representing a single frame of color values and a brightness.
 #[derive(Debug, Default, Clone)]
@@ -15,7 +15,7 @@ impl Frame {
     pub fn new(brightness: f32, size: usize) -> Self {
         Self {
             brightness,
-            leds: vec![ Default::default() ; size ],
+            leds: vec![Default::default(); size],
         }
     }
 
@@ -31,7 +31,7 @@ impl Frame {
     }
 
     /// Same as [`Frame::brightness_sk9822`][0], just a new name for niceness.
-    /// 
+    ///
     /// [0]: ./struct.Frame.html#method.brightness_apa102c
     pub fn brightness_sk9822(&self) -> u8 {
         self.brightness_apa102c()

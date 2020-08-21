@@ -8,9 +8,7 @@ use std::time::Duration;
 
 /// Trait for types that implement animations that sets the LEDs to a given
 /// frame of the animation before being drawn.
-pub trait Animation:
-    std::fmt::Debug
-{
+pub trait Animation: std::fmt::Debug {
     /// Updates the frame with the next frame of the animation given the input `dt`.
     fn update(&mut self, dt: Duration);
 

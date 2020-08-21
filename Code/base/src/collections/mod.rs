@@ -1,5 +1,5 @@
 //! # Collections
-//! 
+//!
 //! Module of collections used within this project.
 
 pub mod sparse_vec;

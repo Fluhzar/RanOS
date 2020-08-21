@@ -9,11 +9,11 @@ use std::time::Duration;
 
 /// Drawer that doesn't have any form of output, and only holds a [`Frame`][0]
 /// to satisfy the requirements of [`Draw`][1].
-/// 
+///
 /// [0]: ../../util/frame/struct.Frame.html
 /// [1]: ../trait.Draw.html
 #[derive(Debug)]
-pub struct NullDraw{
+pub struct NullDraw {
     queue: VecDeque<Box<dyn Animation>>,
     timer: Timer,
 

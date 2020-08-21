@@ -34,15 +34,21 @@ pub struct Breath {
 
 impl Breath {
     /// Creates new `Breath` object
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// * `duration` - The length of time this animation will run.
     /// * `breath_duration` - The duration a single color is drawn for, from black up to full color back down to black.
     /// * `brightness` - The brightness value to use. Should be in range [0, 1].
     /// * `size` - The number of LEDs this animation will animate for.
     /// * `order` - A given order that the animation cycles through.
-    pub fn new(duration: Duration, breath_duration: Duration, brightness: f32, size: usize, order: ColorOrder) -> Self {
+    pub fn new(
+        duration: Duration,
+        breath_duration: Duration,
+        brightness: f32,
+        size: usize,
+        order: ColorOrder,
+    ) -> Self {
         Self {
             time_remaining: duration,
             frame: Frame::new(brightness, size),
@@ -93,7 +99,7 @@ impl Animation for Breath {
     }
 
     fn frame(&self) -> &Frame {
-        return &self.frame
+        return &self.frame;
     }
 
     fn time_remaining(&self) -> Duration {

@@ -19,7 +19,7 @@ pub enum RGBOrder {
 
 /// Simple RGB struct that holds the color as a single `u32` value.
 #[derive(Debug, Default, Copy, Clone)]
-pub struct RGB (u8, u8, u8);
+pub struct RGB(u8, u8, u8);
 
 impl RGB {
     /// Creates a new `RGB` value with default color black.
@@ -32,34 +32,34 @@ impl RGB {
     #[inline]
     pub fn from_code(x: u32, o: RGBOrder) -> Self {
         match o {
-            RGBOrder::RGB => Self (
+            RGBOrder::RGB => Self(
                 ((x & 0x00_FF_00_00) >> 16) as u8,
-                ((x & 0x00_00_FF_00) >>  8) as u8,
-                ((x & 0x00_00_00_FF) >>  0) as u8,
+                ((x & 0x00_00_FF_00) >> 8) as u8,
+                ((x & 0x00_00_00_FF) >> 0) as u8,
             ),
-            RGBOrder::RBG => Self (
+            RGBOrder::RBG => Self(
                 ((x & 0x00_FF_00_00) >> 16) as u8,
-                ((x & 0x00_00_00_FF) >>  0) as u8,
-                ((x & 0x00_00_FF_00) >>  8) as u8,
+                ((x & 0x00_00_00_FF) >> 0) as u8,
+                ((x & 0x00_00_FF_00) >> 8) as u8,
             ),
-            RGBOrder::GRB => Self (
-                ((x & 0x00_00_FF_00) >>  8) as u8,
+            RGBOrder::GRB => Self(
+                ((x & 0x00_00_FF_00) >> 8) as u8,
                 ((x & 0x00_FF_00_00) >> 16) as u8,
-                ((x & 0x00_00_00_FF) >>  0) as u8,
+                ((x & 0x00_00_00_FF) >> 0) as u8,
             ),
-            RGBOrder::GBR => Self (
-                ((x & 0x00_00_00_FF) >>  0) as u8,
+            RGBOrder::GBR => Self(
+                ((x & 0x00_00_00_FF) >> 0) as u8,
                 ((x & 0x00_FF_00_00) >> 16) as u8,
-                ((x & 0x00_00_FF_00) >>  8) as u8,
+                ((x & 0x00_00_FF_00) >> 8) as u8,
             ),
-            RGBOrder::BRG => Self (
-                ((x & 0x00_00_FF_00) >>  8) as u8,
-                ((x & 0x00_00_00_FF) >>  0) as u8,
+            RGBOrder::BRG => Self(
+                ((x & 0x00_00_FF_00) >> 8) as u8,
+                ((x & 0x00_00_00_FF) >> 0) as u8,
                 ((x & 0x00_FF_00_00) >> 16) as u8,
             ),
-            RGBOrder::BGR => Self (
-                ((x & 0x00_00_00_FF) >>  0) as u8,
-                ((x & 0x00_00_FF_00) >>  8) as u8,
+            RGBOrder::BGR => Self(
+                ((x & 0x00_00_00_FF) >> 0) as u8,
+                ((x & 0x00_00_FF_00) >> 8) as u8,
                 ((x & 0x00_FF_00_00) >> 16) as u8,
             ),
         }
@@ -81,11 +81,7 @@ impl RGB {
     /// Creates a new `RGB` value with a random color.
     #[inline]
     pub fn random() -> Self {
-        Self(
-            rand::random(),
-            rand::random(),
-            rand::random(),
-        )
+        Self(rand::random(), rand::random(), rand::random())
     }
 
     /// Creates a new `RGB` value from HSV values.
@@ -94,7 +90,7 @@ impl RGB {
         h = h % 360.0;
 
         let c = v * s;
-        let x = c * (1.0 - (((h/60.0) % 2.0) - 1.0).abs());
+        let x = c * (1.0 - (((h / 60.0) % 2.0) - 1.0).abs());
         let m = v - c;
 
         let (r, g, b) = if h >= 0.0 && h < 60.0 {
@@ -111,14 +107,18 @@ impl RGB {
             (c, 0.0, x)
         };
 
-        Self (((r+m) * 255.0) as u8, ((g+m) * 255.0) as u8, ((b+m) * 255.0) as u8)
+        Self(
+            ((r + m) * 255.0) as u8,
+            ((g + m) * 255.0) as u8,
+            ((b + m) * 255.0) as u8,
+        )
     }
 
     #[inline]
     /// Consumes `self` and returns an HSV tuple converted from itself.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// let (h, s, v) = RGB::random().into_hsv();
     /// ```
@@ -135,18 +135,14 @@ impl RGB {
         let h = if delta == 0.0 {
             0.0
         } else if cmax == r {
-            60.0 * (((g-b)/delta) % 6.0)
+            60.0 * (((g - b) / delta) % 6.0)
         } else if cmax == g {
-            60.0 * (((b-r)/delta) + 2.0)
+            60.0 * (((b - r) / delta) + 2.0)
         } else {
-            60.0 * (((r-g)/delta) + 4.0)
+            60.0 * (((r - g) / delta) + 4.0)
         };
 
-        let s = if cmax == 0.0 {
-            0.0
-        } else {
-            delta / cmax
-        };
+        let s = if cmax == 0.0 { 0.0 } else { delta / cmax };
 
         let v = cmax;
 
@@ -173,10 +169,10 @@ impl RGB {
 
     /// Scales the color by the given scalar value.
     #[inline]
-    pub fn scale(&self, scalar: f32) -> Self{
+    pub fn scale(&self, scalar: f32) -> Self {
         let scalar = scalar.min(1.0).max(0.0);
 
-        Self (
+        Self(
             ((self.0 as f32) * scalar).max(0.0).min(255.0) as u8,
             ((self.1 as f32) * scalar).max(0.0).min(255.0) as u8,
             ((self.2 as f32) * scalar).max(0.0).min(255.0) as u8,

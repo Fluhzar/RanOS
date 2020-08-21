@@ -1,17 +1,17 @@
 //! # Sparse Vector
-//! 
-//! 
+//!
+//!
 
 #![warn(missing_docs)]
 
 /// Type used for the values inside `SparseVec`'s internal `Vec`.
-/// 
+///
 /// The first element of the tuple is the index of the element, which is the second element of the tuple.
 pub type IndVal<T> = (usize, T);
 
 /// Enum used to represent different values of [`SparseVec`][0]. Mostly used as a return type for some
 /// [`SparseVec`][0] functions.
-/// 
+///
 /// [0]: ./struct.SparseVec.html
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub enum Element<T> {
@@ -22,35 +22,35 @@ pub enum Element<T> {
 }
 
 /// Type used as a return value for [`SparseVec::get_ref`][0].
-/// 
+///
 /// [0]: ./struct.SparseVec.html#method.get_ref
 pub type SparseVecElement<'a, T> = Element<&'a IndVal<T>>;
 
 /// Type used as a return value for [`SparseVec::get_mut`][0].
-/// 
+///
 /// [0]: ./struct.SparseVec.html#method.get_mut
 pub type SparseVecElementMut<'a, T> = Element<&'a mut IndVal<T>>;
 
 /// # Sparse Vector
-/// 
+///
 /// This data structure is a collection of sparse data (i.e. a lot of empty values between important elements) represented in a
 /// condense format.
-/// 
+///
 /// Internally this struct uses [`Vec`][0] to hold the elements, granting dense and efficient storage of the sparse data and
 /// simplifying the overhead required to write this library.
-/// 
+///
 /// # Example
-/// 
+///
 /// Imagine, if you will, you have a dataset consisting of the following indices and values:
-/// 
+///
 /// | ind | value |
 /// |:---:|:-----:|
 /// |   0 |    24 |
 /// |   7 |    16 |
 /// |  18 |   164 |
-/// 
+///
 /// Representing this dataset of sparse values would involve something along the lines of:
-/// 
+///
 /// ```
 /// let mut spvec = SparseVec::new();
 ///
@@ -58,15 +58,15 @@ pub type SparseVecElementMut<'a, T> = Element<&'a mut IndVal<T>>;
 /// spvec.insert(7, 16);
 /// spvec.insert(18, 164);
 /// ```
-/// 
+///
 /// Which, looking from the internal point of view, would yield a vec with the values of:
-/// 
+///
 /// | Vec ind | (Sparse Vec ind, value) |
 /// |:-------:|:-----------------------:|
 /// |       0 |                 (0, 24) |
 /// |       1 |                 (7, 16) |
 /// |       2 |               (18, 164) |
-/// 
+///
 /// [0]: https://doc.rust-lang.org/std/vec/struct.Vec.html
 #[derive(Debug, Default, Clone)]
 pub struct SparseVec<T> {
@@ -77,18 +77,16 @@ use std::slice::{Iter, IterMut};
 
 impl<T> SparseVec<T> {
     /// Creates a new [`SparseVector`][0] object
-    /// 
+    ///
     /// [0]: ./struct.SparseVector.html
     pub fn new() -> Self {
-        Self {
-            buf: Vec::new(),
-        }
+        Self { buf: Vec::new() }
     }
 
     /// Inserts an element at the selected index.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// If a value already exists at the given index then it is overwritten by the inserted value.
     pub fn insert(&mut self, ind: usize, val: T) {
         if self.buf.len() > 0 {
@@ -145,13 +143,13 @@ impl<T> SparseVec<T> {
     }
 
     /// Returns an immutable reference to the element at the given index.
-    /// 
+    ///
     /// # Return
-    /// 
+    ///
     /// * If the element exists, then Some(Value(element)) is returned.
     /// * If the element doesn't exist, then Some(Empty) is returned.
     pub fn get_ref(&self, ind: usize) -> SparseVecElement<T> {
-        if let Some(dat) = self.buf.iter().find(|v| v.0 == ind ) {
+        if let Some(dat) = self.buf.iter().find(|v| v.0 == ind) {
             SparseVecElement::Value(dat)
         } else {
             SparseVecElement::Empty
@@ -159,13 +157,13 @@ impl<T> SparseVec<T> {
     }
 
     /// Returns a mutable reference to the element at the given index.
-    /// 
+    ///
     /// # Return
-    /// 
+    ///
     /// * If the element exists, then Some(Value(element)) is returned.
     /// * If the element doesn't exist, then Some(Empty) is returned.
     pub fn get_mut(&mut self, ind: usize) -> SparseVecElementMut<T> {
-        if let Some(dat) = self.buf.iter_mut().find(|v| v.0 == ind ) {
+        if let Some(dat) = self.buf.iter_mut().find(|v| v.0 == ind) {
             SparseVecElementMut::Value(dat)
         } else {
             SparseVecElementMut::Empty
@@ -173,31 +171,31 @@ impl<T> SparseVec<T> {
     }
 
     /// Returns an immutable iterator to the internal buffer of values.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// The elements that the returned iterator will iterate over are of type [`IndVal`][0]. Be sure to read its documentation
     /// to know what is actually being iterated over.
-    /// 
+    ///
     /// [0]: ./type.IndVal.html
     pub fn iter(&self) -> Iter<IndVal<T>> {
         self.buf.iter()
     }
 
     /// Returns a mutable iterator to the internal buffer of values.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// The elements that the returned iterator will iterate over are of type [`IndVal`][0]. Be sure to read its documentation
     /// to know what is actually being iterated over.
-    /// 
+    ///
     /// [0]: ./type.IndVal.html
     pub fn iter_mut(&mut self) -> IterMut<IndVal<T>> {
         self.buf.iter_mut()
     }
 
     /// Consumes `self` and returns a tuple of the internal structure of the [`SparseVec`][0] which is just a simple [`Vec`][1].
-    /// 
+    ///
     /// [0]: ./struct.SparseVec.html
     /// [1]: https://doc.rust-lang.org/std/vec/struct.Vec.html
     pub fn into_parts(self) -> Vec<IndVal<T>> {
@@ -237,11 +235,10 @@ mod sparse_vec_test {
             let vec = spvec.into_parts();
 
             assert_eq!(vec.len(), 3);
-            assert_eq!(vec[0], ( 0,  0));
-            assert_eq!(vec[1], ( 5,  5));
+            assert_eq!(vec[0], (0, 0));
+            assert_eq!(vec[1], (5, 5));
             assert_eq!(vec[2], (10, 10));
         }
-
     }
 
     #[test]
@@ -271,7 +268,7 @@ mod sparse_vec_test {
             let vec = spvec.into_parts();
 
             assert_eq!(vec.len(), 2);
-            assert_eq!(vec[0], ( 5,  5));
+            assert_eq!(vec[0], (5, 5));
             assert_eq!(vec[1], (10, 10));
         }
 
@@ -288,7 +285,7 @@ mod sparse_vec_test {
             let vec = spvec.into_parts();
 
             assert_eq!(vec.len(), 2);
-            assert_eq!(vec[0], ( 0,  0));
+            assert_eq!(vec[0], (0, 0));
             assert_eq!(vec[1], (10, 10));
         }
 
@@ -322,8 +319,8 @@ mod sparse_vec_test {
             let vec = spvec.into_parts();
 
             assert_eq!(vec.len(), 3);
-            assert_eq!(vec[0], ( 0,  0));
-            assert_eq!(vec[1], ( 5,  5));
+            assert_eq!(vec[0], (0, 0));
+            assert_eq!(vec[1], (5, 5));
             assert_eq!(vec[2], (10, 10));
         }
     }

@@ -5,7 +5,7 @@ use super::*;
 use crate::util::timer::Timer;
 
 use std::collections::VecDeque;
-use std::sync::atomic::{Ordering, AtomicBool};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -20,15 +20,16 @@ lazy_static! {
 
         {
             let arc = arc.clone();
-            ctrlc::set_handler(move || arc.store(true, Ordering::Relaxed)).unwrap();
+            ctrlc::set_handler(move || arc.store(true, Ordering::Relaxed)).unwrap(); // Can't error check in static initialization.
         }
 
         arc
     };
 }
+
 /// Emulates an LED display by writing whitespace with specified colored
 /// backgrounds to a terminal that supports full RGB colors.
-/// 
+///
 /// LEDs are displayed in a rectangular grid with 1 LED's worth of space between
 /// each column and row.build_helper
 #[derive(Debug)]
@@ -44,9 +45,9 @@ pub struct TermDraw {
 
 impl TermDraw {
     /// Creates a new `TermDraw` object.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// * `max_width` - The maximum number of LEDs to draw per line in the
     /// terminal. E.g. if there are 256 LEDs to draw and a `max_width` of 16,
     /// then a 16x16 grid will be displayed.
@@ -63,17 +64,25 @@ impl TermDraw {
     }
 
     fn write_frame(&mut self, frame: &Frame) {
-        let mut output = String::with_capacity(frame.len() * 3);
+        // Create output string with enough capacity to minimize reallocations of memory for growing the string's capacity
+        let mut output =
+            String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
         output.push_str("\x1B[1;1H"); // ANSI "move cursor to upper-left corner" code
 
+        // Loop through the enumerated RGB values
         for (i, led) in frame.iter().enumerate() {
             // Check if max width has been reached on the current row
             if i % self.max_width == 0 {
                 output = format!("{}\n\n", output);
             }
 
+            // Scale the color and print it to the output
             let led = led.scale(frame.brightness());
-            output = format!("{}{}  ", output, "  ".on_truecolor(led.red(), led.green(), led.blue()));
+            output = format!(
+                "{}{}  ",
+                output,
+                "  ".on_truecolor(led.red(), led.green(), led.blue())
+            );
         }
 
         println!("{}", output);
@@ -90,6 +99,9 @@ impl Draw for TermDraw {
     }
 
     fn run(&mut self) -> Result {
+        self.timer.reset();
+        self.stats.reset();
+
         let zero_duration = Duration::new(0, 0);
 
         while let Some(mut ani) = self.queue.pop_front() {

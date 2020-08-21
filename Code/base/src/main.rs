@@ -1,10 +1,10 @@
-use base::draw::*;
 use base::animation::breath::{Breath, ColorOrder};
 use base::animation::rainbow::Rainbow;
+use base::draw::*;
 use std::time::Duration;
 
 #[cfg(feature = "pi_draw")]
-use {rppal::*, base::draw::pi_draw::APA102CPiDraw};
+use {base::draw::pi_draw::APA102CPiDraw, rppal::*};
 
 #[cfg(feature = "term_draw")]
 use base::draw::term_draw::TermDraw;
@@ -32,7 +32,10 @@ fn main() {
         #[cfg(feature = "pi_draw")]
         {
             let gpio = gpio::Gpio::new().unwrap();
-            Box::new(APA102CPiDraw::new(gpio.get(26).unwrap().into_output(), gpio.get(25).unwrap().into_output())) as Box<dyn Draw>
+            Box::new(APA102CPiDraw::new(
+                gpio.get(26).unwrap().into_output(),
+                gpio.get(25).unwrap().into_output(),
+            )) as Box<dyn Draw>
         }
         #[cfg(feature = "term_draw")]
         {
@@ -46,11 +49,33 @@ fn main() {
         ColorOrder::Random
     } else {
         use base::util::rgb::RGB;
-        ColorOrder::Ordered(vec![RGB::from_hsv(0.0, 1.0, 1.0), RGB::from_hsv(30.0, 1.0, 1.0), RGB::from_hsv(60.0, 1.0, 1.0), RGB::from_hsv(120.0, 1.0, 1.0), RGB::from_hsv(210.0, 1.0, 1.0), RGB::from_hsv(280.0, 1.0,1.0)])
+        ColorOrder::Ordered(vec![
+            RGB::from_hsv(0.0, 1.0, 1.0),
+            RGB::from_hsv(30.0, 1.0, 1.0),
+            RGB::from_hsv(60.0, 1.0, 1.0),
+            RGB::from_hsv(120.0, 1.0, 1.0),
+            RGB::from_hsv(210.0, 1.0, 1.0),
+            RGB::from_hsv(280.0, 1.0, 1.0),
+        ])
     };
 
-    let breath = Breath::new(Duration::from_secs(16), Duration::from_secs(4), 1.0, size, order);
-    let rainbow = Rainbow::new(Duration::from_secs(16), Duration::from_secs_f64(5.0), 1.0, size, 1.0, 1.0, 1.0, 1);
+    let breath = Breath::new(
+        Duration::from_secs(16),
+        Duration::from_secs(4),
+        1.0,
+        size,
+        order,
+    );
+    let rainbow = Rainbow::new(
+        Duration::from_secs(16),
+        Duration::from_secs_f64(5.0),
+        1.0,
+        size,
+        1.0,
+        1.0,
+        1.0,
+        1,
+    );
 
     drawer.push_queue(Box::new(breath.clone()));
     drawer.push_queue(Box::new(rainbow.clone()));

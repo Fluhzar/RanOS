@@ -1,6 +1,6 @@
 //! # Timer
 
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 
 /// Timer struct that will keep track of the time spent between pings.
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
@@ -17,9 +17,14 @@ impl Timer {
         Self {
             ctime: Instant::now(),
             ptime: Instant::now(),
-            dt: Duration::new(0,0),
+            dt: Duration::new(0, 0),
             target_dt,
         }
+    }
+
+    /// Resets the `Timer` to a brand-new state, as if it were just initialized.
+    pub fn reset(&mut self) {
+        *self = Timer::new(self.target_dt);
     }
 
     /// Pings the timer, returning the amount of time that has passed since the
@@ -48,18 +53,18 @@ mod timer_test {
     fn target_dt() {
         let mut acc_dt = Duration::new(0, 0);
 
-        let max_iteration = 1024*4;
+        let max_iteration = 1024 * 4;
 
-        let mut timer = Timer::new(Some(Duration::from_secs_f64(1.0/144.0)));
+        let mut timer = Timer::new(Some(Duration::from_secs_f64(1.0 / 144.0)));
         for _ in 0..max_iteration {
             acc_dt += timer.ping();
         }
 
         let t = acc_dt.as_secs_f64();
-        let target_t = 1.0/144.0 * max_iteration as f64;
+        let target_t = 1.0 / 144.0 * max_iteration as f64;
 
         eprintln!("expected t: {}\nactual t: {}", target_t, t);
 
-        assert!((t-target_t).abs() < (1.0/144.0)*0.5);
+        assert!((t - target_t).abs() < (1.0 / 144.0) * 0.5);
     }
 }
