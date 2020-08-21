@@ -1,6 +1,6 @@
 //! # Frame
 
-use super::rgb::RGB;
+use super::util::rgb::RGB;
 use std::slice::{Iter, IterMut};
 
 /// A struct representing a single frame of color values and a brightness.

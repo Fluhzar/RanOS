@@ -2,7 +2,7 @@
 
 use super::*;
 
-use crate::util::frame::Frame;
+use crate::frame::Frame;
 use crate::util::rgb::*;
 use crate::util::timer::Timer;
 

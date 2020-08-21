@@ -3,7 +3,7 @@
 pub mod breath;
 pub mod rainbow;
 
-use crate::util::frame::Frame;
+use crate::frame::Frame;
 use std::time::Duration;
 
 /// Trait for types that implement animations that sets the LEDs to a given

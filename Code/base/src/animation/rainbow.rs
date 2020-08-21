@@ -2,7 +2,8 @@
 
 use super::*;
 
-use crate::util::{frame::Frame, rgb::RGB};
+use crate::frame::Frame;
+use crate::util::rgb::RGB;
 use std::time::Duration;
 
 /// Struct for animating the classic RGB rainbow puke that we all know and love
