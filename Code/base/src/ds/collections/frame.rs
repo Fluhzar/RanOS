@@ -1,21 +1,25 @@
 //! # Frame
 
 use crate::ds::rgb::{RGBOrder, RGB};
+
 use std::io;
 use std::slice::{Iter, IterMut};
+use std::time::Duration;
 
 /// A struct representing a single frame of color values and a brightness.
 #[repr(C)]
 #[derive(Debug, Default, Clone)]
 pub struct Frame {
+    controlled_duration: Option<Duration>,
     brightness: f32,
     leds: Vec<RGB>,
 }
 
 impl Frame {
     /// Creates a new `Frame` from a given brightness and size.
-    pub fn new(brightness: f32, size: usize) -> Self {
+    pub fn new(controlled_duration: Option<Duration>, brightness: f32, size: usize) -> Self {
         Self {
+            controlled_duration,
             brightness,
             leds: vec![Default::default(); size],
         }
@@ -33,13 +37,29 @@ impl Frame {
         reader.read_exact(&mut brightness_buf)?;
         let brightness = f32::from_ne_bytes(brightness_buf);
 
+        let mut is_controlled_buf = [0_u8; size_of::<bool>()];
+        reader.read_exact(&mut is_controlled_buf)?;
+        let is_controlled = bool::from_ne_bytes(is_controlled_buf);
+
+        let duration = None;
+        if is_controlled {
+            let mut duration_buf = [0_u8; size_of::<f64>()];
+            reader.read_exact(&mut duration_buf)?;
+            let duration_f64 = f64::from_ne_bytes(duration_buf);
+            duration = Some(Duration::from_secs_f64(duration_f64));
+        }
+
         let mut len_buf = [0_u8; size_of::<usize>()];
         reader.read_exact(&mut len_buf)?;
         let len = usize::from_ne_bytes(len_buf);
 
         let leds = RGB::read_n(reader, len, RGBOrder::RGB)?;
 
-        Ok(Self { brightness, leds })
+        Ok(Self {
+            controlled_duration: duration,
+            brightness,
+            leds,
+        })
     }
 
     /// Attempts to write a `Frame` to the `writer`, returning the number of bytes written.
@@ -54,6 +74,20 @@ impl Frame {
         writer.write_all(&brightness_buf)?;
         count += brightness_buf.len();
 
+        if let Some(d) = self.controlled_duration {
+            let is_controlled_buf = true.to_ne_bytes();
+            writer.write_all(&is_controlled_buf)?;
+            count += is_controlled_buf.len();
+
+            let duration_buf = d.as_secs_f64().to_ne_bytes();
+            writer.write_all(&duration_buf)?;
+            count += duration_buf.len();
+        } else {
+            let is_controlled_buf = false.to_ne_bytes();
+            writer.write_all(&is_controlled_buf)?;
+            count += is_controlled_buf.len();
+        }
+
         let len_buf = self.leds.len().to_ne_bytes();
         writer.write_all(&len_buf)?;
         count += len_buf.len();
@@ -61,6 +95,10 @@ impl Frame {
         count += RGB::write_slice(&self.leds, writer, RGBOrder::RGB)?;
 
         Ok(count)
+    }
+
+    pub fn controlled_duration(&self) -> Option<Duration> {
+        self.controlled_duration
     }
 
     /// Returns the brightness in range [0, 1]
