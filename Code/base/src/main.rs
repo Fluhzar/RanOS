@@ -77,12 +77,15 @@ fn main() {
         1,
     );
 
-    drawer.push_queue(Box::new(breath.clone()));
-    drawer.push_queue(Box::new(rainbow.clone()));
+    loop {
+        drawer.push_queue(Box::new(breath.clone()));
+        drawer.push_queue(Box::new(rainbow.clone()));
 
-    if let Err(s) = drawer.run() {
-        eprintln!("\nUnexpected exit: {}", s);
+        if let Err(s) = drawer.run() {
+            eprintln!("\nUnexpected exit: {}", s);
+            return;
+        } else {
+            println!("\nStats:\n \t{}", drawer.stats());
+        }
     }
-
-    println!("\nStats:\n \t{}", drawer.stats());
 }
