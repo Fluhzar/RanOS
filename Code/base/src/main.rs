@@ -85,7 +85,7 @@ fn main() {
             eprintln!("\nUnexpected exit: {}", s);
             return;
         } else {
-            println!("\nStats:\n \t{}", drawer.stats());
+            println!("\n{}", drawer.stats());
         }
     }
 }
