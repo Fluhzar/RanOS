@@ -33,8 +33,8 @@ fn main() {
         {
             let gpio = gpio::Gpio::new().unwrap();
             Box::new(APA102CPiDraw::new(
-                gpio.get(26).unwrap().into_output(),
-                gpio.get(25).unwrap().into_output(),
+                gpio.get(6).unwrap().into_output(),
+                gpio.get(5).unwrap().into_output(),
             )) as Box<dyn Draw>
         }
         #[cfg(feature = "term_draw")]
