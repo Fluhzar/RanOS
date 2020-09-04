@@ -114,6 +114,7 @@ impl Draw for TermDraw {
                 self.stats.inc_frames();
             }
 
+            self.stats.set_num(ani.frame().len());
             self.stats.end();
 
             if self.should_exit.load(Ordering::Relaxed) == true {

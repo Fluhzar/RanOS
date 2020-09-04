@@ -263,6 +263,7 @@ impl Draw for APA102CPiDraw {
                 self.stats.inc_frames();
             }
 
+            self.stats.set_num(ani.frame().len());
             // Mark the end of the animation for stats-tracking. We know this is safe to do multiple times bc `DrawStats::end`'s
             // documentation says so
             self.stats.end();

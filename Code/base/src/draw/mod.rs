@@ -52,6 +52,7 @@ pub struct DrawStats {
     start: Instant,
     end: Instant,
     frames: usize,
+    num: usize,
 }
 
 impl DrawStats {
@@ -62,7 +63,13 @@ impl DrawStats {
             start: Instant::now(),
             end: Instant::now(),
             frames: 0,
+            num: 0,
         }
+    }
+
+    /// Sets the number of LEDs tracked by the owner of this stats tracker.
+    pub fn set_num(&mut self, num: usize) {
+        self.num = num;
     }
 
     /// Resets the `DrawStats` to a brand-new state, as if it were just initialized.
@@ -94,12 +101,19 @@ impl DrawStats {
 /// tracked, and the average frames per second across the entire run-time.
 impl fmt::Display for DrawStats {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let duration = self.end.duration_since(self.start).as_secs_f64();
+        let num_frames = self.frames as f64;
+        let num_leds = self.num as f64;
+        let fps = num_frames / duration;
+        let led_rate = (num_frames * num_leds) / duration;
         write!(
             f,
-            "Drawing statistics: \nDuration: {}s \tFrame count: {} \nAvg frame rate: {} fps",
-            self.end.duration_since(self.start).as_secs_f64(),
-            self.frames,
-            self.frames as f64 / (self.end - self.start).as_secs_f64()
+            "Drawing statistics: \nDuration: {}s \tFrame count: {} \tLED count: {} \nAvg frame rate: {} Hz \nAvg time per LED: {} Hz",
+            duration,
+            num_frames,
+            num_leds,
+            fps,
+            led_rate
         )
     }
 }
@@ -114,6 +128,11 @@ impl ops::Add<DrawStats> for DrawStats {
             start: self.start + (rhs.start - self.end),
             end: rhs.end,
             frames: self.frames + rhs.frames,
+            num: if self.num > rhs.num {
+                self.num
+            } else {
+                rhs.num
+            },
         }
     }
 }
@@ -124,5 +143,10 @@ impl ops::AddAssign<DrawStats> for DrawStats {
         self.start += rhs.start - self.end;
         self.end = rhs.end;
         self.frames += rhs.frames;
+        self.num = if self.num > rhs.num {
+            self.num
+        } else {
+            rhs.num
+        };
     }
 }

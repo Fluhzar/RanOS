@@ -54,6 +54,7 @@ impl Draw for NullDraw {
                 self.stats.inc_frames();
             }
 
+            self.stats.set_num(ani.frame().len());
             self.stats.end();
         }
 
