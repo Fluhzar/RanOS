@@ -26,7 +26,7 @@ fn main() {
         }
     }
 
-    let brightness = 1.0;
+    let brightness = 0.25;
     let size = size;
 
     let mut drawer: Box<dyn Draw> = {
