@@ -1,7 +1,8 @@
-//! # Runner
+//! # Animation
 
 pub mod breath;
 pub mod rainbow;
+pub mod strobe;
 
 use crate::ds::collections::frame::Frame;
 use std::time::Duration;
