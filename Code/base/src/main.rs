@@ -62,14 +62,14 @@ fn main() {
     let breath = Breath::new(
         Duration::from_secs(16),
         Duration::from_secs(4),
-        1.0,
+        0.25,
         size,
         order,
     );
     let rainbow = Rainbow::new(
         Duration::from_secs(16),
         Duration::from_secs_f64(5.0),
-        1.0,
+        0.25,
         size,
         1.0,
         1.0,
