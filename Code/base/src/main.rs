@@ -1,8 +1,7 @@
-use base::animation::breath::{Breath, ColorOrder};
-use base::animation::rainbow::Rainbow;
-use base::animation::strobe::Strobe;
+use base::animation::{breath::*, rainbow::*, strobe::*};
 use base::draw::*;
 use base::ds::rgb::*;
+
 use std::time::Duration;
 
 #[cfg(feature = "pi_draw")]

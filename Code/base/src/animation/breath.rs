@@ -3,8 +3,30 @@
 use super::*;
 
 use crate::ds::rgb::RGB;
+use crate::util::info::Info;
 
 use std::time::Duration;
+
+/// Presents some info about `Breath` for pretty printing.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub struct BreathInfo();
+
+impl BreathInfo {
+    /// Creates a new `RainbowInfo` object.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Info for BreathInfo {
+    fn name(&self) -> String {
+        "Breath".to_owned()
+    }
+
+    fn details(&self) -> String {
+        "Animates a breathing display that will either walk through a provided list of colors or select random colors, each color fading along a parabolic curve from black to the chosen color and back down to black".to_owned()
+    }
+}
 
 /// Color order used by `Breath`, can be a predetermined order or a random order.
 #[derive(Debug, Clone)]
@@ -15,7 +37,9 @@ pub enum ColorOrder {
     Ordered(Vec<RGB>),
 }
 
-/// Struct for an animated breathing display that will
+/// Struct for an animated breathing display that will either walk through a
+/// provided list of colors or select random colors, each color fading along a
+/// parabolic curve from black to the chosen color and back down to black.
 #[derive(Debug, Clone)]
 pub struct Breath {
     time_remaining: Duration,

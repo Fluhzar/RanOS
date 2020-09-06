@@ -3,7 +3,30 @@
 use super::*;
 
 use crate::ds::{collections::frame::Frame, rgb::RGB};
+use crate::util::info::Info;
+
 use std::time::Duration;
+
+/// Presents some info about `Rainbow` for pretty printing.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub struct RainbowInfo();
+
+impl RainbowInfo {
+    /// Creates a new `RainbowInfo` object.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Info for RainbowInfo {
+    fn name(&self) -> String {
+        "Rainbow".to_owned()
+    }
+
+    fn details(&self) -> String {
+        "Classic RGB rainbow puke that we all know and love but instead of displaying on a fancy RGB keyboard it's just these stupid LEDs puking out everything".to_owned()
+    }
+}
 
 /// Struct for animating the classic RGB rainbow puke that we all know and love
 /// but instead of displaying on a fancy RGB keyboard it's just these stupid

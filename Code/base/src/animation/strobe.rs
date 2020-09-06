@@ -3,11 +3,33 @@
 use super::*;
 
 use crate::ds::rgb::RGB;
+use crate::util::info::Info;
 
 use std::time::Duration;
 
-/// Struct for animating a flickering light similar to strobe lights one might
-/// see at concerts or otherwise.
+/// Presents some info about `Strobe` for pretty printing.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub struct StrobeInfo();
+
+impl StrobeInfo {
+    /// Creates a new `StrobeInfo` object.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Info for StrobeInfo {
+    fn name(&self) -> String {
+        "Strobe".to_owned()
+    }
+
+    fn details(&self) -> String {
+        "Animates a flickering light similar to the strobe lights one might see at concerts or otherwise".to_owned()
+    }
+}
+
+/// Struct for animating a flickering light similar to the strobe lights one
+/// might see at concerts or otherwise.
 /// 
 /// Allows for PWM-like control with the ability to define the period and
 /// "duty cycle" of the strobe.
