@@ -6,7 +6,7 @@
 
 /// Type used for the values inside `SparseVec`'s internal `Vec`.
 ///
-/// The first element of the tuple is the index of the element, which is the second element of the tuple.
+/// The first element of the tuple is the index of the sparse vector's element, which is the second element of the tuple.
 pub type IndVal<T> = (usize, T);
 
 /// Enum used to represent different values of [`SparseVec`][0]. Mostly used as a return type for some
@@ -194,12 +194,39 @@ impl<T> SparseVec<T> {
         self.buf.iter_mut()
     }
 
+    pub fn drain<R>(&mut self, range: R) -> std::vec::Drain<IndVal<T>>
+    where
+        R: std::ops::RangeBounds<usize>
+    {
+        self.buf.drain(range)
+    }
+
     /// Consumes `self` and returns a tuple of the internal structure of the [`SparseVec`][0] which is just a simple [`Vec`][1].
     ///
     /// [0]: ./struct.SparseVec.html
     /// [1]: https://doc.rust-lang.org/std/vec/struct.Vec.html
     pub fn into_parts(self) -> Vec<IndVal<T>> {
         self.buf
+    }
+}
+
+impl<T> Into<Vec<T>> for SparseVec<T>
+where
+    T: Default,
+{
+    fn into(mut self) -> Vec<T> {
+        let mut vec = Vec::new();
+        let mut count = 0;
+        for (i, e) in self.drain(0..) {
+            while count < i {
+                vec.push(Default::default());
+                count += 1;
+            }
+
+            vec.push(e);
+        }
+
+        vec
     }
 }
 

@@ -110,7 +110,7 @@ impl Animation for Rainbow {
     }
 
     fn frame(&self) -> &Frame {
-        return &self.frame;
+        &self.frame
     }
 
     fn time_remaining(&self) -> Duration {

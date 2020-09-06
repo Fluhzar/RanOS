@@ -72,7 +72,7 @@ impl Frame {
     /// # Errors
     ///
     /// This function returns an error if the `writer` encounters an error while writing.
-    pub fn write<W: io::Write>(self, writer: &mut W) -> io::Result<usize> {
+    pub fn write<W: io::Write>(&self, writer: &mut W) -> io::Result<usize> {
         let mut count = 0;
 
         let brightness_buf = self.brightness.to_ne_bytes();
@@ -105,6 +105,10 @@ impl Frame {
     /// Returns the controlled_duration value.
     pub fn controlled_duration(&self) -> Option<Duration> {
         self.controlled_duration
+    }
+
+    pub fn set_duration(&mut self, d: Duration) {
+        self.controlled_duration = Some(d)
     }
 
     /// Returns the brightness in range [0, 1].

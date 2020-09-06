@@ -105,7 +105,6 @@ impl Draw for TermDraw {
         let zero_duration = Duration::new(0, 0);
 
         while let Some(mut ani) = self.queue.pop_front() {
-            let len = ani.frame().len();
 
             while ani.time_remaining() > zero_duration {
                 ani.update(self.timer.ping());
@@ -118,7 +117,7 @@ impl Draw for TermDraw {
             self.stats.end();
 
             if self.should_exit.load(Ordering::Relaxed) == true {
-                for _ in 0..((len / self.max_width + 1) * 2) {
+                for _ in 0..((ani.frame().len() / self.max_width + 1) * 2) {
                     println!("{}", "\x1B[2T");
                 }
                 println!("{}", "\x1B[1;1H");

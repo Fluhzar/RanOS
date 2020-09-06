@@ -248,11 +248,6 @@ impl Draw for APA102CPiDraw {
 
         // Loop while there are still animations to run
         while let Some(mut ani) = self.queue.pop_front() {
-            // If the current animation's frame is longer than the previous known longest, save it
-            if ani.frame().len() > self.known_len {
-                self.known_len = ani.frame().len();
-            }
-
             // While the animation has time left to run
             while ani.time_remaining() > zero_duration {
                 // Update the animation with the current delta-time and write the frames to the LEDs
@@ -268,6 +263,10 @@ impl Draw for APA102CPiDraw {
             // documentation says so
             self.stats.end();
 
+            // If the current animation's frame is longer than the previous known longest, save it
+            if ani.frame().len() > self.known_len {
+                self.known_len = ani.frame().len();
+            }
             // If an interrupt has occurred, exit the run function, returning an appropriate error.
             if self.should_exit.load(Ordering::Relaxed) == true {
                 self.stop(self.known_len);

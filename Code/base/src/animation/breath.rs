@@ -123,7 +123,7 @@ impl Animation for Breath {
     }
 
     fn frame(&self) -> &Frame {
-        return &self.frame;
+        &self.frame
     }
 
     fn time_remaining(&self) -> Duration {
