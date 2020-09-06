@@ -136,17 +136,20 @@ impl Animation for Breath {
 impl Clone for Breath {
     /// Clones and resets `self` so it is as if it were just created with `Breath::new`.
     fn clone(&self) -> Self {
+        let order = self.order.clone();
+        let color = match &order {
+            ColorOrder::Ordered(v) => v[0],
+            ColorOrder::Random => RGB::random(),
+        };
+
         Self {
             runtime: self.runtime,
             time_remaining: self.runtime,
             frame: self.frame.clone(),
 
-            order: self.order.clone(),
+            order,
             ind: 0,
-            current_color: match self.order {
-                ColorOrder::Ordered(v) => v[0],
-                ColorOrder::Random => RGB::random(),
-            },
+            current_color: color,
 
             brightness: self.brightness,
 
