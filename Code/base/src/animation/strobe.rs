@@ -24,7 +24,7 @@ impl Info for StrobeInfo {
     }
 
     fn details(&self) -> String {
-        "Animates a flickering light similar to the strobe lights one might see at concerts or otherwise".to_owned()
+        "Animates a flickering light similar to the strobe lights one might see at concerts or otherwise.".to_owned()
     }
 }
 

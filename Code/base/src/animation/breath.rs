@@ -24,7 +24,7 @@ impl Info for BreathInfo {
     }
 
     fn details(&self) -> String {
-        "Animates a breathing display that will either walk through a provided list of colors or select random colors, each color fading along a parabolic curve from black to the chosen color and back down to black".to_owned()
+        "Animates a breathing display that will either walk through a provided list of colors or select random colors, each color fading along a parabolic curve from black to the chosen color and back down to black.".to_owned()
     }
 }
 

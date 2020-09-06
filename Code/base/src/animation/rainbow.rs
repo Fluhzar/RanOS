@@ -24,7 +24,7 @@ impl Info for RainbowInfo {
     }
 
     fn details(&self) -> String {
-        "Classic RGB rainbow puke that we all know and love but instead of displaying on a fancy RGB keyboard it's just these stupid LEDs puking out everything".to_owned()
+        "Classic RGB rainbow puke that we all know and love but instead of displaying on a fancy RGB keyboard it's just these stupid LEDs puking out everything.".to_owned()
     }
 }
 
