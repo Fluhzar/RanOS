@@ -40,8 +40,9 @@ pub enum ColorOrder {
 /// Struct for an animated breathing display that will either walk through a
 /// provided list of colors or select random colors, each color fading along a
 /// parabolic curve from black to the chosen color and back down to black.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Breath {
+    runtime: Duration,
     time_remaining: Duration,
     frame: Frame,
 
@@ -61,20 +62,21 @@ impl Breath {
     ///
     /// # Parameters
     ///
-    /// * `duration` - The length of time this animation will run.
+    /// * `runtime` - The length of time this animation will run.
     /// * `breath_duration` - The duration a single color is drawn for, from black up to full color back down to black.
     /// * `brightness` - The brightness value to use. Should be in range [0, 1].
     /// * `size` - The number of LEDs this animation will animate for.
     /// * `order` - A given order that the animation cycles through.
     pub fn new(
-        duration: Duration,
+        runtime: Duration,
         breath_duration: Duration,
         brightness: f32,
         size: usize,
         order: ColorOrder,
     ) -> Self {
         Self {
-            time_remaining: duration,
+            runtime,
+            time_remaining: runtime,
             frame: Frame::new(None, brightness, size),
 
             order: order.clone(),
@@ -128,5 +130,29 @@ impl Animation for Breath {
 
     fn time_remaining(&self) -> Duration {
         self.time_remaining
+    }
+}
+
+impl Clone for Breath {
+    /// Clones and resets `self` so it is as if it were just created with `Breath::new`.
+    fn clone(&self) -> Self {
+        Self {
+            runtime: self.runtime,
+            time_remaining: self.runtime,
+            frame: self.frame.clone(),
+
+            order: self.order.clone(),
+            ind: 0,
+            current_color: match self.order {
+                ColorOrder::Ordered(v) => v[0],
+                ColorOrder::Random => RGB::random(),
+            },
+
+            brightness: self.brightness,
+
+            acc: self.acc,
+            vel: self.vel0,
+            vel0: self.vel0,
+        }
     }
 }

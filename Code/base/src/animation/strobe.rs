@@ -37,8 +37,9 @@ impl Info for StrobeInfo {
 /// The `period` is simply the amount of time before the strobe pattern repeats,
 /// and the `duty cycle` being a value in the range of [0, 1) representing the
 /// percentage of time that the LEDs are on within the `period`.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Strobe {
+    runtime: Duration,
     time_remaining: Duration,
     frame: Frame,
 
@@ -55,7 +56,7 @@ impl Strobe {
     ///
     /// # Parameters
     ///
-    /// - `duration` - The length of time this animation will run for.
+    /// - `runtime` - The length of time this animation will run for.
     /// - `brightness` - The brightness value to use. Should be in range [0, 1].
     /// - `size` - The number of LEDs this animation will animate for.
     /// - `period` - The period of time before the strobe animation repeats,
@@ -63,7 +64,7 @@ impl Strobe {
     /// - `duty` - The percentage of time in the range of [0, 1) representing
     /// the percentage of time the LEDs are on within the `period`.
     pub fn new(
-        duration: Duration,
+        runtime: Duration,
         brightness: f32,
         size: usize,
         period: Duration,
@@ -73,7 +74,8 @@ impl Strobe {
         let duty = duty.min(1.0).max(0.0);
 
         Self {
-            time_remaining: duration,
+            runtime,
+            time_remaining: runtime,
             frame: Frame::new(None, brightness, size),
 
             period: period.as_secs_f64(),
@@ -120,5 +122,23 @@ impl Animation for Strobe {
 
     fn time_remaining(&self) -> Duration {
         self.time_remaining
+    }
+}
+
+impl Clone for Strobe {
+    /// Clones and resets `self` so it is as if it were just created with `Breath::new`.
+    fn clone(&self) -> Self {
+        Self {
+            runtime: self.runtime,
+            time_remaining: self.runtime,
+            frame: self.frame.clone(),
+
+            period: self.period,
+            duty: self.duty,
+
+            color: self.color,
+
+            time: 0.0,
+        }
     }
 }
