@@ -6,9 +6,7 @@ pub struct VecWriter {
 
 impl VecWriter {
     pub fn new() -> Self {
-        Self {
-            buf: Vec::new(),
-        }
+        Self { buf: Vec::new() }
     }
 
     pub fn buf(&self) -> &[u8] {

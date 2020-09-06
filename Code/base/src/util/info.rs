@@ -1,24 +1,24 @@
 //! # Info
 
 /// Trait defining the ability to get info about a type as [`String`][0]s.
-/// 
+///
 /// [0]: std::string::String
 pub trait Info {
     /// Returns the name of the implementing struct as a [`String`][0].
-    /// 
+    ///
     /// [0]: std::string::String
     fn name(&self) -> String;
 
     /// Returns some details about `self` and returns it as a [`String`][0].
-    /// 
+    ///
     /// [0]: std::string::String
     fn details(&self) -> String;
 
     /// Uses the other methods of this trait combined together into a pretty
     /// print-ready string with all of the info about the implementing type.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// - `margin` - The size of the margin for the detailed info to be shifted
     /// over by.
     /// - `max_line` - The maximum line length for the detailed info.
@@ -45,11 +45,15 @@ mod test {
     struct InfoTest();
 
     impl InfoTest {
-        pub fn new() -> Self { Default::default() }
+        pub fn new() -> Self {
+            Default::default()
+        }
     }
 
     impl Info for InfoTest {
-        fn name(&self) -> String { "InfoTest".to_owned() }
+        fn name(&self) -> String {
+            "InfoTest".to_owned()
+        }
         fn details(&self) -> String {
             "This is a really long line that will certainly need to be split into multiple lines when this is called through the test function to verify that the trait is functioning properly.".to_owned()
         }

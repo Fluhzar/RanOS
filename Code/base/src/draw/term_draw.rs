@@ -105,7 +105,6 @@ impl Draw for TermDraw {
         let zero_duration = Duration::new(0, 0);
 
         while let Some(mut ani) = self.queue.pop_front() {
-
             while ani.time_remaining() > zero_duration {
                 ani.update(self.timer.ping());
                 self.write_frame(ani.frame());

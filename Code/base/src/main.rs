@@ -83,14 +83,14 @@ fn main() {
         Duration::from_secs(8),
         brightness,
         size,
-        Duration::from_secs_f64(1.0/((1<<1) as f64)),
-        1.0/((1<<2) as f64),
-        RGB::from_code(0xFFFFFF, RGBOrder::RGB)
+        Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
+        1.0 / ((1 << 2) as f64),
+        RGB::from_code(0xFFFFFF, RGBOrder::RGB),
     );
 
-    // loop {
-        // drawer.push_queue(Box::new(breath.clone()));
-        // drawer.push_queue(Box::new(rainbow.clone()));
+    loop {
+        drawer.push_queue(Box::new(breath.clone()));
+        drawer.push_queue(Box::new(rainbow.clone()));
         drawer.push_queue(Box::new(strobe.clone()));
 
         if let Err(s) = drawer.run() {
@@ -99,5 +99,5 @@ fn main() {
         } else {
             println!("\n{}", drawer.stats());
         }
-    // }
+    }
 }

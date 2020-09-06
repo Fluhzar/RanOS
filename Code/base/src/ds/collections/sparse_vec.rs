@@ -196,7 +196,7 @@ impl<T> SparseVec<T> {
 
     pub fn drain<R>(&mut self, range: R) -> std::vec::Drain<IndVal<T>>
     where
-        R: std::ops::RangeBounds<usize>
+        R: std::ops::RangeBounds<usize>,
     {
         self.buf.drain(range)
     }

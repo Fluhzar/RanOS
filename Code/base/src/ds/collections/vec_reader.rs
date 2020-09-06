@@ -9,7 +9,7 @@ pub struct VecReader {
 impl VecReader {
     pub fn new<T, F>(inp: &[T], f: F) -> Self
     where
-        F: FnMut(&T)->&[u8]
+        F: FnMut(&T) -> &[u8],
     {
         Self {
             buf: inp.iter().flat_map(f).map(|&b| b).collect(),
