@@ -11,14 +11,14 @@ use std::time::Duration;
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct RainbowInfo();
 
-impl RainbowInfo {
-    /// Creates a new `RainbowInfo` object.
-    pub fn new() -> Self {
-        Default::default()
-    }
-}
-
 impl Info for RainbowInfo {
+    fn new() -> Box<dyn Info>
+    where
+        Self: Sized
+    {
+        Box::new(RainbowInfo::default())
+    }
+
     fn name(&self) -> String {
         "Rainbow".to_owned()
     }

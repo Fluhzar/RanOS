@@ -4,6 +4,10 @@
 ///
 /// [0]: std::string::String
 pub trait Info {
+    /// Creates a new `Info`-implementing object, boxed for ease of working with
+    /// multiple different implementing types.
+    fn new() -> Box<dyn Info> where Self: Sized;
+
     /// Returns the name of the implementing struct as a [`String`][0].
     ///
     /// [0]: std::string::String
@@ -22,6 +26,13 @@ pub trait Info {
     /// - `margin` - The size of the margin for the detailed info to be shifted
     /// over by.
     /// - `max_line` - The maximum line length for the detailed info.
+    /// 
+    /// It is important to note that the margin size is not taken into account
+    /// when splitting the `Info::detail()` string into lines. Instead that
+    /// string is split by the `max_line` length, and then shifted over by
+    /// `" "` chars inserted `margin` times at the beginning of each line, so
+    /// the theoretical maximum line length that may be present is
+    /// `margin + max_line`.
     fn info(&self, margin: usize, max_line: usize) -> String {
         use super::max_line::MaxLine;
         let out = format!("{1:<0$}", margin, self.name());
@@ -44,13 +55,14 @@ mod test {
     #[derive(Default)]
     struct InfoTest();
 
-    impl InfoTest {
-        pub fn new() -> Self {
-            Default::default()
-        }
-    }
-
     impl Info for InfoTest {
+        fn new() -> Box<dyn Info>
+        where
+            Self: Sized
+        {
+            Box::new(InfoTest::default())
+        }
+
         fn name(&self) -> String {
             "InfoTest".to_owned()
         }

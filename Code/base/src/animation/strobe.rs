@@ -11,14 +11,14 @@ use std::time::Duration;
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct StrobeInfo();
 
-impl StrobeInfo {
-    /// Creates a new `StrobeInfo` object.
-    pub fn new() -> Self {
-        Default::default()
-    }
-}
-
 impl Info for StrobeInfo {
+    fn new() -> Box<dyn Info>
+    where
+        Self: Sized
+    {
+        Box::new(StrobeInfo::default())
+    }
+
     fn name(&self) -> String {
         "Strobe".to_owned()
     }

@@ -11,14 +11,14 @@ use std::time::Duration;
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct BreathInfo();
 
-impl BreathInfo {
-    /// Creates a new `RainbowInfo` object.
-    pub fn new() -> Self {
-        Default::default()
-    }
-}
-
 impl Info for BreathInfo {
+    fn new() -> Box<dyn Info>
+    where
+        Self: Sized
+    {
+        Box::new(BreathInfo::default())
+    }
+
     fn name(&self) -> String {
         "Breath".to_owned()
     }
