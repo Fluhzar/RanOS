@@ -6,6 +6,15 @@ use crate::ds::rgb::RGB;
 
 use std::time::Duration;
 
+/// Struct for animating a flickering light similar to strobe lights one might
+/// see at concerts or otherwise.
+/// 
+/// Allows for PWM-like control with the ability to define the period and
+/// "duty cycle" of the strobe.
+/// 
+/// The `period` is simply the amount of time before the strobe pattern repeats,
+/// and the `duty cycle` being a value in the range of [0, 1) representing the
+/// percentage of time that the LEDs are on within the `period`.
 #[derive(Debug, Clone)]
 pub struct Strobe {
     time_remaining: Duration,
@@ -20,6 +29,17 @@ pub struct Strobe {
 }
 
 impl Strobe {
+    /// Creates a new `Strobe` animation.
+    /// 
+    /// # Parameters
+    /// 
+    /// - `duration` - The length of time this animation will run for.
+    /// - `brightness` - The brightness value to use. Should be in range [0, 1].
+    /// - `size` - The number of LEDs this animation will animate for.
+    /// - `period` - The period of time before the strobe animation repeats,
+    /// typically a number less than 1.
+    /// - `duty` - The percentage of time in the range of [0, 1) representing
+    /// the percentage of time the LEDs are on within the `period`.
     pub fn new(duration: Duration, brightness: f32, size: usize, period: Duration, duty: f64, color: RGB) -> Self {
         let duty = duty.min(1.0).max(0.0);
 
