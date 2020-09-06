@@ -2,7 +2,7 @@
 
 use super::*;
 
-use crate::util::timer::Timer;
+use crate::util::Timer;
 
 use std::collections::VecDeque;
 use std::time::Duration;

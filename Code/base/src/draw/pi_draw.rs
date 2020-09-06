@@ -4,7 +4,7 @@ use super::*;
 
 use crate::ds::collections::frame::Frame;
 use crate::ds::rgb::*;
-use crate::util::timer::Timer;
+use crate::util::Timer;
 
 use rppal::gpio;
 

@@ -21,7 +21,7 @@ pub enum RGBOrder {
 
 /// Simple RGB struct that holds the color as a single `u32` value.
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct RGB(u8, u8, u8);
 
 impl RGB {

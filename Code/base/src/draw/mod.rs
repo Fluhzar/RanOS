@@ -14,11 +14,16 @@ use std::{fmt, ops};
 
 #[cfg(feature = "pi_draw")]
 pub mod pi_draw;
+#[cfg(feature = "pi_draw")]
+pub use pi_draw::{APA102CPiDraw, SK9822PiDraw};
 
 #[cfg(feature = "term_draw")]
 pub mod term_draw;
+#[cfg(feature = "term_draw")]
+pub use term_draw::{TermDraw};
 
 pub mod null_draw;
+pub use null_draw::NullDraw;
 
 /// Result type used for [`Draw::run`][0], indicating the success of the
 /// function. Usually `Err` is returned when `SIGINT` is handled, shutting the
