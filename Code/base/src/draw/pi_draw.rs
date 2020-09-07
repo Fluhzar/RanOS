@@ -4,7 +4,7 @@ use super::*;
 
 use crate::ds::collections::frame::Frame;
 use crate::ds::rgb::*;
-use crate::util::Timer;
+use crate::util::{Info, Timer};
 
 use rppal::gpio;
 
@@ -15,6 +15,27 @@ use std::sync::{
     Arc,
 };
 use std::time::Duration;
+
+/// Type alias for the
+pub type SK9822PiDrawInfo = APA102CPiDrawInfo;
+
+/// Presents some info about `APA102CPiDraw` for pretty printing.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub struct APA102CPiDrawInfo();
+
+impl Info for APA102CPiDrawInfo {
+    fn new() -> Box<dyn Info> {
+        Box::new(APA102CPiDrawInfo::default())
+    }
+
+    fn name(&self) -> String {
+        "PiDraw".to_owned()
+    }
+
+    fn details(&self) -> String {
+        "Draws APA102C/SK9822 LEDs through the Raspberry Pi's GPIO pins. This implementation maintains compatibility with both APA102C and SK9822 LEDs.".to_owned()
+    }
+}
 
 lazy_static! {
     static ref SIGINT: Arc<AtomicBool> = {

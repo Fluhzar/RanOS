@@ -2,7 +2,7 @@
 
 use super::*;
 
-use crate::util::Timer;
+use crate::util::{Info, Timer};
 
 use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -11,6 +11,27 @@ use std::time::Duration;
 
 use crate::ds::collections::frame::Frame;
 use colored::Colorize;
+
+/// Presents some info about `TermDraw` for pretty printing.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub struct TermDrawInfo();
+
+impl Info for TermDrawInfo {
+    fn new() -> Box<dyn Info>
+    where
+        Self: Sized,
+    {
+        Box::new(TermDrawInfo::default())
+    }
+
+    fn name(&self) -> String {
+        "TermDraw".to_owned()
+    }
+
+    fn details(&self) -> String {
+        "Emulates an LED display by writing whitespace with specified colored backgrounds to a terminal that supports full RGB colors.".to_owned()
+    }
+}
 
 lazy_static! {
     static ref SIGINT: Arc<AtomicBool> = {

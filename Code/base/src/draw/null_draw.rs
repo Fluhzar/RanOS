@@ -2,10 +2,31 @@
 
 use super::*;
 
-use crate::util::Timer;
+use crate::util::{Info, Timer};
 
 use std::collections::VecDeque;
 use std::time::Duration;
+
+/// Presents some info about `TermDraw` for pretty printing.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub struct NullDrawInfo();
+
+impl Info for NullDrawInfo {
+    fn new() -> Box<dyn Info>
+    where
+        Self: Sized,
+    {
+        Box::new(NullDrawInfo::default())
+    }
+
+    fn name(&self) -> String {
+        "NullDraw".to_owned()
+    }
+
+    fn details(&self) -> String {
+        "Drawer that doesn't have any form of output, and has no form of output.".to_owned()
+    }
+}
 
 /// Drawer that doesn't have any form of output, and only holds a [`Frame`][0]
 /// to satisfy the requirements of [`Draw`][1].

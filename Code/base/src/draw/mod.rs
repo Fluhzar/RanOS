@@ -15,15 +15,15 @@ use std::{fmt, ops};
 #[cfg(feature = "pi_draw")]
 pub mod pi_draw;
 #[cfg(feature = "pi_draw")]
-pub use pi_draw::{APA102CPiDraw, SK9822PiDraw};
+pub use pi_draw::{APA102CPiDraw, APA102CPiDrawInfo, SK9822PiDraw, SK9822PiDrawInfo};
 
 #[cfg(feature = "term_draw")]
 pub mod term_draw;
 #[cfg(feature = "term_draw")]
-pub use term_draw::{TermDraw};
+pub use term_draw::{TermDraw, TermDrawInfo};
 
 pub mod null_draw;
-pub use null_draw::NullDraw;
+pub use null_draw::{NullDraw, NullDrawInfo};
 
 /// Result type used for [`Draw::run`][0], indicating the success of the
 /// function. Usually `Err` is returned when `SIGINT` is handled, shutting the
@@ -154,4 +154,24 @@ impl ops::AddAssign<DrawStats> for DrawStats {
             rhs.num
         };
     }
+}
+
+/// Returns a string containing info about the drawers implemented in this
+/// module.
+///
+/// # Parameters
+///
+/// - `max_line` - The maximum line length for the info.
+pub fn drawers_info(max_line: usize) -> String {
+    use crate::util::{info, Info};
+    info::format_info(
+        &[
+            #[cfg(feature = "pi_draw")]
+            APA102CPiDrawInfo::new(),
+            #[cfg(feature = "term_draw")]
+            TermDrawInfo::new(),
+            NullDrawInfo::new(),
+        ],
+        max_line,
+    )
 }

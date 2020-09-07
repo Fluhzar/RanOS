@@ -6,7 +6,9 @@
 pub trait Info {
     /// Creates a new `Info`-implementing object, boxed for ease of working with
     /// multiple different implementing types.
-    fn new() -> Box<dyn Info> where Self: Sized;
+    fn new() -> Box<dyn Info>
+    where
+        Self: Sized;
 
     /// Returns the name of the implementing struct as a [`String`][0].
     ///
@@ -26,7 +28,7 @@ pub trait Info {
     /// - `margin` - The size of the margin for the detailed info to be shifted
     /// over by.
     /// - `max_line` - The maximum line length for the detailed info.
-    /// 
+    ///
     /// It is important to note that the margin size is not taken into account
     /// when splitting the `Info::detail()` string into lines. Instead that
     /// string is split by the `max_line` length, and then shifted over by
@@ -48,6 +50,40 @@ pub trait Info {
     }
 }
 
+/// Returns a string containing info about the given slice of `Info` objects in
+/// a pretty-formatted `String`.
+///
+/// # Parameters
+///
+/// - `info_objects`
+///
+/// # Example
+///
+/// ```
+/// # use base::util::Info;
+/// # use base::animation::*;
+/// # use base::util::info::*;
+/// # fn get_infos() -> Vec<Box<dyn Info>> { vec![RainbowInfo::new()] }
+/// let info_objects = get_infos();
+/// println!("Options:\n{}", format_info(&info_objects, 80));
+/// ```
+pub fn format_info(info_objects: &[Box<dyn Info>], max_line: usize) -> String {
+    let name_max_len = info_objects.iter().fold(0, |a, b| {
+        if b.name().len() > a {
+            b.name().len()
+        } else {
+            a
+        }
+    }) + 4;
+
+    let mut out = String::new();
+    for i in info_objects.iter() {
+        out = format!("{}\n{}", out, i.info(name_max_len, max_line));
+    }
+
+    out
+}
+
 #[cfg(test)]
 mod test {
     use super::Info;
@@ -58,7 +94,7 @@ mod test {
     impl Info for InfoTest {
         fn new() -> Box<dyn Info>
         where
-            Self: Sized
+            Self: Sized,
         {
             Box::new(InfoTest::default())
         }
