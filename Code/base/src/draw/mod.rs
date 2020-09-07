@@ -25,6 +25,8 @@ pub use term_draw::{TermDraw, TermDrawInfo};
 pub mod null_draw;
 pub use null_draw::{NullDraw, NullDrawInfo};
 
+use crate::util::Info;
+
 /// Result type used for [`Draw::run`][0], indicating the success of the
 /// function. Usually `Err` is returned when `SIGINT` is handled, shutting the
 /// system down.
@@ -156,22 +158,13 @@ impl ops::AddAssign<DrawStats> for DrawStats {
     }
 }
 
-/// Returns a string containing info about the drawers implemented in this
-/// module.
-///
-/// # Parameters
-///
-/// - `max_line` - The maximum line length for the info.
-pub fn drawers_info(max_line: usize) -> String {
-    use crate::util::{info, Info};
-    info::format_info(
-        &[
-            #[cfg(feature = "pi_draw")]
-            APA102CPiDrawInfo::new(),
-            #[cfg(feature = "term_draw")]
-            TermDrawInfo::new(),
-            NullDrawInfo::new(),
-        ],
-        max_line,
-    )
+/// Returns a `Vec` of drawer `Info` objects
+pub fn draw_info() -> Vec<Box<dyn Info>> {
+    vec![
+        #[cfg(feature = "pi_draw")]
+        APA102CPiDrawInfo::new(),
+        #[cfg(feature = "term_draw")]
+        TermDrawInfo::new(),
+        NullDrawInfo::new(),
+    ]
 }

@@ -9,6 +9,8 @@ pub use rainbow::{Rainbow, RainbowInfo};
 pub use strobe::{Strobe, StrobeInfo};
 
 use crate::ds::collections::frame::Frame;
+use crate::util::Info;
+
 use std::time::Duration;
 
 /// Trait for types that implement animations that sets the LEDs to a given
@@ -25,16 +27,11 @@ pub trait Animation: std::fmt::Debug {
     fn time_remaining(&self) -> Duration;
 }
 
-/// Returns a string containing info about the animations implemented in this
-/// module.
-///
-/// # Parameters
-///
-/// - `max_line` - The maximum line length for the info.
-pub fn animations_info(max_line: usize) -> String {
-    use crate::util::{info, Info};
-    info::format_info(
-        &[BreathInfo::new(), RainbowInfo::new(), StrobeInfo::new()],
-        max_line,
-    )
+/// Returns a `Vec` of animation `Info` objects.
+pub fn animation_info() -> Vec<Box<dyn Info>> {
+    vec![
+        BreathInfo::new(),
+        RainbowInfo::new(),
+        StrobeInfo::new(),
+    ]
 }
