@@ -68,6 +68,8 @@ impl Draw for NullDraw {
 
         let zero_duration = Duration::new(0, 0);
 
+        let mut out = Vec::new();
+
         while let Some(mut ani) = self.queue.pop_front() {
             while ani.time_remaining() > zero_duration {
                 ani.update(self.timer.ping());
@@ -77,9 +79,10 @@ impl Draw for NullDraw {
 
             self.stats.set_num(ani.frame().len());
             self.stats.end();
+            out.push(ani);
         }
 
-        Ok(())
+        Ok(out)
     }
 
     fn stats(&self) -> DrawStats {

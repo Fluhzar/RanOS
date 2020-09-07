@@ -125,6 +125,8 @@ impl Draw for TermDraw {
 
         let zero_duration = Duration::new(0, 0);
 
+        let mut out = Vec::new();
+
         while let Some(mut ani) = self.queue.pop_front() {
             while ani.time_remaining() > zero_duration {
                 ani.update(self.timer.ping());
@@ -144,9 +146,11 @@ impl Draw for TermDraw {
 
                 return Err("\nCaught SIGINT, stopping".to_owned());
             }
+
+            out.push(ani);
         }
 
-        Ok(())
+        Ok(out)
     }
 
     fn stats(&self) -> DrawStats {

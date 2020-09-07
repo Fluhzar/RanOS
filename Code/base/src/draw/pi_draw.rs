@@ -267,6 +267,8 @@ impl Draw for APA102CPiDraw {
         // value
         let zero_duration = Duration::new(0, 0);
 
+        let mut out = Vec::new();
+
         // Loop while there are still animations to run
         while let Some(mut ani) = self.queue.pop_front() {
             // While the animation has time left to run
@@ -294,9 +296,11 @@ impl Draw for APA102CPiDraw {
 
                 return Err("Caught SIGINT, stopping".to_owned());
             }
+
+            out.push(ani);
         }
 
-        Ok(())
+        Ok(out)
     }
 
     fn stats(&self) -> DrawStats {

@@ -32,7 +32,7 @@ use crate::util::Info;
 /// system down.
 ///
 /// [0]: ./trait.Draw.html#method.Run
-pub type Result = std::result::Result<(), String>;
+pub type Result = std::result::Result<Vec<Box<dyn Animation>>, String>;
 
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
