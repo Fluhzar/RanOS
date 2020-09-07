@@ -24,7 +24,7 @@ impl Info for NullDrawInfo {
     }
 
     fn details(&self) -> String {
-        "Drawer that doesn't have any form of output, and has no form of output.".to_owned()
+        "Drawer that doesn't have any form of output.".to_owned()
     }
 }
 

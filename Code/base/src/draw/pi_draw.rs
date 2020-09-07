@@ -32,7 +32,7 @@ impl Info for APA102CPiDrawInfo {
     }
 
     fn details(&self) -> String {
-        "Draws APA102C/SK9822 LEDs through the Raspberry Pi's GPIO pins. This implementation maintains compatibility with both APA102C and SK9822 LEDs.".to_owned()
+        "Draws APA102C/SK9822 LEDs through a Raspberry Pi's GPIO pins. This implementation maintains compatibility with both APA102C and SK9822 LEDs.".to_owned()
     }
 }
 
