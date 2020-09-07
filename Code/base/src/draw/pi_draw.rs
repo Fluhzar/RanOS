@@ -311,3 +311,13 @@ impl Drop for APA102CPiDraw {
         self.stop(self.known_len);
     }
 }
+
+impl Default for APA102CPiDraw {
+    fn default() -> Self {
+        let gpio = gpio::Gpio::new().unwrap();
+        APA102CPiDraw::new(
+            gpio.get(6).unwrap().into_output(),
+            gpio.get(5).unwrap().into_output()
+        )
+    }
+}

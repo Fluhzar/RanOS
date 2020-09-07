@@ -153,3 +153,9 @@ impl Draw for TermDraw {
         self.stats
     }
 }
+
+impl Default for TermDraw {
+    fn default() -> Self {
+        Self::new(8)
+    }
+}

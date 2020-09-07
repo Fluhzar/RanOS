@@ -86,3 +86,9 @@ impl Draw for NullDraw {
         self.stats
     }
 }
+
+impl Default for NullDraw {
+    fn default() -> Self {
+        NullDraw::new()
+    }
+}
