@@ -14,7 +14,7 @@ pub struct BreathInfo();
 impl Info for BreathInfo {
     fn new() -> Box<dyn Info>
     where
-        Self: Sized
+        Self: Sized,
     {
         Box::new(BreathInfo::default())
     }

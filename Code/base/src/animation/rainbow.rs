@@ -14,7 +14,7 @@ pub struct RainbowInfo();
 impl Info for RainbowInfo {
     fn new() -> Box<dyn Info>
     where
-        Self: Sized
+        Self: Sized,
     {
         Box::new(RainbowInfo::default())
     }

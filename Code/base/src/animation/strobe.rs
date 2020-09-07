@@ -14,7 +14,7 @@ pub struct StrobeInfo();
 impl Info for StrobeInfo {
     fn new() -> Box<dyn Info>
     where
-        Self: Sized
+        Self: Sized,
     {
         Box::new(StrobeInfo::default())
     }
