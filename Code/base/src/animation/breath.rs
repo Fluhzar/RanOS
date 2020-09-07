@@ -159,3 +159,22 @@ impl Clone for Breath {
         }
     }
 }
+
+impl Default for Breath {
+    fn default() -> Self {
+        Self::new(
+            Duration::from_secs(18),
+            Duration::from_secs(3),
+            0.25,
+            16,
+            ColorOrder::Ordered(vec![
+                RGB::from_hsv(0.0, 1.0, 1.0),
+                RGB::from_hsv(30.0, 1.0, 1.0),
+                RGB::from_hsv(60.0, 1.0, 1.0),
+                RGB::from_hsv(120.0, 1.0, 1.0),
+                RGB::from_hsv(210.0, 1.0, 1.0),
+                RGB::from_hsv(280.0, 1.0, 1.0),
+            ])
+        )
+    }
+}

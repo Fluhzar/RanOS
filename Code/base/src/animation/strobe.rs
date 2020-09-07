@@ -2,7 +2,7 @@
 
 use super::*;
 
-use crate::ds::rgb::RGB;
+use crate::ds::rgb::{RGBOrder, RGB};
 use crate::util::info::Info;
 
 use std::time::Duration;
@@ -140,5 +140,18 @@ impl Clone for Strobe {
 
             time: 0.0,
         }
+    }
+}
+
+impl Default for Strobe {
+    fn default() -> Self {
+        Self::new(
+            Duration::from_secs(8),
+            0.25,
+            16,
+            Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
+            1.0 / ((1 << 2) as f64),
+            RGB::from_code(0xFFFFFF, RGBOrder::RGB)
+        )
     }
 }

@@ -62,31 +62,9 @@ fn main() {
         ])
     };
 
-    let breath = Breath::new(
-        Duration::from_secs(16),
-        Duration::from_secs(4),
-        brightness,
-        size,
-        order,
-    );
-    let rainbow = Rainbow::new(
-        Duration::from_secs(16),
-        Duration::from_secs_f64(5.0),
-        brightness,
-        size,
-        1.0,
-        1.0,
-        1.0,
-        1,
-    );
-    let strobe = Strobe::new(
-        Duration::from_secs(8),
-        brightness,
-        size,
-        Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
-        1.0 / ((1 << 2) as f64),
-        RGB::from_code(0xFFFFFF, RGBOrder::RGB),
-    );
+    let breath = Breath::default();
+    let rainbow = Rainbow::default();
+    let strobe = Strobe::default();
 
     loop {
         drawer.push_queue(Box::new(breath.clone()));
