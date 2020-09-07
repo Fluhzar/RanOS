@@ -168,3 +168,20 @@ pub fn draw_info() -> Vec<Box<dyn Info>> {
         NullDrawInfo::new(),
     ]
 }
+
+pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
+where
+    T: std::ops::Deref<Target=str>
+{
+    let s = s.to_lowercase();
+
+    if s == APA102CPiDrawInfo::new().name().to_lowercase() {
+        Some(Box::new(APA102CPiDraw::default()))
+    } else if s == TermDrawInfo::new().name().to_lowercase() {
+        Some(Box::new(TermDraw::default()))
+    } else if s == NullDrawInfo::new().name().to_lowercase() {
+        Some(Box::new(NullDraw::default()))
+    } else {
+        None
+    }
+}

@@ -35,3 +35,20 @@ pub fn animation_info() -> Vec<Box<dyn Info>> {
         StrobeInfo::new(),
     ]
 }
+
+pub fn match_animation<T>(s: T) -> Option<Box<dyn Animation>>
+where
+    T: std::ops::Deref<Target=str>
+{
+    let s = s.to_lowercase();
+
+    if s == BreathInfo::new().name().to_lowercase() {
+        Some(Box::new(Breath::default()))
+    } else if s == RainbowInfo::new().name().to_lowercase() {
+        Some(Box::new(Rainbow::default()))
+    } else if s == StrobeInfo::new().name().to_lowercase() {
+        Some(Box::new(Strobe::default()))
+    } else {
+        None
+    }
+}
