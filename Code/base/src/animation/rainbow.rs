@@ -1,11 +1,11 @@
 //! # Rainbow
 
-use super::*;
+use std::time::Duration;
 
 use crate::ds::{collections::frame::Frame, rgb::RGB};
 use crate::util::info::Info;
 
-use std::time::Duration;
+use super::*;
 
 /// Presents some info about `Rainbow` for pretty printing.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]

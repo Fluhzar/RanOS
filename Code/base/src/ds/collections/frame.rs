@@ -1,10 +1,10 @@
 //! # Frame
 
-use crate::ds::rgb::{RGBOrder, RGB};
-
 use std::io;
 use std::slice::{Iter, IterMut};
 use std::time::Duration;
+
+use crate::ds::rgb::{RGB, RGBOrder};
 
 /// A struct representing a single frame of color values and a brightness.
 #[repr(C)]

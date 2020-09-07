@@ -1,17 +1,16 @@
 //! # Animation
 
-pub mod breath;
-pub mod rainbow;
-pub mod strobe;
-
 pub use breath::{Breath, BreathInfo};
 pub use rainbow::{Rainbow, RainbowInfo};
+use std::time::Duration;
 pub use strobe::{Strobe, StrobeInfo};
 
 use crate::ds::collections::frame::Frame;
 use crate::util::Info;
 
-use std::time::Duration;
+pub mod breath;
+pub mod rainbow;
+pub mod strobe;
 
 /// Trait for types that implement animations that sets the LEDs to a given
 /// frame of the animation before being drawn.

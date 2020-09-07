@@ -1,10 +1,9 @@
+use clap;
+use std::collections::HashMap;
+
 use crate::animation;
 use crate::draw;
 use crate::util::{info, Info};
-
-use std::collections::HashMap;
-
-use clap;
 
 pub struct App {
     drawer: Box<dyn draw::Draw>,

@@ -1,11 +1,11 @@
 //! # Breath
 
-use super::*;
+use std::time::Duration;
 
 use crate::ds::rgb::RGB;
 use crate::util::info::Info;
 
-use std::time::Duration;
+use super::*;
 
 /// Presents some info about `Breath` for pretty printing.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]

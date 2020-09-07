@@ -7,21 +7,18 @@
 //! the second is an emulated LED setup that draws to "LEDs" on the terminal
 //! with a configurable number of "LEDs" per row.
 
-use crate::animation::Animation;
-
-use std::time::Instant;
-use std::{fmt, ops};
-
-pub mod pi_draw;
+pub use null_draw::{NullDraw, NullDrawInfo};
 pub use pi_draw::{APA102CPiDraw, APA102CPiDrawInfo, SK9822PiDraw, SK9822PiDrawInfo};
-
-pub mod term_draw;
+use std::{fmt, ops};
+use std::time::Instant;
 pub use term_draw::{TermDraw, TermDrawInfo};
 
-pub mod null_draw;
-pub use null_draw::{NullDraw, NullDrawInfo};
-
+use crate::animation::Animation;
 use crate::util::Info;
+
+pub mod pi_draw;
+pub mod term_draw;
+pub mod null_draw;
 
 /// Result type used for [`Draw::run`][0], indicating the success of the
 /// function. Usually `Err` is returned when `SIGINT` is handled, shutting the

@@ -1,20 +1,19 @@
 //! # Raspberry Pi Draw
 
-use super::*;
+use rppal::gpio;
+use std::cell::RefCell;
+use std::collections::VecDeque;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
+use std::time::Duration;
 
 use crate::ds::collections::frame::Frame;
 use crate::ds::rgb::*;
 use crate::util::{Info, Timer};
 
-use rppal::gpio;
-
-use std::cell::RefCell;
-use std::collections::VecDeque;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
-use std::time::Duration;
+use super::*;
 
 /// Type alias for the
 pub type SK9822PiDrawInfo = APA102CPiDrawInfo;

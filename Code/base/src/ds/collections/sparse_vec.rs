@@ -4,6 +4,8 @@
 
 #![warn(missing_docs)]
 
+use std::slice::{Iter, IterMut};
+
 /// Type used for the values inside `SparseVec`'s internal `Vec`.
 ///
 /// The first element of the tuple is the index of the sparse vector's element, which is the second element of the tuple.
@@ -72,8 +74,6 @@ pub type SparseVecElementMut<'a, T> = Element<&'a mut IndVal<T>>;
 pub struct SparseVec<T> {
     buf: Vec<IndVal<T>>,
 }
-
-use std::slice::{Iter, IterMut};
 
 impl<T> SparseVec<T> {
     /// Creates a new [`SparseVector`][0] object

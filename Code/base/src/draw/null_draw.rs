@@ -1,11 +1,11 @@
 //! # Null Draw
 
-use super::*;
+use std::collections::VecDeque;
+use std::time::Duration;
 
 use crate::util::{Info, Timer};
 
-use std::collections::VecDeque;
-use std::time::Duration;
+use super::*;
 
 /// Presents some info about `TermDraw` for pretty printing.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]

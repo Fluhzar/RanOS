@@ -1,16 +1,15 @@
 //! # Terminal Draw
 
-use super::*;
-
-use crate::util::{Info, Timer};
-
+use colored::Colorize;
 use std::collections::VecDeque;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use crate::ds::collections::frame::Frame;
-use colored::Colorize;
+use crate::util::{Info, Timer};
+
+use super::*;
 
 /// Presents some info about `TermDraw` for pretty printing.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
