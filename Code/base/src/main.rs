@@ -1,17 +1,10 @@
-use base::animation::{breath::*, rainbow::*, strobe::*};
-use base::draw::*;
+use base::animation::*;
 use base::ds::rgb::*;
+use base::draw::*;
 
 use std::time::Duration;
+use rppal::*;
 
-#[cfg(feature = "pi_draw")]
-use {base::draw::pi_draw::APA102CPiDraw, rppal::*};
-
-#[cfg(feature = "term_draw")]
-use base::draw::term_draw::TermDraw;
-
-#[cfg(not(any(feature = "pi_draw", feature = "term_draw")))]
-use base::draw::null_draw::NullDraw;
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();
