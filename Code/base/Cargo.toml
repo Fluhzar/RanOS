@@ -11,6 +11,7 @@ rand = "0.7"
 
 lazy_static = "1.4"
 ctrlc = "3.1"
+clap = "2.33"
 
 colored = "2.0"
 rppal = "0.11"

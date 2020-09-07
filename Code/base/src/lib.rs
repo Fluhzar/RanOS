@@ -9,6 +9,7 @@
 extern crate lazy_static;
 
 pub mod animation;
+pub mod app;
 pub mod draw;
 pub mod ds;
 pub mod util;
