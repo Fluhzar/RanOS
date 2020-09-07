@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a1fdf945-76cb-4495-a432-bb6643c2bcd8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/base.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="dboucrb4" />
+  </component>
+  <component name="ProjectId" id="1hCFcDS2qk4FCkAFXcxQPoUjPQX" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/animation/breath.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/animation/mod.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/animation/rainbow.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/animation/strobe.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/app.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/draw/mod.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/draw/null_draw.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/draw/pi_draw.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/draw/term_draw.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/ds/collections/frame.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/ds/collections/mod.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/ds/collections/sparse_vec.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/ds/collections/vec_reader.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/ds/collections/vec_writer.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/ds/mod.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/ds/rgb.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/lib.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/main.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/util/info.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/util/max_line.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/util/mod.rs" value="true" />
+    <property name="org.rust.disableDetachedFileInspection/home/fluhzar/VersionControl/RanOS/Code/base/src/util/timer.rs" value="true" />
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a1fdf945-76cb-4495-a432-bb6643c2bcd8" name="Default Changelist" comment="" />
+      <created>1599507245278</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1599507245278</updated>
+      <workItem from="1599507248780" duration="442000" />
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="3149" y="200" width="732" height="632" key="#Inspections" timestamp="1599507452136">
+      <screen x="2560" y="0" width="1920" height="1080" />
+    </state>
+    <state x="3149" y="200" width="732" height="632" key="#Inspections/2560.0.1920.1080/0.0.2560.1040@2560.0.1920.1080" timestamp="1599507452136" />
+    <state x="2984" y="172" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1599507692756">
+      <screen x="2560" y="0" width="1920" height="1080" />
+    </state>
+    <state x="2984" y="172" key="#com.intellij.execution.impl.EditConfigurationsDialog/2560.0.1920.1080/0.0.2560.1040@2560.0.1920.1080" timestamp="1599507692756" />
+  </component>
+</project>
