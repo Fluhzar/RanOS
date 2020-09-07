@@ -142,7 +142,7 @@ impl Default for Rainbow {
     fn default() -> Self {
         Self::new(
             Duration::from_secs(16),
-            Duration::from_secs_f64(0.5),
+            Duration::from_secs(2),
             0.25,
             16,
             1.0,
