@@ -102,13 +102,15 @@ impl Frame {
         Ok(count)
     }
 
-    /// Returns the controlled_duration value.
-    pub fn controlled_duration(&self) -> Option<Duration> {
-        self.controlled_duration
+    /// Sets the controlled duration value for the timer. Pass `None` to disable
+    /// controlled duration pings.
+    pub fn set_duration(&mut self, d: Option<Duration>) {
+        self.controlled_duration = d
     }
 
-    pub fn set_duration(&mut self, d: Duration) {
-        self.controlled_duration = Some(d)
+    /// Returns the `controlled_duration` value.
+    pub fn controlled_duration(&self) -> Option<Duration> {
+        self.controlled_duration
     }
 
     /// Returns the brightness in range [0, 1].

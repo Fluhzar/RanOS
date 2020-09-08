@@ -194,6 +194,14 @@ impl<T> SparseVec<T> {
         self.buf.iter_mut()
     }
 
+    /// Returns a draining iterator to the internal buffer of values.
+    /// 
+    /// # Note
+    /// 
+    /// See [`Vec::drain`][0] for more info about draining iterators and how
+    /// they're used.
+    /// 
+    /// [0]: std::vec::Vec::drain
     pub fn drain<R>(&mut self, range: R) -> std::vec::Drain<IndVal<T>>
     where
         R: std::ops::RangeBounds<usize>,

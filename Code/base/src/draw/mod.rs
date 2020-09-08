@@ -160,6 +160,8 @@ pub fn draw_info() -> Vec<Box<dyn Info>> {
     ]
 }
 
+/// Attempts to parse the given `String` into a `Draw` object, returning `None`
+/// on failure.
 pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
 where
     T: std::ops::Deref<Target=str>

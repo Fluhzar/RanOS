@@ -35,6 +35,8 @@ pub fn animation_info() -> Vec<Box<dyn Info>> {
     ]
 }
 
+/// Attempts to parse the given `String` into an `Animation` object, returning
+/// `None` on failure.
 pub fn match_animation<T>(s: T) -> Option<Box<dyn Animation>>
 where
     T: std::ops::Deref<Target=str>
