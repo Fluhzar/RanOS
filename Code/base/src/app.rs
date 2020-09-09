@@ -1,17 +1,77 @@
+//! # App
+//! 
+//! This module contains the application interface that controls the LEDs.
+
 use clap;
 use std::collections::HashMap;
 
 use crate::animation;
 use crate::draw;
-use crate::util::{info, Info};
+use crate::util::info;
 
+/// The app defining the interface to dynamically control the LEDs at runtime.
+/// 
+/// # Command-line Arguments
+/// 
+/// This app uses [`clap`][0] to handle command-line argument parsing, with the
+/// following help message describing the accepted options:
+/// 
+/// ```sh
+/// USAGE:
+/// base [FLAGS] [OPTIONS] --drawer <drawer>
+/// 
+/// FLAGS:
+///     -h, --help       
+///             Prints help information
+/// 
+///     -l, --loop       
+///             Sets whether or not to loop the animations endlessly. If set, use SIGINT to terminate the program when the
+///             currently running animation is finished or SIGTERM to end the program immediately.
+///     -V, --version    
+///             Prints version information
+/// 
+/// 
+/// OPTIONS:
+///     -a, --animation <animations>...    
+///             Select the name of the animation(s) to use in the order you'd like, separated by a ',':
+///             
+///             Breath     Animates a breathing display that will either walk through a provided list of
+///                        colors or select random colors, each color fading along a parabolic curve from
+///                        black to the chosen color and back down to black.
+///             
+///             Rainbow    Classic RGB rainbow puke that we all know and love but instead of displaying on
+///                        a fancy RGB keyboard it's just these stupid LEDs puking out everything.
+///             
+///             Strobe     Animates a flickering light similar to the strobe lights one might see at
+///                        concerts or otherwise.
+///              [possible values: breath, rainbow, strobe]
+///     -d, --drawer <drawer>              
+///             Select the name of the drawer to use.:
+///             
+///             PiDraw      Draws APA102C/SK9822 LEDs through a Raspberry Pi's GPIO pins. This
+///                         implementation maintains compatibility with both APA102C and SK9822 LEDs.
+///             
+///             TermDraw    Emulates an LED display by writing whitespace with specified colored
+///                         backgrounds to a terminal that supports full RGB colors.
+///             
+///             NullDraw    Drawer that doesn't have any form of output.
+///              [possible values: pidraw, termdraw, nulldraw]
+/// ```
+///
+/// [0]: clap
 pub struct App {
     drawer: Box<dyn draw::Draw>,
     looping: bool,
 }
 
 impl App {
+    /// Creates a new application built from the command-line parameters
+    /// provided at runtime.
     pub fn new() -> Self {
+        // This structure is used to allow the setting of option `&str`s for
+        // `clap` to parse without having their owning `String`s be dropped too
+        // early. The format of the keys is fairly self-explanatory, `A.x` where
+        // `A` represents a group of options while `x` represents the option.
         let mut string_registrar = HashMap::new();
 
         string_registrar.insert("App.name", "RanOS LED Animation App".to_owned());
@@ -104,12 +164,19 @@ impl App {
         }
     }
 
+    /// Runs the application, cycling through the provided animations until the
+    /// program has completed.
+    /// 
+    /// If the `looping` option was set then this will loop through the
+    /// animations until SIGINT is signalled, where it will terminate after the
+    /// current animation finishes, or SIGTERM is signalled, which terminates
+    /// the program automatically.
     pub fn run(&mut self) {
         loop {
             let result = self.drawer.run();
 
             if let Err(s) = result {
-                eprintln!("\nUnexpected exit: {}", s);
+                eprintln!("Early exit: {}", s);
                 return;
             } else {
                 println!("\n{}", self.drawer.stats());
