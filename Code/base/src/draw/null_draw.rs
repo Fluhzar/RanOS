@@ -62,7 +62,7 @@ impl Draw for NullDraw {
         self.queue.len()
     }
 
-    fn run(&mut self) -> Result {
+    fn run(&mut self) -> Vec<Box<dyn Animation>> {
         self.timer.reset();
         self.stats.reset();
 
@@ -82,7 +82,7 @@ impl Draw for NullDraw {
             out.push(ani);
         }
 
-        Ok(out)
+        out
     }
 
     fn stats(&self) -> DrawStats {

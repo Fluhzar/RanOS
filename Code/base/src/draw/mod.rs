@@ -20,13 +20,6 @@ pub mod pi_draw;
 pub mod term_draw;
 pub mod null_draw;
 
-/// Result type used for [`Draw::run`][0], indicating the success of the
-/// function. Usually `Err` is returned when `SIGINT` is handled, shutting the
-/// system down.
-///
-/// [0]: ./trait.Draw.html#method.Run
-pub type Result = std::result::Result<Vec<Box<dyn Animation>>, String>;
-
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
     /// Adds an [`Animation`][0] to the queue.
@@ -40,7 +33,7 @@ pub trait Draw {
     fn queue_len(&self) -> usize;
 
     /// Draws the internal frame to its destination.
-    fn run(&mut self) -> Result;
+    fn run(&mut self) -> Vec<Box<dyn Animation>>;
 
     /// Returns the statistics tracking object.
     fn stats(&self) -> DrawStats;

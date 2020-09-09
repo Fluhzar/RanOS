@@ -4,10 +4,26 @@
 
 use clap;
 use std::collections::HashMap;
+use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
 use crate::animation;
 use crate::draw;
 use crate::util::info;
+
+lazy_static! {
+    static ref SIGINT: Arc<AtomicBool> = {
+        println!("{}", "\x1B[2J"); // ANSI clear screen code
+
+        let arc = Arc::new(AtomicBool::new(false));
+
+        {
+            let arc = arc.clone();
+            ctrlc::set_handler(move || arc.store(true, Ordering::Relaxed)).unwrap();
+        }
+
+        arc
+    };
+}
 
 /// The app defining the interface to dynamically control the LEDs at runtime.
 /// 
@@ -62,6 +78,7 @@ use crate::util::info;
 pub struct App {
     drawer: Box<dyn draw::Draw>,
     looping: bool,
+    should_exit: Arc<AtomicBool>,
 }
 
 impl App {
@@ -161,6 +178,7 @@ impl App {
         Self {
             drawer,
             looping,
+            should_exit: SIGINT.clone(),
         }
     }
 
@@ -173,22 +191,20 @@ impl App {
     /// the program automatically.
     pub fn run(&mut self) {
         loop {
-            let result = self.drawer.run();
+            let anis = self.drawer.run();
+            println!("\n{}", self.drawer.stats());
 
-            if let Err(s) = result {
-                eprintln!("Early exit: {}", s);
+            // If an interrupt has occurred, exit the run function, returning an appropriate error.
+            if self.should_exit.load(Ordering::Relaxed) == true {
+                eprintln!("Early exit: \n\tCaught SIGINT, stopping.");
                 return;
-            } else {
-                println!("\n{}", self.drawer.stats());
             }
 
             if self.looping {
-                if let Ok(v) = result {
-                    for mut a in v {
+                    for mut a in anis {
                         a.reset();
                         self.drawer.push_queue(a);
                     }
-                }
             } else {
                 break;
             }

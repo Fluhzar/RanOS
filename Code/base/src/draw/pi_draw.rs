@@ -3,10 +3,6 @@
 use rppal::gpio;
 use std::cell::RefCell;
 use std::collections::VecDeque;
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
 use std::time::Duration;
 
 use crate::ds::collections::frame::Frame;
@@ -34,19 +30,6 @@ impl Info for APA102CPiDrawInfo {
     fn details(&self) -> String {
         "Draws APA102C/SK9822 LEDs through a Raspberry Pi's GPIO pins. This implementation maintains compatibility with both APA102C and SK9822 LEDs.".to_owned()
     }
-}
-
-lazy_static! {
-    static ref SIGINT: Arc<AtomicBool> = {
-        let arc = Arc::new(AtomicBool::new(false));
-
-        {
-            let arc = arc.clone();
-            ctrlc::set_handler(move || arc.store(true, Ordering::Relaxed)).unwrap();
-        }
-
-        arc
-    };
 }
 
 /// Type used to represent a GPIO pin with interior mutability. This is required bc iterating over a frame borrows `self`, and
@@ -81,7 +64,6 @@ pub struct APA102CPiDraw {
 
     known_len: usize,
 
-    should_exit: Arc<AtomicBool>,
     stats: DrawStats,
 }
 
@@ -102,7 +84,6 @@ impl APA102CPiDraw {
 
             known_len: 0,
 
-            should_exit: SIGINT.clone(),
             stats: DrawStats::new(),
         }
     }
@@ -257,7 +238,7 @@ impl Draw for APA102CPiDraw {
         self.queue.len()
     }
 
-    fn run(&mut self) -> Result {
+    fn run(&mut self) -> Vec<Box<dyn Animation>>{
         // Reset timer and stats to track just this run
         self.timer.reset();
         self.stats.reset();
@@ -289,17 +270,11 @@ impl Draw for APA102CPiDraw {
             if ani.frame().len() > self.known_len {
                 self.known_len = ani.frame().len();
             }
-            // If an interrupt has occurred, exit the run function, returning an appropriate error.
-            if self.should_exit.load(Ordering::Relaxed) == true {
-                self.stop(self.known_len);
-
-                return Err("Caught SIGINT, stopping".to_owned());
-            }
 
             out.push(ani);
         }
 
-        Ok(out)
+        out
     }
 
     fn stats(&self) -> DrawStats {

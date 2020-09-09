@@ -2,8 +2,6 @@
 
 use colored::Colorize;
 use std::collections::VecDeque;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use crate::ds::collections::frame::Frame;
@@ -32,21 +30,6 @@ impl Info for TermDrawInfo {
     }
 }
 
-lazy_static! {
-    static ref SIGINT: Arc<AtomicBool> = {
-        println!("{}", "\x1B[2J"); // ANSI clear screen code
-
-        let arc = Arc::new(AtomicBool::new(false));
-
-        {
-            let arc = arc.clone();
-            ctrlc::set_handler(move || arc.store(true, Ordering::Relaxed)).unwrap(); // Can't error check in static initialization.
-        }
-
-        arc
-    };
-}
-
 /// Emulates an LED display by writing whitespace with specified colored
 /// backgrounds to a terminal that supports full RGB colors.
 ///
@@ -59,7 +42,6 @@ pub struct TermDraw {
     queue: VecDeque<Box<dyn Animation>>,
     timer: Timer,
 
-    should_exit: Arc<AtomicBool>,
     stats: DrawStats,
 }
 
@@ -78,7 +60,6 @@ impl TermDraw {
             queue: VecDeque::new(),
             timer: Timer::new(None),
 
-            should_exit: SIGINT.clone(),
             stats: DrawStats::new(),
         }
     }
@@ -118,7 +99,7 @@ impl Draw for TermDraw {
         self.queue.len()
     }
 
-    fn run(&mut self) -> Result {
+    fn run(&mut self) -> Vec<Box<dyn Animation>> {
         self.timer.reset();
         self.stats.reset();
 
@@ -137,19 +118,10 @@ impl Draw for TermDraw {
             self.stats.set_num(ani.frame().len());
             self.stats.end();
 
-            if self.should_exit.load(Ordering::Relaxed) == true {
-                for _ in 0..((ani.frame().len() / self.max_width + 1) * 2) {
-                    println!("{}", "\x1B[2T");
-                }
-                println!("{}", "\x1B[1;1H");
-
-                return Err("\nCaught SIGINT, stopping".to_owned());
-            }
-
             out.push(ani);
         }
 
-        Ok(out)
+        out
     }
 
     fn stats(&self) -> DrawStats {
