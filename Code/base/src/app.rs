@@ -184,7 +184,8 @@ impl App {
 
             if self.looping {
                 if let Ok(v) = result {
-                    for a in v {
+                    for mut a in v {
+                        a.reset();
                         self.drawer.push_queue(a);
                     }
                 }

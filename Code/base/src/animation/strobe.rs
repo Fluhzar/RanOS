@@ -123,23 +123,10 @@ impl Animation for Strobe {
     fn time_remaining(&self) -> Duration {
         self.time_remaining
     }
-}
 
-impl Clone for Strobe {
-    /// Clones and resets `self` so it is as if it were just created with `Breath::new`.
-    fn clone(&self) -> Self {
-        Self {
-            runtime: self.runtime.clone(),
-            time_remaining: *self.runtime.get(),
-            frame: self.frame.clone(),
-
-            period: self.period.clone(),
-            duty: self.duty.clone(),
-
-            color: self.color.clone(),
-
-            time: 0.0,
-        }
+    fn reset(&mut self) {
+        self.time_remaining = *self.runtime.get();
+        self.time = 0.0;
     }
 }
 

@@ -24,6 +24,10 @@ pub trait Animation: std::fmt::Debug {
     /// Returns the amount of time remaining for this animation to run before
     /// the drawer to continue to the next animation.
     fn time_remaining(&self) -> Duration;
+
+    /// Resets the animation to its pre-run state, appearing as if it were never
+    /// run before.
+    fn reset(&mut self);
 }
 
 /// Returns a `Vec` of animation `Info` objects.

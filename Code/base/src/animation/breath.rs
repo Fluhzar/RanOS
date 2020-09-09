@@ -50,11 +50,10 @@ pub struct Breath {
     ind: usize,
     current_color: RGB,
 
-    brightness: f32,
-
     acc: ConstVal<f32>,
     vel: f32,
     vel0: ConstVal<f32>,
+    pos: f32,
 }
 
 impl Breath {
@@ -86,11 +85,10 @@ impl Breath {
                 ColorOrder::Random => RGB::random(),
             },
 
-            brightness: 0.0,
-
             acc: ConstVal::new(-8.0 / breath_duration.as_secs_f32().powi(2)),
             vel: 4.0 / breath_duration.as_secs_f32(),
             vel0: ConstVal::new(4.0 / breath_duration.as_secs_f32()),
+            pos: 0.0,
         }
     }
 }
@@ -104,10 +102,10 @@ impl Animation for Breath {
         };
 
         self.vel += self.acc.get() * dt.as_secs_f32();
-        self.brightness += self.vel * dt.as_secs_f32();
+        self.pos += self.vel * dt.as_secs_f32();
 
-        if self.brightness <= 0.0 && self.vel < 0.0 {
-            self.brightness = 0.0;
+        if self.pos <= 0.0 && self.vel < 0.0 {
+            self.pos = 0.0;
             self.vel = *self.vel0.get();
 
             if let ColorOrder::Ordered(v) = &self.order {
@@ -120,7 +118,7 @@ impl Animation for Breath {
         }
 
         for led in self.frame.iter_mut() {
-            *led = self.current_color;
+            *led = self.current_color.scale(self.pos);
         }
     }
 
@@ -131,32 +129,15 @@ impl Animation for Breath {
     fn time_remaining(&self) -> Duration {
         self.time_remaining
     }
-}
 
-impl Clone for Breath {
-    /// Clones and resets `self` so it is as if it were just created with `Breath::new`.
-    fn clone(&self) -> Self {
-        let order = self.order.clone();
-        let color = match &order {
+    fn reset(&mut self) {
+        self.time_remaining = *self.runtime.get();
+        self.ind = 0;
+        self.current_color = match &self.order {
             ColorOrder::Ordered(v) => v[0],
             ColorOrder::Random => RGB::random(),
         };
-
-        Self {
-            runtime: self.runtime.clone(),
-            time_remaining: *self.runtime.get(),
-            frame: self.frame.clone(),
-
-            order,
-            ind: 0,
-            current_color: color,
-
-            brightness: self.brightness,
-
-            acc: self.acc.clone(),
-            vel: *self.vel0.get(),
-            vel0: self.vel0.clone(),
-        }
+        self.vel = *self.vel0.get();
     }
 }
 

@@ -117,24 +117,10 @@ impl Animation for Rainbow {
     fn time_remaining(&self) -> Duration {
         self.time_remaining
     }
-}
 
-impl Clone for Rainbow {
-    /// Clones and resets `self` so it is as if it were just created with `Rainbow::new`.
-    fn clone(&self) -> Self {
-        Self {
-            runtime: self.runtime.clone(),
-            time_remaining: *self.runtime.get(),
-            frame: self.frame.clone(),
-
-            hue: 0.0,
-            sat: self.sat.clone(),
-            val: self.val.clone(),
-            dh: self.dh.clone(),
-
-            arc: self.arc,
-            step: self.step,
-        }
+    fn reset(&mut self) {
+        self.time_remaining = *self.runtime.get();
+        self.hue = 0.0;
     }
 }
 
