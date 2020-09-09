@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use crate::ds::rgb::RGB;
+use crate::ds::{const_val::ConstVal, rgb::RGB};
 use crate::util::info::Info;
 
 use super::*;
@@ -42,7 +42,7 @@ pub enum ColorOrder {
 /// parabolic curve from black to the chosen color and back down to black.
 #[derive(Debug)]
 pub struct Breath {
-    runtime: Duration,
+    runtime: ConstVal<Duration>,
     time_remaining: Duration,
     frame: Frame,
 
@@ -52,9 +52,9 @@ pub struct Breath {
 
     brightness: f32,
 
-    acc: f32,
+    acc: ConstVal<f32>,
     vel: f32,
-    vel0: f32,
+    vel0: ConstVal<f32>,
 }
 
 impl Breath {
@@ -75,7 +75,7 @@ impl Breath {
         order: ColorOrder,
     ) -> Self {
         Self {
-            runtime,
+            runtime: ConstVal::new(runtime),
             time_remaining: runtime,
             frame: Frame::new(None, brightness, size),
 
@@ -88,9 +88,9 @@ impl Breath {
 
             brightness: 0.0,
 
-            acc: -8.0 / breath_duration.as_secs_f32().powi(2),
+            acc: ConstVal::new(-8.0 / breath_duration.as_secs_f32().powi(2)),
             vel: 4.0 / breath_duration.as_secs_f32(),
-            vel0: 4.0 / breath_duration.as_secs_f32(),
+            vel0: ConstVal::new(4.0 / breath_duration.as_secs_f32()),
         }
     }
 }
@@ -103,12 +103,12 @@ impl Animation for Breath {
             Duration::new(0, 0)
         };
 
-        self.vel += self.acc * dt.as_secs_f32();
+        self.vel += self.acc.get() * dt.as_secs_f32();
         self.brightness += self.vel * dt.as_secs_f32();
 
         if self.brightness <= 0.0 && self.vel < 0.0 {
             self.brightness = 0.0;
-            self.vel = self.vel0;
+            self.vel = *self.vel0.get();
 
             if let ColorOrder::Ordered(v) = &self.order {
                 self.ind += 1;
@@ -120,7 +120,7 @@ impl Animation for Breath {
         }
 
         for led in self.frame.iter_mut() {
-            *led = self.current_color.scale(self.brightness);
+            *led = self.current_color;
         }
     }
 
@@ -143,8 +143,8 @@ impl Clone for Breath {
         };
 
         Self {
-            runtime: self.runtime,
-            time_remaining: self.runtime,
+            runtime: self.runtime.clone(),
+            time_remaining: *self.runtime.get(),
             frame: self.frame.clone(),
 
             order,
@@ -153,9 +153,9 @@ impl Clone for Breath {
 
             brightness: self.brightness,
 
-            acc: self.acc,
-            vel: self.vel0,
-            vel0: self.vel0,
+            acc: self.acc.clone(),
+            vel: *self.vel0.get(),
+            vel0: self.vel0.clone(),
         }
     }
 }

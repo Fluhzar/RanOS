@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use crate::ds::{collections::frame::Frame, rgb::RGB};
+use crate::ds::{collections::frame::Frame, const_val::ConstVal, rgb::RGB};
 use crate::util::info::Info;
 
 use super::*;
@@ -33,17 +33,17 @@ impl Info for RainbowInfo {
 /// LEDs puking out everything.
 #[derive(Debug)]
 pub struct Rainbow {
-    runtime: Duration,
+    runtime: ConstVal<Duration>,
     time_remaining: Duration,
     frame: Frame,
 
     hue: f32,
-    sat: f32,
-    val: f32,
-    dh: f32,
+    sat: ConstVal<f32>,
+    val: ConstVal<f32>,
+    dh: ConstVal<f32>,
 
-    arc: f32,
-    step: usize,
+    arc: ConstVal<f32>,
+    step: ConstVal<usize>,
 }
 
 impl Rainbow {
@@ -70,17 +70,17 @@ impl Rainbow {
         step: usize,
     ) -> Self {
         Self {
-            runtime,
+            runtime: ConstVal::new(runtime),
             time_remaining: runtime,
             frame: Frame::new(None, brightness, size),
 
             hue: 0.0,
-            sat,
-            val,
-            dh: 360.0 / rainbow_length.as_secs_f32(),
+            sat: ConstVal::new(sat),
+            val: ConstVal::new(val),
+            dh: ConstVal::new(360.0 / rainbow_length.as_secs_f32()),
 
-            arc,
-            step,
+            arc: ConstVal::new(arc),
+            step: ConstVal::new(step),
         }
     }
 }
@@ -93,7 +93,7 @@ impl Animation for Rainbow {
             Duration::new(0, 0)
         };
 
-        self.hue += self.dh * dt.as_secs_f32();
+        self.hue += self.dh.get() * dt.as_secs_f32();
 
         if self.hue >= 360.0 {
             self.hue -= 360.0;
@@ -101,12 +101,12 @@ impl Animation for Rainbow {
 
         let len = self.frame.len() as f32;
         for (i, led) in self.frame.iter_mut().enumerate() {
-            let step = i as f32 / self.step as f32;
+            let step = i as f32 / *self.step.get() as f32;
             let step = step.floor();
-            let step = step * (self.step as f32);
+            let step = step * (*self.step.get() as f32);
             let step = step / len;
-            let step = step * 360.0 * self.arc;
-            *led = RGB::from_hsv(self.hue + step, self.sat, self.val)
+            let step = step * 360.0 * self.arc.get();
+            *led = RGB::from_hsv(self.hue + step, *self.sat.get(), *self.val.get())
         }
     }
 
@@ -123,14 +123,14 @@ impl Clone for Rainbow {
     /// Clones and resets `self` so it is as if it were just created with `Rainbow::new`.
     fn clone(&self) -> Self {
         Self {
-            runtime: self.runtime,
-            time_remaining: self.runtime,
+            runtime: self.runtime.clone(),
+            time_remaining: *self.runtime.get(),
             frame: self.frame.clone(),
 
             hue: 0.0,
-            sat: self.sat,
-            val: self.val,
-            dh: self.dh,
+            sat: self.sat.clone(),
+            val: self.val.clone(),
+            dh: self.dh.clone(),
 
             arc: self.arc,
             step: self.step,

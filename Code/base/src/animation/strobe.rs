@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use crate::ds::rgb::{RGB, RGBOrder};
+use crate::ds::{const_val::ConstVal, rgb::{RGB, RGBOrder}};
 use crate::util::info::Info;
 
 use super::*;
@@ -39,14 +39,14 @@ impl Info for StrobeInfo {
 /// percentage of time that the LEDs are on within the `period`.
 #[derive(Debug)]
 pub struct Strobe {
-    runtime: Duration,
+    runtime: ConstVal<Duration>,
     time_remaining: Duration,
     frame: Frame,
 
-    period: f64,
-    duty: f64,
+    period: ConstVal<f64>,
+    duty: ConstVal<f64>,
 
-    color: RGB,
+    color: ConstVal<RGB>,
 
     time: f64,
 }
@@ -74,14 +74,14 @@ impl Strobe {
         let duty = duty.min(1.0).max(0.0);
 
         Self {
-            runtime,
+            runtime: ConstVal::new(runtime),
             time_remaining: runtime,
             frame: Frame::new(None, brightness, size),
 
-            period: period.as_secs_f64(),
-            duty,
+            period: ConstVal::new(period.as_secs_f64()),
+            duty: ConstVal::new(duty),
 
-            color,
+            color: ConstVal::new(color),
 
             time: 0.0,
         }
@@ -98,14 +98,14 @@ impl Animation for Strobe {
         };
 
         // Accumulate the time, clamping it to a range of [0, self.period)
-        self.time = (self.time + dt.as_secs_f64()) % self.period;
+        self.time = (self.time + dt.as_secs_f64()) % self.period.get();
 
         // Convert the time to a fraction in the range [0, 1)
-        let r = self.time / self.period;
+        let r = self.time / self.period.get();
 
         // Set the current color, based on how long it's been in the current cycle
-        let color = if r < self.duty {
-            self.color
+        let color = if r < *self.duty.get() {
+            *self.color.get()
         } else {
             RGB::new()
         };
@@ -129,14 +129,14 @@ impl Clone for Strobe {
     /// Clones and resets `self` so it is as if it were just created with `Breath::new`.
     fn clone(&self) -> Self {
         Self {
-            runtime: self.runtime,
-            time_remaining: self.runtime,
+            runtime: self.runtime.clone(),
+            time_remaining: *self.runtime.get(),
             frame: self.frame.clone(),
 
-            period: self.period,
-            duty: self.duty,
+            period: self.period.clone(),
+            duty: self.duty.clone(),
 
-            color: self.color,
+            color: self.color.clone(),
 
             time: 0.0,
         }
