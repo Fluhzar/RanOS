@@ -12,8 +12,6 @@ use crate::util::info;
 
 lazy_static! {
     static ref SIGINT: Arc<AtomicBool> = {
-        println!("{}", "\x1B[2J"); // ANSI clear screen code
-
         let arc = Arc::new(AtomicBool::new(false));
 
         {

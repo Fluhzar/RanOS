@@ -164,6 +164,7 @@ where
     if s == APA102CPiDrawInfo::new().name().to_lowercase() {
         Some(Box::new(APA102CPiDraw::default()))
     } else if s == TermDrawInfo::new().name().to_lowercase() {
+        println!("{}", "\x1B[2J"); // ANSI clear screen code
         Some(Box::new(TermDraw::default()))
     } else if s == NullDrawInfo::new().name().to_lowercase() {
         Some(Box::new(NullDraw::default()))
