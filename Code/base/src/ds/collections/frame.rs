@@ -18,6 +18,7 @@ pub struct Frame {
 impl Frame {
     /// Creates a new `Frame` from a given possibly-controlled duration, brightness, and size.
     pub fn new(controlled_duration: Option<Duration>, brightness: f32, size: usize) -> Self {
+        let brightness = brightness.min(1.0).max(0.0);
         Self {
             controlled_duration,
             brightness,
@@ -129,6 +130,17 @@ impl Frame {
     /// [0]: ./struct.Frame.html#method.brightness_apa102c
     pub fn brightness_sk9822(&self) -> u8 {
         self.brightness_apa102c()
+    }
+
+    /// Sets the brightness to a given value.
+    /// 
+    /// # Note
+    ///
+    /// Value should be in the range of [0, 1]. If the value is not within this
+    /// range, it will be clamped to it.
+    pub fn set_brightness(&mut self, brightness: f32) {
+        let brightness = brightness.min(1.0).max(0.0);
+        self.brightness = brightness;
     }
 
     /// Returns the length of the internal buffer.

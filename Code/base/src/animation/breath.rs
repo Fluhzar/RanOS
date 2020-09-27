@@ -122,6 +122,10 @@ impl Animation for Breath {
         }
     }
 
+    fn set_brightness(&mut self, b: f32) {
+        self.frame.set_brightness(b);
+    }
+
     fn frame(&self) -> &Frame {
         &self.frame
     }

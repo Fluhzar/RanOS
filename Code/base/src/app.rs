@@ -111,6 +111,11 @@ impl App {
         string_registrar.insert("AnimationArg.help", "Select the name of the animation(s) to use in the order you'd like, separated by a ','".to_owned());
         string_registrar.insert("AnimationArg.long_help", format!("{}:\n{}", string_registrar.get("AnimationArg.help").unwrap(), string_registrar.get("AnimationArg.ani_details").unwrap()));
 
+        string_registrar.insert("BrightnessArg.name", "brightness".to_owned());
+        string_registrar.insert("BrightnessArg.short", "b".to_owned());
+        string_registrar.insert("BrightnessArg.long", "brightness".to_owned());
+        string_registrar.insert("BrightnessArg.help", "Sets the given brightness level the LEDs shall be set to when running. Must be a value in the range [0, 1]".to_owned());
+
         string_registrar.insert("DrawerArg.name", "drawer".to_owned());
         string_registrar.insert("DrawerArg.short", "d".to_owned());
         string_registrar.insert("DrawerArg.long", "drawer".to_owned());
@@ -149,6 +154,14 @@ impl App {
                     .help(string_registrar.get("AnimationArg.help").unwrap())
                     .long_help(string_registrar.get("AnimationArg.long_help").unwrap())
             )
+            // Add Brightness options
+            .arg(
+                clap::Arg::with_name(string_registrar.get("BrightnessArg.name").unwrap())
+                    .short(string_registrar.get("BrightnessArg.short").unwrap())
+                    .long(string_registrar.get("BrightnessArg.long").unwrap())
+                    .takes_value(true)
+                    .multiple(false)
+            )
             // Add Drawer options
             .arg(
                 clap::Arg::with_name(string_registrar.get("DrawerArg.name").unwrap())
@@ -169,7 +182,18 @@ impl App {
         let animations: Vec<_> = matches.values_of("animations").unwrap().map(|a| animation::match_animation(a).unwrap()).collect();
         let mut drawer = draw::match_draw(matches.value_of("drawer").unwrap()).unwrap();
 
-        for a in animations {
+        let brightness = if let Some(b) = matches.value_of("brightness") {
+            if let Ok(b) = b.parse::<f32>() {
+                b
+            } else {
+                0.25
+            }
+        } else {
+            0.25
+        };
+
+        for mut a in animations {
+            a.set_brightness(brightness);
             drawer.push_queue(a);
         }
 

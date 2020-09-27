@@ -18,6 +18,9 @@ pub trait Animation: std::fmt::Debug {
     /// Updates the frame with the next frame of the animation given the input `dt`.
     fn update(&mut self, dt: Duration);
 
+    /// Exposes the ability to dynamically set the brightness.
+    fn set_brightness(&mut self, brightness: f32);
+
     /// Returns an immutable reference to the frame stored within the animation.
     fn frame(&self) -> &Frame;
 
