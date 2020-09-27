@@ -94,11 +94,6 @@ impl App {
         string_registrar.insert("App.author", "Fluhzar <fluhzar@pm.me>".to_owned());
         string_registrar.insert("App.about", "Animates some animations through a given drawer.".to_owned());
 
-        string_registrar.insert("LoopingArg.name", "looping".to_owned());
-        string_registrar.insert("LoopingArg.short", "l".to_owned());
-        string_registrar.insert("LoopingArg.long", "loop".to_owned());
-        string_registrar.insert("LoopingArg.help", "Sets whether or not to loop the animations endlessly. If set, use SIGINT to terminate the program when the currently running animation is finished or SIGTERM to end the program immediately.".to_owned());
-
         string_registrar.insert("AnimationArg.name", "animations".to_owned());
         string_registrar.insert("AnimationArg.short", "a".to_owned());
         string_registrar.insert("AnimationArg.long", "animation".to_owned());
@@ -128,6 +123,11 @@ impl App {
         string_registrar.insert("DrawerArg.help", "Select the name of the drawer to use.".to_owned());
         string_registrar.insert("DrawerArg.long_help", format!("{}:\n{}", string_registrar.get("DrawerArg.help").unwrap(), string_registrar.get("DrawerArg.draw_details").unwrap()));
 
+        string_registrar.insert("LoopingArg.name", "looping".to_owned());
+        string_registrar.insert("LoopingArg.short", "l".to_owned());
+        string_registrar.insert("LoopingArg.long", "loop".to_owned());
+        string_registrar.insert("LoopingArg.help", "Sets whether or not to loop the animations endlessly. If set, use SIGINT to terminate the program when the currently running animation is finished or SIGTERM to end the program immediately.".to_owned());
+
         // Create the app
         let app = clap::App::new(
                 string_registrar.get("App.name").unwrap()
@@ -135,13 +135,6 @@ impl App {
             .version(string_registrar.get("App.version").unwrap().as_str())
             .author(string_registrar.get("App.author").unwrap().as_str())
             .about(string_registrar.get("App.about").unwrap().as_str())
-            // Add looping option
-            .arg(
-                clap::Arg::with_name(string_registrar.get("LoopingArg.name").unwrap())
-                    .short(string_registrar.get("LoopingArg.short").unwrap())
-                    .long(string_registrar.get("LoopingArg.long").unwrap())
-                    .help(string_registrar.get("LoopingArg.help").unwrap())
-            )
             // Add Animation options
             .arg(
                 clap::Arg::with_name(string_registrar.get("AnimationArg.name").unwrap())
@@ -174,7 +167,15 @@ impl App {
                     .possible_values(draw_names.as_slice())
                     .help(string_registrar.get("DrawerArg.help").unwrap())
                     .long_help(string_registrar.get("DrawerArg.long_help").unwrap())
-            );
+            )
+            // Add looping option
+            .arg(
+                clap::Arg::with_name(string_registrar.get("LoopingArg.name").unwrap())
+                    .short(string_registrar.get("LoopingArg.short").unwrap())
+                    .long(string_registrar.get("LoopingArg.long").unwrap())
+                    .help(string_registrar.get("LoopingArg.help").unwrap())
+            )
+        ;
 
         let matches = app.get_matches();
 
