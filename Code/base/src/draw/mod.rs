@@ -9,6 +9,7 @@
 
 pub use null_draw::{NullDraw, NullDrawInfo};
 pub use pi_draw::{APA102CPiDraw, APA102CPiDrawInfo, SK9822PiDraw, SK9822PiDrawInfo};
+pub use speed_pi_draw::{SpeedPiDrawInfo, SpeedPiDraw};
 use std::{fmt, ops};
 use std::time::Instant;
 pub use term_draw::{TermDraw, TermDrawInfo};
@@ -17,6 +18,7 @@ use crate::animation::Animation;
 use crate::util::Info;
 
 pub mod pi_draw;
+pub mod speed_pi_draw;
 pub mod term_draw;
 pub mod null_draw;
 
@@ -148,6 +150,7 @@ impl ops::AddAssign<DrawStats> for DrawStats {
 pub fn draw_info() -> Vec<Box<dyn Info>> {
     vec![
         APA102CPiDrawInfo::new(),
+        SpeedPiDrawInfo::new(),
         TermDrawInfo::new(),
         NullDrawInfo::new(),
     ]
@@ -163,6 +166,8 @@ where
 
     if s == APA102CPiDrawInfo::new().name().to_lowercase() {
         Some(Box::new(APA102CPiDraw::default()))
+    } else if s == SpeedPiDrawInfo::new().name().to_lowercase() {
+        Some(Box::new(SpeedPiDraw::default()))
     } else if s == TermDrawInfo::new().name().to_lowercase() {
         println!("{}", "\x1B[2J"); // ANSI clear screen code
         Some(Box::new(TermDraw::default()))

@@ -83,8 +83,8 @@ impl APA102CPiDraw {
     /// * `clock` - The clock pin for the LEDs.
     pub fn new(data: Pin, clock: Pin) -> Self {
         Self {
-            data: data,
-            clock: clock,
+            data,
+            clock,
 
             queue: VecDeque::new(),
             timer: Timer::new(None),
@@ -267,8 +267,8 @@ impl Default for APA102CPiDraw {
     fn default() -> Self {
         let gpio = gpio::Gpio::new().unwrap();
         APA102CPiDraw::new(
-            gpio.get(6).unwrap().into_output(),
-            gpio.get(5).unwrap().into_output()
+            gpio.get(25).unwrap().into_output(),
+            gpio.get( 5).unwrap().into_output()
         )
     }
 }

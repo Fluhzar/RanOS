@@ -32,7 +32,7 @@ lazy_static! {
 /// 
 /// ```sh
 /// USAGE:
-/// base [FLAGS] [OPTIONS] --drawer <drawer>
+///     base [FLAGS] [OPTIONS] --drawer <drawer>
 /// 
 /// FLAGS:
 ///     -h, --help       
@@ -47,7 +47,7 @@ lazy_static! {
 /// 
 /// OPTIONS:
 ///     -a, --animation <animations>...    
-///             Select the name of the animation(s) to use in the order you'd like, separated by a ',':
+///             Select the name of the animation(s) to use in the order you'd like, separated by a ','.:
 ///             
 ///             Breath     Animates a breathing display that will either walk through a provided list of
 ///                        colors or select random colors, each color fading along a parabolic curve from
@@ -59,17 +59,22 @@ lazy_static! {
 ///             Strobe     Animates a flickering light similar to the strobe lights one might see at
 ///                        concerts or otherwise.
 ///              [possible values: breath, rainbow, strobe]
+///     -b, --brightness <brightness>      
+///             Sets the given brightness level the LEDs shall be set to when running. Must be a value in the range [0, 1].
+/// 
 ///     -d, --drawer <drawer>              
 ///             Select the name of the drawer to use.:
 ///             
-///             PiDraw      Draws APA102C/SK9822 LEDs through a Raspberry Pi's GPIO pins. This
-///                         implementation maintains compatibility with both APA102C and SK9822 LEDs.
+///             PiDraw         Draws APA102C/SK9822 LEDs through a Raspberry Pi's GPIO pins. This
+///                            implementation maintains compatibility with both APA102C and SK9822 LEDs.
 ///             
-///             TermDraw    Emulates an LED display by writing whitespace with specified colored
-///                         backgrounds to a terminal that supports full RGB colors.
+///             SpeedPiDraw    Like PiDraw, but with Speed.
 ///             
-///             NullDraw    Drawer that doesn't have any form of output.
-///              [possible values: pidraw, termdraw, nulldraw]
+///             TermDraw       Emulates an LED display by writing whitespace with specified colored
+///                            backgrounds to a terminal that supports full RGB colors.
+///             
+///             NullDraw       Drawer that doesn't have any form of output.
+///              [possible values: pidraw, speedpidraw, termdraw, nulldraw]
 /// ```
 ///
 /// [0]: clap
