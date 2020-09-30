@@ -211,7 +211,7 @@ impl Draw for APA102CPiDraw {
         self.queue.len()
     }
 
-    fn run(&mut self) -> Vec<Box<dyn Animation>>{
+    fn run(&mut self) -> Vec<Box<dyn Animation>> {
         // Reset timer and stats to track just this run
         self.timer.reset();
         self.stats.reset();
@@ -268,7 +268,7 @@ impl Default for APA102CPiDraw {
         let gpio = gpio::Gpio::new().unwrap();
         APA102CPiDraw::new(
             gpio.get(25).unwrap().into_output(),
-            gpio.get( 5).unwrap().into_output()
+            gpio.get(5).unwrap().into_output(),
         )
     }
 }

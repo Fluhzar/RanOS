@@ -2,7 +2,10 @@
 
 use std::time::Duration;
 
-use crate::ds::{const_val::ConstVal, rgb::{RGB, RGBOrder}};
+use crate::ds::{
+    const_val::ConstVal,
+    rgb::{RGBOrder, RGB},
+};
 use crate::util::info::Info;
 
 use super::*;
@@ -142,7 +145,7 @@ impl Default for Strobe {
             16,
             Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
             1.0 / ((1 << 2) as f64),
-            RGB::from_code(0xFFFFFF, RGBOrder::RGB)
+            RGB::from_code(0xFFFFFF, RGBOrder::RGB),
         )
     }
 }

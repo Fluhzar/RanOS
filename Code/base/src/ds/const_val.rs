@@ -1,31 +1,29 @@
 //! ConstVal
 
 /// This struct represents a value that is immutable, and cannot be changed
-/// throughout its lifetime. 
-/// 
+/// throughout its lifetime.
+///
 /// This type is more of a syntactic representation of intent rather than
 /// forcing you to not change a value, as you could easily perform an operation
 /// such as:
-/// 
+///
 /// ```
 /// let mut a = ConstVal::new(6);
 /// a = ConstVal::new(a.unwrap() + 3);
 /// ```
-/// 
+///
 /// Thus there are no true protections against modification of the value, just
 /// a way to show intent that a value won't be changed even in a context where
 /// the owner is mutable.
 #[derive(Debug)]
 pub struct ConstVal<T> {
-    val: T
+    val: T,
 }
 
 impl<T> ConstVal<T> {
     /// Creates a new `ConstVal` object, wrapping the provided value.
     pub fn new(val: T) -> Self {
-        Self {
-            val,
-        }
+        Self { val }
     }
 
     /// Returns an immutable reference to the wrapped value.
@@ -41,7 +39,7 @@ impl<T> ConstVal<T> {
 
 impl<T> Clone for ConstVal<T>
 where
-    T: Clone
+    T: Clone,
 {
     fn clone(&self) -> Self {
         Self::new(self.val.clone())

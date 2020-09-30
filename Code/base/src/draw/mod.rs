@@ -9,18 +9,18 @@
 
 pub use null_draw::{NullDraw, NullDrawInfo};
 pub use pi_draw::{APA102CPiDraw, APA102CPiDrawInfo, SK9822PiDraw, SK9822PiDrawInfo};
-pub use speed_pi_draw::{SpeedPiDrawInfo, SpeedPiDraw};
-use std::{fmt, ops};
+pub use speed_pi_draw::{SpeedPiDraw, SpeedPiDrawInfo};
 use std::time::Instant;
+use std::{fmt, ops};
 pub use term_draw::{TermDraw, TermDrawInfo};
 
 use crate::animation::Animation;
 use crate::util::Info;
 
+pub mod null_draw;
 pub mod pi_draw;
 pub mod speed_pi_draw;
 pub mod term_draw;
-pub mod null_draw;
 
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
@@ -160,7 +160,7 @@ pub fn draw_info() -> Vec<Box<dyn Info>> {
 /// on failure.
 pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
 where
-    T: std::ops::Deref<Target=str>
+    T: std::ops::Deref<Target = str>,
 {
     let s = s.to_lowercase();
 

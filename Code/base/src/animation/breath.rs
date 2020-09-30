@@ -159,7 +159,7 @@ impl Default for Breath {
                 RGB::from_hsv(120.0, 1.0, 1.0),
                 RGB::from_hsv(210.0, 1.0, 1.0),
                 RGB::from_hsv(280.0, 1.0, 1.0),
-            ])
+            ]),
         )
     }
 }

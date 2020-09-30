@@ -2,10 +2,10 @@ use rppal::gpio;
 use std::collections::VecDeque;
 use std::time::Duration;
 
+use super::pi_draw::Pin;
 use crate::ds::collections::frame::Frame;
 use crate::ds::rgb::*;
 use crate::util::{Info, Timer};
-use super::pi_draw::Pin;
 
 use super::*;
 
@@ -37,8 +37,8 @@ fn bit_to_level(data: u32) -> gpio::Level {
 
 #[derive(Debug)]
 pub struct SpeedPiDraw {
-    data: [Pin ; 4],
-    clock: [Pin ; 4],
+    data: [Pin; 4],
+    clock: [Pin; 4],
 
     queue: VecDeque<Box<dyn Animation>>,
     timer: Timer,
@@ -49,7 +49,7 @@ pub struct SpeedPiDraw {
 }
 
 impl SpeedPiDraw {
-    pub fn new(data: [Pin ; 4], clock: [Pin ; 4]) -> Self {
+    pub fn new(data: [Pin; 4], clock: [Pin; 4]) -> Self {
         Self {
             data,
             clock,
@@ -80,9 +80,9 @@ impl SpeedPiDraw {
     #[inline]
     fn write_32(&mut self, mut data: u32) {
         for i in 0..32 {
-            self.data[i%4].write(bit_to_level(data));
-            self.clock[i%4].toggle();
-            self.clock[i%4].toggle();
+            self.data[i % 4].write(bit_to_level(data));
+            self.clock[i % 4].toggle();
+            self.clock[i % 4].toggle();
             data <<= 1; // Data output in MSB-first order
         }
     }
@@ -114,10 +114,10 @@ impl SpeedPiDraw {
             let color = led.as_tuple(RGBOrder::BGR);
 
             self.write_32(
-                ((0xE0 as u32 | frame.brightness_apa102c() as u32) << 24) |
-                ((color.0 as u32) << 16) |
-                ((color.1 as u32) << 8) |
-                ((color.0 as u32) << 0)
+                ((0xE0 as u32 | frame.brightness_apa102c() as u32) << 24)
+                    | ((color.0 as u32) << 16)
+                    | ((color.1 as u32) << 8)
+                    | ((color.0 as u32) << 0),
             );
         }
 
@@ -180,16 +180,16 @@ impl Default for SpeedPiDraw {
         Self::new(
             [
                 gpio.get(25).unwrap().into_output(),
-                gpio.get( 8).unwrap().into_output(),
-                gpio.get( 7).unwrap().into_output(),
-                gpio.get( 1).unwrap().into_output(),
+                gpio.get(8).unwrap().into_output(),
+                gpio.get(7).unwrap().into_output(),
+                gpio.get(1).unwrap().into_output(),
             ],
             [
-                gpio.get( 5).unwrap().into_output(),
-                gpio.get( 6).unwrap().into_output(),
+                gpio.get(5).unwrap().into_output(),
+                gpio.get(6).unwrap().into_output(),
                 gpio.get(13).unwrap().into_output(),
                 gpio.get(19).unwrap().into_output(),
-            ]
+            ],
         )
     }
 }
