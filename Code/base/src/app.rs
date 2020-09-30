@@ -92,7 +92,7 @@ impl App {
         string_registrar.insert("App.name", "RanOS LED Animation App".to_owned());
         string_registrar.insert("App.version", env!("CARGO_PKG_VERSION").to_owned());
         string_registrar.insert("App.author", "Fluhzar <fluhzar@pm.me>".to_owned());
-        string_registrar.insert("App.about", "Animates some animations through a given drawer.".to_owned());
+        string_registrar.insert("App.about", "Renders some animations through a given LED drawer.".to_owned());
 
         string_registrar.insert("AnimationArg.name", "animations".to_owned());
         string_registrar.insert("AnimationArg.short", "a".to_owned());
@@ -103,13 +103,13 @@ impl App {
             .collect();
         let ani_names: Vec<_> = ani_names_string.iter().map(|s| s.as_str()).collect();
         string_registrar.insert("AnimationArg.ani_details", info::format_info(&ani_info, 80));
-        string_registrar.insert("AnimationArg.help", "Select the name of the animation(s) to use in the order you'd like, separated by a ','".to_owned());
+        string_registrar.insert("AnimationArg.help", "Select the name of the animation(s) to use in the order you'd like, separated by a ','.".to_owned());
         string_registrar.insert("AnimationArg.long_help", format!("{}:\n{}", string_registrar.get("AnimationArg.help").unwrap(), string_registrar.get("AnimationArg.ani_details").unwrap()));
 
         string_registrar.insert("BrightnessArg.name", "brightness".to_owned());
         string_registrar.insert("BrightnessArg.short", "b".to_owned());
         string_registrar.insert("BrightnessArg.long", "brightness".to_owned());
-        string_registrar.insert("BrightnessArg.help", "Sets the given brightness level the LEDs shall be set to when running. Must be a value in the range [0, 1]".to_owned());
+        string_registrar.insert("BrightnessArg.help", "Sets the given brightness level the LEDs shall be set to when running. Must be a value in the range [0, 1].".to_owned());
 
         string_registrar.insert("DrawerArg.name", "drawer".to_owned());
         string_registrar.insert("DrawerArg.short", "d".to_owned());
@@ -154,6 +154,7 @@ impl App {
                     .long(string_registrar.get("BrightnessArg.long").unwrap())
                     .takes_value(true)
                     .multiple(false)
+                    .help(string_registrar.get("BrightnessArg.help").unwrap())
             )
             // Add Drawer options
             .arg(
