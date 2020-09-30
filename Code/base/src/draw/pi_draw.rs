@@ -1,7 +1,6 @@
 //! # Raspberry Pi Draw
 
 use rppal::gpio;
-use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::time::Duration;
 
@@ -32,9 +31,17 @@ impl Info for APA102CPiDrawInfo {
     }
 }
 
-/// Type used to represent a GPIO pin with interior mutability. This is required bc iterating over a frame borrows `self`, and
-/// setting the pin values requires mutation through `self` inside the iteration.
-pub type Pin = RefCell<gpio::OutputPin>;
+#[inline]
+fn bit_to_level(byte: u8, bit: u8) -> gpio::Level {
+    if byte >> bit & 1 != 0 {
+        gpio::Level::High
+    } else {
+        gpio::Level::Low
+    }
+}
+
+/// Local rename of the GPIO pin type.
+pub type Pin = gpio::OutputPin;
 
 /// Type alias for the SK9822 LED, which is a clone of the APA102C and compatible with our implementation of the APA102C's data
 /// transmission protocol.
@@ -74,10 +81,10 @@ impl APA102CPiDraw {
     ///
     /// * `data` - The data pin for the LEDs.
     /// * `clock` - The clock pin for the LEDs.
-    pub fn new(data: gpio::OutputPin, clock: gpio::OutputPin) -> Self {
+    pub fn new(data: Pin, clock: Pin) -> Self {
         Self {
-            data: RefCell::new(data),
-            clock: RefCell::new(clock),
+            data: data,
+            clock: clock,
 
             queue: VecDeque::new(),
             timer: Timer::new(None),
@@ -120,80 +127,46 @@ impl APA102CPiDraw {
     /// Writes a single byte of data to the `data` pin sequentially one bit at a
     /// time starting with the MSB.
     #[inline]
-    fn write_byte(&self, byte: u8) {
-        use rppal::gpio::Level;
+    fn write_byte(&mut self, byte: u8) {
+        self.data.write(bit_to_level(byte, 7));
+        self.clock.toggle();
+        self.clock.toggle();
 
-        self.data.borrow_mut().write(if byte >> 7 & 1 > 0 {
-            Level::High
-        } else {
-            Level::Low
-        });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        self.data.write(bit_to_level(byte, 6));
+        self.clock.toggle();
+        self.clock.toggle();
 
-        self.data.borrow_mut().write(if byte >> 6 & 1 > 0 {
-            Level::High
-        } else {
-            Level::Low
-        });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        self.data.write(bit_to_level(byte, 5));
+        self.clock.toggle();
+        self.clock.toggle();
 
-        self.data.borrow_mut().write(if byte >> 5 & 1 > 0 {
-            Level::High
-        } else {
-            Level::Low
-        });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        self.data.write(bit_to_level(byte, 4));
+        self.clock.toggle();
+        self.clock.toggle();
 
-        self.data.borrow_mut().write(if byte >> 4 & 1 > 0 {
-            Level::High
-        } else {
-            Level::Low
-        });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        self.data.write(bit_to_level(byte, 3));
+        self.clock.toggle();
+        self.clock.toggle();
 
-        self.data.borrow_mut().write(if byte >> 3 & 1 > 0 {
-            Level::High
-        } else {
-            Level::Low
-        });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        self.data.write(bit_to_level(byte, 2));
+        self.clock.toggle();
+        self.clock.toggle();
 
-        self.data.borrow_mut().write(if byte >> 2 & 1 > 0 {
-            Level::High
-        } else {
-            Level::Low
-        });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        self.data.write(bit_to_level(byte, 1));
+        self.clock.toggle();
+        self.clock.toggle();
 
-        self.data.borrow_mut().write(if byte >> 1 & 1 > 0 {
-            Level::High
-        } else {
-            Level::Low
-        });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
-
-        self.data.borrow_mut().write(if byte >> 0 & 1 > 0 {
-            Level::High
-        } else {
-            Level::Low
-        });
-        self.clock.borrow_mut().toggle();
-        self.clock.borrow_mut().toggle();
+        self.data.write(bit_to_level(byte, 0));
+        self.clock.toggle();
+        self.clock.toggle();
     }
 
     /// Simple function used to ensure the pins are set to low before sending a
     /// message to the LEDs.
     #[inline]
     fn set_pins_low(&mut self) {
-        self.data.borrow_mut().set_low();
-        self.clock.borrow_mut().set_low();
+        self.data.set_low();
+        self.clock.set_low();
     }
 
     /// Sets all LEDs up to `len` to black with 0 brightness, effectively
@@ -247,7 +220,7 @@ impl Draw for APA102CPiDraw {
         // value
         let zero_duration = Duration::new(0, 0);
 
-        let mut out = Vec::new();
+        let mut out = Vec::with_capacity(self.queue.len());
 
         // Loop while there are still animations to run
         while let Some(mut ani) = self.queue.pop_front() {
