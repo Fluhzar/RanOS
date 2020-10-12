@@ -43,10 +43,10 @@ pub struct NullDraw {
 
 impl NullDraw {
     /// Creates a new `NullDraw` object.
-    pub fn new() -> Self {
+    pub fn new(timer: Timer) -> Self {
         Self {
             queue: VecDeque::new(),
-            timer: Timer::new(None),
+            timer,
 
             stats: DrawStats::new(),
         }
@@ -92,6 +92,6 @@ impl Draw for NullDraw {
 
 impl Default for NullDraw {
     fn default() -> Self {
-        NullDraw::new()
+        NullDraw::new(Timer::new(None))
     }
 }

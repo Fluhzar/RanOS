@@ -53,12 +53,12 @@ impl TermDraw {
     /// * `max_width` - The maximum number of LEDs to draw per line in the
     /// terminal. E.g. if there are 256 LEDs to draw and a `max_width` of 16,
     /// then a 16x16 grid will be displayed.
-    pub fn new(max_width: usize) -> Self {
+    pub fn new(max_width: usize, timer: Timer) -> Self {
         Self {
             max_width,
 
             queue: VecDeque::new(),
-            timer: Timer::new(None),
+            timer,
 
             stats: DrawStats::new(),
         }
@@ -131,6 +131,6 @@ impl Draw for TermDraw {
 
 impl Default for TermDraw {
     fn default() -> Self {
-        Self::new(8)
+        Self::new(8, Timer::new(None))
     }
 }
