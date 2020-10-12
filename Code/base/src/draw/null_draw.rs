@@ -42,6 +42,18 @@ pub struct NullDraw {
 }
 
 impl NullDraw {
+    /// Returns a builder for this struct.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use base::draw::{Draw, DrawBuilder, NullDraw, NullDrawBuilder};
+    /// let drawer = NullDraw::builder().build();
+    /// ```
+    pub fn builder() -> NullDrawBuilder {
+        NullDrawBuilder::new()
+    }
+
     /// Creates a new `NullDraw` object.
     pub fn new(timer: Timer) -> Self {
         Self {
@@ -93,5 +105,38 @@ impl Draw for NullDraw {
 impl Default for NullDraw {
     fn default() -> Self {
         NullDraw::new(Timer::new(None))
+    }
+}
+
+/// Builder for [`NullDraw`][0].
+///
+/// Allows for optional setting of the `timer` parameter of [`NullDraw::new`][1]. If the parameter is not supplied, a default
+/// value will be inserted in its place. This default parameter will be the same as the default parameter seen in
+/// [`NullDraw::default`][2].
+///
+/// [0]: struct.NullDraw.html
+/// [1]: struct.NullDraw.html#method.new
+/// [2]: struct.NullDraw.html#method.default
+#[derive(Default, Copy, Clone)]
+pub struct NullDrawBuilder {
+    timer: Option<Timer>,
+}
+
+impl NullDrawBuilder {
+    /// Creates a new builder.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl DrawBuilder for NullDrawBuilder {
+    fn timer(mut self, timer: Timer) -> Self {
+        self.timer = Some(timer);
+
+        self
+    }
+
+    fn build(self) -> Box<dyn Draw> {
+        Box::new(NullDraw::new(self.timer.unwrap_or(Timer::new(None))))
     }
 }

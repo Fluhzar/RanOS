@@ -7,23 +7,26 @@
 //! the second is an emulated LED setup that draws to "LEDs" on the terminal
 //! with a configurable number of "LEDs" per row.
 
-pub use null_draw::{NullDraw, NullDrawInfo};
+pub use null_draw::{NullDraw, NullDrawBuilder, NullDrawInfo};
+pub use term_draw::{TermDraw, TermDrawBuilder, TermDrawInfo};
 
-#[cfg(target_os="linux")]
-pub use pi_draw::{APA102CPiDraw, APA102CPiDrawInfo, SK9822PiDraw, SK9822PiDrawInfo};
+#[cfg(target_os = "linux")]
+pub use pi_draw::{
+    APA102CPiDraw, APA102CPiDrawBuilder, APA102CPiDrawInfo,
+    SK9822PiDraw, SK9822PiDrawBuilder, SK9822PiDrawInfo,
+};
 
-use std::{fmt, ops};
 use std::time::Instant;
-pub use term_draw::{TermDraw, TermDrawInfo};
+use std::{fmt, ops};
 
 use crate::animation::Animation;
-use crate::util::Info;
+use crate::util::{Info, Timer};
 
-#[cfg(target_os="linux")]
-pub mod pi_draw;
-
-pub mod term_draw;
 pub mod null_draw;
+pub mod term_draw;
+
+#[cfg(target_os = "linux")]
+pub mod pi_draw;
 
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
@@ -42,6 +45,22 @@ pub trait Draw {
 
     /// Returns the statistics tracking object.
     fn stats(&self) -> DrawStats;
+}
+
+/// Defines the behavior of a builder of a type that implements [`Draw`][0].
+///
+/// Optionally allows the setting of a timer for the built object. If the parameter is not supplied, `Timer::new(None)` will
+/// likely be used as default though this behavior is implementation defined.
+///
+/// [0]: trait.Draw.html
+pub trait DrawBuilder {
+    /// Sets the `timer` parameter of the object.
+    fn timer(self, timer: Timer) -> Self;
+
+    /// Consumes the builder and returns a built [`Draw`][0] object.
+    ///
+    /// [0]: trait.Draw.html
+    fn build(self) -> Box<dyn Draw>;
 }
 
 /// Type for tracking statistics about the drawing.
@@ -150,7 +169,7 @@ impl ops::AddAssign<DrawStats> for DrawStats {
 }
 
 /// Returns a `Vec` of drawer `Info` objects
-#[cfg(target_os="linux")]
+#[cfg(target_os = "linux")]
 pub fn draw_info() -> Vec<Box<dyn Info>> {
     vec![
         APA102CPiDrawInfo::new(),
@@ -160,20 +179,17 @@ pub fn draw_info() -> Vec<Box<dyn Info>> {
 }
 
 /// Returns a `Vec` of drawer `Info` objects
-#[cfg(not(target_os="linux"))]
+#[cfg(not(target_os = "linux"))]
 pub fn draw_info() -> Vec<Box<dyn Info>> {
-    vec![
-        TermDrawInfo::new(),
-        NullDrawInfo::new(),
-    ]
+    vec![TermDrawInfo::new(), NullDrawInfo::new()]
 }
 
 /// Attempts to parse the given `String` into a `Draw` object, returning `None`
 /// on failure.
-#[cfg(target_os="linux")]
+#[cfg(target_os = "linux")]
 pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
 where
-    T: std::ops::Deref<Target=str>
+    T: std::ops::Deref<Target = str>,
 {
     let s = s.to_lowercase();
 
@@ -191,10 +207,10 @@ where
 
 /// Attempts to parse the given `String` into a `Draw` object, returning `None`
 /// on failure.
-#[cfg(not(target_os="linux"))]
+#[cfg(not(target_os = "linux"))]
 pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
 where
-    T: std::ops::Deref<Target=str>
+    T: std::ops::Deref<Target = str>,
 {
     let s = s.to_lowercase();
 

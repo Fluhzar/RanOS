@@ -46,6 +46,18 @@ pub struct TermDraw {
 }
 
 impl TermDraw {
+    /// Returns a builder for this struct.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use base::draw::{Draw, DrawBuilder, TermDraw, TermDrawBuilder};
+    /// let drawer = TermDraw::builder().build();
+    /// ```
+    pub fn builder() -> TermDrawBuilder {
+        TermDrawBuilder::new()
+    }
+
     /// Creates a new `TermDraw` object.
     ///
     /// # Parameters
@@ -132,5 +144,51 @@ impl Draw for TermDraw {
 impl Default for TermDraw {
     fn default() -> Self {
         Self::new(8, Timer::new(None))
+    }
+}
+
+/// Builder for [`TermDraw`][0].
+///
+/// Allows for optional setting of the `max_width` and `timer` parameters of [`TermDraw::new`][1]. If a parameter is not
+/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
+/// default parameter seen in [`TermDraw::default`][2].
+///
+/// [0]: struct.TermDraw.html
+/// [1]: struct.TermDraw.html#method.new
+/// [2]: struct.TermDraw.html#method.default
+#[derive(Default, Copy, Clone)]
+pub struct TermDrawBuilder {
+    max_width: Option<usize>,
+    timer: Option<Timer>,
+}
+
+impl TermDrawBuilder {
+    /// Creates a new builder
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Sets the maximum number of LEDs to draw per line.
+    ///
+    /// If this parameter is not set, the default value of `8` will be used instead.
+    pub fn max_width(mut self, width: usize) -> Self {
+        self.max_width = Some(width);
+
+        self
+    }
+}
+
+impl DrawBuilder for TermDrawBuilder {
+    fn timer(mut self, timer: Timer) -> Self {
+        self.timer = Some(timer);
+
+        self
+    }
+
+    fn build(self) -> Box<dyn Draw> {
+        Box::new(TermDraw::new(
+            self.max_width.unwrap_or(8),
+            self.timer.unwrap_or(Timer::new(None)),
+        ))
     }
 }
