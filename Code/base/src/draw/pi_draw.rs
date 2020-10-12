@@ -1,5 +1,7 @@
 //! # Raspberry Pi Draw
 
+#![cfg(target_os="linux")]
+
 use rppal::gpio;
 use std::collections::VecDeque;
 use std::time::Duration;

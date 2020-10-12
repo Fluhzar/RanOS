@@ -8,7 +8,10 @@
 //! with a configurable number of "LEDs" per row.
 
 pub use null_draw::{NullDraw, NullDrawInfo};
+
+#[cfg(target_os="linux")]
 pub use pi_draw::{APA102CPiDraw, APA102CPiDrawInfo, SK9822PiDraw, SK9822PiDrawInfo};
+
 use std::{fmt, ops};
 use std::time::Instant;
 pub use term_draw::{TermDraw, TermDrawInfo};
@@ -16,7 +19,9 @@ pub use term_draw::{TermDraw, TermDrawInfo};
 use crate::animation::Animation;
 use crate::util::Info;
 
+#[cfg(target_os="linux")]
 pub mod pi_draw;
+
 pub mod term_draw;
 pub mod null_draw;
 
@@ -145,6 +150,7 @@ impl ops::AddAssign<DrawStats> for DrawStats {
 }
 
 /// Returns a `Vec` of drawer `Info` objects
+#[cfg(target_os="linux")]
 pub fn draw_info() -> Vec<Box<dyn Info>> {
     vec![
         APA102CPiDrawInfo::new(),
@@ -153,8 +159,18 @@ pub fn draw_info() -> Vec<Box<dyn Info>> {
     ]
 }
 
+/// Returns a `Vec` of drawer `Info` objects
+#[cfg(not(target_os="linux"))]
+pub fn draw_info() -> Vec<Box<dyn Info>> {
+    vec![
+        TermDrawInfo::new(),
+        NullDrawInfo::new(),
+    ]
+}
+
 /// Attempts to parse the given `String` into a `Draw` object, returning `None`
 /// on failure.
+#[cfg(target_os="linux")]
 pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
 where
     T: std::ops::Deref<Target=str>
@@ -164,6 +180,25 @@ where
     if s == APA102CPiDrawInfo::new().name().to_lowercase() {
         Some(Box::new(APA102CPiDraw::default()))
     } else if s == TermDrawInfo::new().name().to_lowercase() {
+        println!("{}", "\x1B[2J"); // ANSI clear screen code
+        Some(Box::new(TermDraw::default()))
+    } else if s == NullDrawInfo::new().name().to_lowercase() {
+        Some(Box::new(NullDraw::default()))
+    } else {
+        None
+    }
+}
+
+/// Attempts to parse the given `String` into a `Draw` object, returning `None`
+/// on failure.
+#[cfg(not(target_os="linux"))]
+pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
+where
+    T: std::ops::Deref<Target=str>
+{
+    let s = s.to_lowercase();
+
+    if s == TermDrawInfo::new().name().to_lowercase() {
         println!("{}", "\x1B[2J"); // ANSI clear screen code
         Some(Box::new(TermDraw::default()))
     } else if s == NullDrawInfo::new().name().to_lowercase() {
