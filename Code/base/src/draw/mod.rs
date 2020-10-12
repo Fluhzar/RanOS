@@ -200,22 +200,22 @@ pub fn draw_info() -> Vec<Box<dyn Info>> {
     vec![TermDrawInfo::new(), NullDrawInfo::new()]
 }
 
-/// Attempts to parse the given `String` into a `Draw` object, returning `None`
+/// Attempts to parse the given `String` into a `DrawBuilder` object, returning `None`
 /// on failure.
 #[cfg(target_os = "linux")]
-pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
+pub fn match_draw<T>(s: T) -> Option<Box<dyn DrawBuilder>>
 where
     T: std::ops::Deref<Target = str>,
 {
     let s = s.to_lowercase();
 
     if s == APA102CPiDrawInfo::new().name().to_lowercase() {
-        Some(Box::new(APA102CPiDraw::default()))
+        Some(APA102CPiDraw::builder())
     } else if s == TermDrawInfo::new().name().to_lowercase() {
         println!("{}", "\x1B[2J"); // ANSI clear screen code
-        Some(Box::new(TermDraw::default()))
+        Some(TermDraw::builder())
     } else if s == NullDrawInfo::new().name().to_lowercase() {
-        Some(Box::new(NullDraw::default()))
+        Some(NullDraw::builder())
     } else {
         None
     }
@@ -224,7 +224,7 @@ where
 /// Attempts to parse the given `String` into a `Draw` object, returning `None`
 /// on failure.
 #[cfg(not(target_os = "linux"))]
-pub fn match_draw<T>(s: T) -> Option<Box<dyn Draw>>
+pub fn match_draw<T>(s: T) -> Option<Box<dyn DrawBuilder>>
 where
     T: std::ops::Deref<Target = str>,
 {
@@ -232,9 +232,9 @@ where
 
     if s == TermDrawInfo::new().name().to_lowercase() {
         println!("{}", "\x1B[2J"); // ANSI clear screen code
-        Some(Box::new(TermDraw::default()))
+        Some(TermDraw::builder())
     } else if s == NullDrawInfo::new().name().to_lowercase() {
-        Some(Box::new(NullDraw::default()))
+        Some(NullDraw::builder())
     } else {
         None
     }

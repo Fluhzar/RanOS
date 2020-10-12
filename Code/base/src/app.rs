@@ -202,7 +202,7 @@ impl App {
             .unwrap()
             .map(|a| animation::match_animation(a).unwrap())
             .collect();
-        let mut drawer = draw::match_draw(matches.value_of("drawer").unwrap()).unwrap();
+        let mut drawer = draw::match_draw(matches.value_of("drawer").unwrap()).unwrap().build();
 
         let brightness = if let Some(b) = matches.value_of("brightness") {
             if let Ok(b) = b.parse::<f32>() {
