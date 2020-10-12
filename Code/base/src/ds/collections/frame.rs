@@ -4,7 +4,7 @@ use std::io;
 use std::slice::{Iter, IterMut};
 use std::time::Duration;
 
-use crate::ds::rgb::{RGB, RGBOrder};
+use crate::ds::rgb::{RGBOrder, RGB};
 
 /// A struct representing a single frame of color values and a brightness.
 #[repr(C)]
@@ -133,7 +133,7 @@ impl Frame {
     }
 
     /// Sets the brightness to a given value.
-    /// 
+    ///
     /// # Note
     ///
     /// Value should be in the range of [0, 1]. If the value is not within this

@@ -35,18 +35,14 @@ pub trait Animation: std::fmt::Debug {
 
 /// Returns a `Vec` of animation `Info` objects.
 pub fn animation_info() -> Vec<Box<dyn Info>> {
-    vec![
-        BreathInfo::new(),
-        RainbowInfo::new(),
-        StrobeInfo::new(),
-    ]
+    vec![BreathInfo::new(), RainbowInfo::new(), StrobeInfo::new()]
 }
 
 /// Attempts to parse the given `String` into an `Animation` object, returning
 /// `None` on failure.
 pub fn match_animation<T>(s: T) -> Option<Box<dyn Animation>>
 where
-    T: std::ops::Deref<Target=str>
+    T: std::ops::Deref<Target = str>,
 {
     let s = s.to_lowercase();
 
