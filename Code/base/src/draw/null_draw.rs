@@ -50,7 +50,7 @@ impl NullDraw {
     /// # use base::draw::{Draw, DrawBuilder, NullDraw, NullDrawBuilder};
     /// let drawer = NullDraw::builder().build();
     /// ```
-    pub fn builder() -> NullDrawBuilder {
+    pub fn builder() -> Box<NullDrawBuilder> {
         NullDrawBuilder::new()
     }
 
@@ -124,19 +124,19 @@ pub struct NullDrawBuilder {
 
 impl NullDrawBuilder {
     /// Creates a new builder.
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new() -> Box<Self> {
+        Box::new(Default::default())
     }
 }
 
 impl DrawBuilder for NullDrawBuilder {
-    fn timer(mut self, timer: Timer) -> Self {
+    fn timer(mut self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
         self.timer = Some(timer);
 
         self
     }
 
-    fn build(self) -> Box<dyn Draw> {
+    fn build(self: Box<Self>) -> Box<dyn Draw> {
         Box::new(NullDraw::new(self.timer.unwrap_or(Timer::new(None))))
     }
 }

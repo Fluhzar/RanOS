@@ -121,7 +121,7 @@ impl APA102CPiDraw {
     /// let drawer = APA102CPiDraw::builder().build();
     /// # }
     /// ```
-    pub fn builder() -> APA102CPiDrawBuilder {
+    pub fn builder() -> Box<APA102CPiDrawBuilder> {
         APA102CPiDrawBuilder::new()
     }
 
@@ -341,17 +341,17 @@ pub struct APA102CPiDrawBuilder {
 }
 
 impl APA102CPiDrawBuilder {
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new() -> Box<Self> {
+        Box::new(Default::default())
     }
 
-    pub fn data(mut self, pin: u8) -> Self {
+    pub fn data(mut self: Box<Self>, pin: u8) -> Box<Self> {
         self.dat_pin = Some(pin);
 
         self
     }
 
-    pub fn clock(mut self, pin: u8) -> self {
+    pub fn clock(mut self: Box<Self>, pin: u8) -> Box<Self> {
         self.clk_pin = Some(pin);
 
         self
@@ -359,13 +359,13 @@ impl APA102CPiDrawBuilder {
 }
 
 impl DrawBuilder for APA102CPiDrawBuilder {
-    fn timer(mut self, timer: Timer) -> Self {
+    fn timer(mut self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
         self.timer = Some(timer);
 
         self
     }
 
-    fn build(self) -> Box<dyn Draw> {
+    fn build(self: Box<Self>) -> Box<dyn Draw> {
         let gpio = gpio::Gpio::new().unwrap();
         Box::new(APA102CDraw::new(
             gpio.get(self.dat_pin.unwrap_or(DEFAULT_DAT_PIN))

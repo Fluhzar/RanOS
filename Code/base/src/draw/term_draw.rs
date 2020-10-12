@@ -54,7 +54,7 @@ impl TermDraw {
     /// # use base::draw::{Draw, DrawBuilder, TermDraw, TermDrawBuilder};
     /// let drawer = TermDraw::builder().build();
     /// ```
-    pub fn builder() -> TermDrawBuilder {
+    pub fn builder() -> Box<TermDrawBuilder> {
         TermDrawBuilder::new()
     }
 
@@ -164,14 +164,14 @@ pub struct TermDrawBuilder {
 
 impl TermDrawBuilder {
     /// Creates a new builder
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new() -> Box<Self> {
+        Box::new(Default::default())
     }
 
     /// Sets the maximum number of LEDs to draw per line.
     ///
     /// If this parameter is not set, the default value of `8` will be used instead.
-    pub fn max_width(mut self, width: usize) -> Self {
+    pub fn max_width(mut self: Box<Self>, width: usize) -> Box<Self> {
         self.max_width = Some(width);
 
         self
@@ -179,13 +179,13 @@ impl TermDrawBuilder {
 }
 
 impl DrawBuilder for TermDrawBuilder {
-    fn timer(mut self, timer: Timer) -> Self {
+    fn timer(mut self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
         self.timer = Some(timer);
 
         self
     }
 
-    fn build(self) -> Box<dyn Draw> {
+    fn build(self: Box<Self>) -> Box<dyn Draw> {
         Box::new(TermDraw::new(
             self.max_width.unwrap_or(8),
             self.timer.unwrap_or(Timer::new(None)),

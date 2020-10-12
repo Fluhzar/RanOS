@@ -55,12 +55,28 @@ pub trait Draw {
 /// [0]: trait.Draw.html
 pub trait DrawBuilder {
     /// Sets the `timer` parameter of the object.
-    fn timer(self, timer: Timer) -> Self;
+    /// 
+    /// # !!! IMPORTANT NOTE !!!
+    /// 
+    /// Since rust doesn't let you create objects from traits with functions referencing `Self` in the return parameter, this
+    /// function instead returns `Box<dyn DrawBuilder>`. Once this function is called, the return value cannot be called with
+    /// any of the implementing type's functions.
+    /// 
+    /// An example of this issue would be something akin to the following:
+    /// 
+    /// ```
+    /// use base::draw::{DrawBuilder, TermDrawBuilder};
+    /// let draw = TermDrawBuilder::default()
+    ///     .timer(Timer::new(None))
+    ///     .max_width(8) // ERROR: This will fail because the return type is `Box<dyn DrawBuilder>` and not `Box<TermDrawBuilder>`
+    ///     .build();
+    /// ```
+    fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder>;
 
     /// Consumes the builder and returns a built [`Draw`][0] object.
     ///
     /// [0]: trait.Draw.html
-    fn build(self) -> Box<dyn Draw>;
+    fn build(self: Box<Self>) -> Box<dyn Draw>;
 }
 
 /// Type for tracking statistics about the drawing.
