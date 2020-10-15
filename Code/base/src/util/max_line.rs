@@ -1,6 +1,6 @@
 //! # Max Line
 
-/// Trait that defines the ability to split a string-like type into an array
+/// Trait that defines the ability to split a string-like type into an array of
 /// owned `String`s that have a maximum length up to a given maximum number of
 /// bytes.
 pub trait MaxLine: std::ops::Deref<Target = str> {
