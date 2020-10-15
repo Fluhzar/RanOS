@@ -10,8 +10,8 @@ use std::sync::{
 };
 
 use crate::animation;
-use crate::draw;
-use crate::util::info;
+use crate::draw::{Draw, DrawBuilder, DrawStats, draw_info, match_draw};
+use crate::util::{Timer, info};
 
 lazy_static! {
     static ref SIGINT: Arc<AtomicBool> = {
@@ -77,7 +77,7 @@ lazy_static! {
 ///
 /// [0]: clap
 pub struct App {
-    drawer: Box<dyn draw::Draw>,
+    drawer: Box<dyn Draw>,
     looping: bool,
     should_exit: Arc<AtomicBool>,
 }
@@ -107,7 +107,7 @@ impl App {
         let ani_names_string: Vec<_> = ani_info.iter().map(|i| i.name().to_lowercase()).collect();
         let ani_names: Vec<_> = ani_names_string.iter().map(|s| s.as_str()).collect();
         string_registrar.insert("AnimationArg.ani_details", info::format_info(&ani_info, 80));
-        string_registrar.insert("AnimationArg.help", "Select the name of the animation(s) to use in the order you'd like, separated by a ','.".to_owned());
+        string_registrar.insert("AnimationArg.help", "Select the name of the animation(s) to use in the order you'd like, separated by a ','".to_owned());
         string_registrar.insert(
             "AnimationArg.long_help",
             format!(
@@ -125,13 +125,13 @@ impl App {
         string_registrar.insert("DrawerArg.name", "drawer".to_owned());
         string_registrar.insert("DrawerArg.short", "d".to_owned());
         string_registrar.insert("DrawerArg.long", "drawer".to_owned());
-        let draw_info = draw::draw_info();
+        let draw_info = draw_info();
         let draw_names_string: Vec<_> = draw_info.iter().map(|i| i.name().to_lowercase()).collect();
         let draw_names: Vec<_> = draw_names_string.iter().map(|s| s.as_str()).collect();
         string_registrar.insert("DrawerArg.draw_details", info::format_info(&draw_info, 80));
         string_registrar.insert(
             "DrawerArg.help",
-            "Select the name of the drawer to use.".to_owned(),
+            "Select the name of the drawer to use".to_owned(),
         );
         string_registrar.insert(
             "DrawerArg.long_help",
@@ -146,6 +146,12 @@ impl App {
         string_registrar.insert("LoopingArg.short", "l".to_owned());
         string_registrar.insert("LoopingArg.long", "loop".to_owned());
         string_registrar.insert("LoopingArg.help", "Sets whether or not to loop the animations endlessly. If set, use SIGINT to terminate the program when the currently running animation is finished or SIGTERM to end the program immediately.".to_owned());
+
+        string_registrar.insert("SpeedArg.name", "speed".to_owned());
+        string_registrar.insert("SpeedArg.short", "s".to_owned());
+        string_registrar.insert("SpeedArg.long", "speed".to_owned());
+        string_registrar.insert("SpeedArg.help", "Sets the desired speed to run the program at in frames per second (FPS). (e.g. 60, 29.97, etc.".to_owned());
+        string_registrar.insert("SpeedArg.long_help", "Sets the desired speed to run the program at. The value is interpreted as frames per second (FPS) and should be a numerical value, e.g. 60, 29.97, etc. If this value is omitted, then the program will run at full speed as fast as it can run on your hardware.".to_owned());
 
         // Create the app
         let app = clap::App::new(string_registrar.get("App.name").unwrap())
@@ -186,23 +192,34 @@ impl App {
                     .help(string_registrar.get("DrawerArg.help").unwrap())
                     .long_help(string_registrar.get("DrawerArg.long_help").unwrap()),
             )
-            // Add looping option
+            // Add looping flag
             .arg(
                 clap::Arg::with_name(string_registrar.get("LoopingArg.name").unwrap())
                     .short(string_registrar.get("LoopingArg.short").unwrap())
                     .long(string_registrar.get("LoopingArg.long").unwrap())
                     .help(string_registrar.get("LoopingArg.help").unwrap()),
-            );
+            )
+            // Add speed option
+            .arg(
+                clap::Arg::with_name(string_registrar.get("SpeedArg.name").unwrap())
+                    .short(string_registrar.get("SpeedArg.short").unwrap())
+                    .long(string_registrar.get("SpeedArg.long").unwrap())
+                    .help(string_registrar.get("SpeedArg.help").unwrap())
+                    .takes_value(true)
+                    .multiple(false)
+                    .long_help(string_registrar.get("SpeedArg.long_help").unwrap()),
+            )
+        ;
 
         let matches = app.get_matches();
 
-        let looping = matches.is_present("looping");
         let animations: Vec<_> = matches
             .values_of("animations")
             .unwrap()
             .map(|a| animation::match_animation(a).unwrap())
             .collect();
-        let mut drawer = draw::match_draw(matches.value_of("drawer").unwrap()).unwrap().build();
+
+        let drawer_builder = match_draw(matches.value_of("drawer").unwrap()).unwrap();
 
         let brightness = if let Some(b) = matches.value_of("brightness") {
             if let Ok(b) = b.parse::<f32>() {
@@ -213,6 +230,22 @@ impl App {
         } else {
             0.25
         };
+
+        let looping = matches.is_present("looping");
+
+        let speed = if let Some(s) = matches.value_of("speed") {
+            if let Ok(s) = s.parse::<f32>() {
+                Timer::new(Some(std::time::Duration::from_secs_f32(1.0/s)))
+            } else {
+                Timer::new(None)
+            }
+        } else {
+            Timer::new(None)
+        };
+
+        let mut drawer = drawer_builder
+            .timer(speed)
+            .build();
 
         for mut a in animations {
             a.set_brightness(brightness);
