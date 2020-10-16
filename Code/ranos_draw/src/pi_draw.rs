@@ -367,7 +367,7 @@ impl DrawBuilder for APA102CPiDrawBuilder {
 
     fn build(self: Box<Self>) -> Box<dyn Draw> {
         let gpio = gpio::Gpio::new().unwrap();
-        Box::new(APA102CDraw::new(
+        Box::new(APA102CPiDraw::new(
             gpio.get(self.dat_pin.unwrap_or(DEFAULT_DAT_PIN))
                 .unwrap()
                 .into_output(),
