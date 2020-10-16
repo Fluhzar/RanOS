@@ -3,7 +3,7 @@
 use std::collections::VecDeque;
 use std::time::Duration;
 
-use crate::util::{Info, Timer};
+use ranos_core::{Info, Timer};
 
 use super::*;
 

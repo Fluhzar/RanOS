@@ -6,11 +6,10 @@
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
-#[macro_use]
-extern crate lazy_static;
+pub use info::Info;
+pub use max_line::MaxLine;
+pub use timer::Timer;
 
-pub mod animation;
-pub mod app;
-pub mod draw;
-pub mod ds;
-pub mod util;
+pub mod info;
+pub mod max_line;
+pub mod timer;

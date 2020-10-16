@@ -2,11 +2,11 @@
 
 use std::time::Duration;
 
-use crate::ds::{
+use ranos_ds::{
     const_val::ConstVal,
     rgb::{RGBOrder, RGB},
 };
-use crate::util::info::Info;
+use ranos_core::info::Info;
 
 use super::*;
 

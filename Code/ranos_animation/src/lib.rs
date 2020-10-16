@@ -1,12 +1,19 @@
 //! # Animation
 
+#![warn(missing_docs)]
+#![deny(broken_intra_doc_links)]
+#![warn(clippy::all)]
+
+extern crate ranos_core;
+extern crate ranos_ds;
+
 pub use breath::{Breath, BreathInfo};
 pub use rainbow::{Rainbow, RainbowInfo};
 use std::time::Duration;
 pub use strobe::{Strobe, StrobeInfo};
 
-use crate::ds::collections::frame::Frame;
-use crate::util::Info;
+use ranos_ds::collections::frame::Frame;
+use ranos_core::Info;
 
 pub mod breath;
 pub mod rainbow;

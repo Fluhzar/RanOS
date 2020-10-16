@@ -1,0 +1,12 @@
+[package]
+name = "ranos_animation"
+version = "0.1.0"
+authors = ["Fluhzar <fluhzar@pm.me>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+ranos_core = { path = "../ranos_core", version = "0.1" }
+ranos_ds = { path = "../ranos_ds", version = "0.1" }

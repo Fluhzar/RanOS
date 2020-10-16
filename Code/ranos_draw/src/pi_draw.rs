@@ -12,9 +12,9 @@ use rppal::gpio;
 use std::collections::VecDeque;
 use std::time::Duration;
 
-use crate::ds::collections::frame::Frame;
-use crate::ds::rgb::*;
-use crate::util::{Info, Timer};
+use ranos_ds::collections::frame::Frame;
+use ranos_ds::rgb::*;
+use ranos_core::{Info, Timer};
 
 use super::*;
 

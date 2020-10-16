@@ -2,8 +2,8 @@
 
 use std::time::Duration;
 
-use crate::ds::{collections::frame::Frame, const_val::ConstVal, rgb::RGB};
-use crate::util::info::Info;
+use ranos_ds::{collections::frame::Frame, const_val::ConstVal, rgb::RGB};
+use ranos_core::info::Info;
 
 use super::*;
 

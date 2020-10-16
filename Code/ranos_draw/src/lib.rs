@@ -7,6 +7,13 @@
 //! the second is an emulated LED setup that draws to "LEDs" on the terminal
 //! with a configurable number of "LEDs" per row.
 
+#![warn(missing_docs)]
+#![deny(broken_intra_doc_links)]
+#![warn(clippy::all)]
+
+extern crate ranos_animation;
+extern crate ranos_core;
+
 pub use null_draw::{NullDraw, NullDrawBuilder, NullDrawInfo};
 pub use term_draw::{TermDraw, TermDrawBuilder, TermDrawInfo};
 
@@ -19,8 +26,8 @@ pub use pi_draw::{
 use std::time::Instant;
 use std::{fmt, ops};
 
-use crate::animation::Animation;
-use crate::util::{Info, Timer};
+use ranos_animation::Animation;
+use ranos_core::{Info, Timer};
 
 pub mod null_draw;
 pub mod term_draw;

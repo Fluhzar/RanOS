@@ -1,0 +1,18 @@
+[package]
+name = "ranos_draw"
+version = "0.1.0"
+authors = ["Fluhzar <fluhzar@pm.me>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+colored = "2.0"
+
+ranos_core = { path = "../ranos_core", version = "0.1" }
+ranos_ds = { path = "../ranos_ds", version = "0.1" }
+ranos_animation = { path = "../ranos_animation", version = "0.1" }
+
+[target.'cfg(target_os="linux")'.dependencies]
+rppal = "0.11"
