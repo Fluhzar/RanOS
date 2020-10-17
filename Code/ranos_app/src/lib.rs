@@ -17,7 +17,7 @@ use std::sync::{
 };
 
 use ranos_animation;
-use ranos_draw::{Draw, DrawBuilder, DrawStats, draw_info, match_draw};
+use ranos_draw::{Draw, draw_info, match_draw};
 use ranos_core::{Timer, info};
 
 lazy_static! {
