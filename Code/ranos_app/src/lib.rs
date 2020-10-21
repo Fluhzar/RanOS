@@ -17,7 +17,7 @@ use std::sync::{
 };
 
 use ranos_animation;
-use ranos_draw::{Draw, draw_info, match_draw};
+use ranos_draw::{Draw, DrawStats, draw_info, match_draw};
 use ranos_core::{Timer, info};
 
 lazy_static! {
@@ -275,14 +275,15 @@ impl App {
     /// current animation finishes, or SIGTERM is signalled, which terminates
     /// the program automatically.
     pub fn run(&mut self) {
+        let mut total_stats = DrawStats::new();
+
         loop {
             let anis = self.drawer.run();
-            println!("\n{}", self.drawer.stats());
+            total_stats += self.drawer.stats();
 
             // If an interrupt has occurred, exit the run function, returning an appropriate error.
             if self.should_exit.load(Ordering::Relaxed) == true {
-                eprintln!("Early exit: \n\tCaught SIGINT, stopping.");
-                return;
+                self.looping = false;
             }
 
             if self.looping {
@@ -294,5 +295,7 @@ impl App {
                 break;
             }
         }
+
+        println!("\n{}", total_stats);
     }
 }
