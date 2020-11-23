@@ -33,6 +33,8 @@ impl Info for BreathInfo {
 pub enum ColorOrder {
     /// Order determined by random colors generated when needed.
     Random,
+    /// Order determined by random bright colors generated when needed.
+    RandomBright,
     /// Order determined by the associated data which is looped through sequentially.
     Ordered(Vec<RGB>),
 }
@@ -83,6 +85,7 @@ impl Breath {
             current_color: match order {
                 ColorOrder::Ordered(v) => v[0],
                 ColorOrder::Random => RGB::random(),
+                ColorOrder::RandomBright => RGB::random_bright(),
             },
 
             acc: ConstVal::new(-8.0 / breath_duration.as_secs_f32().powi(2)),
@@ -140,6 +143,7 @@ impl Animation for Breath {
         self.current_color = match &self.order {
             ColorOrder::Ordered(v) => v[0],
             ColorOrder::Random => RGB::random(),
+            ColorOrder::RandomBright => RGB::random_bright(),
         };
         self.vel = *self.vel0.get();
     }

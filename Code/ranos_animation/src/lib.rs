@@ -7,15 +7,18 @@
 extern crate ranos_core;
 extern crate ranos_ds;
 
-pub use breath::{Breath, BreathInfo};
-pub use rainbow::{Rainbow, RainbowInfo};
 use std::time::Duration;
+
+pub use breath::{Breath, BreathInfo};
+pub use cycle::{Cycle, CycleInfo};
+pub use rainbow::{Rainbow, RainbowInfo};
 pub use strobe::{Strobe, StrobeInfo};
 
 use ranos_ds::collections::frame::Frame;
 use ranos_core::Info;
 
 pub mod breath;
+pub mod cycle;
 pub mod rainbow;
 pub mod strobe;
 
@@ -42,7 +45,7 @@ pub trait Animation: std::fmt::Debug {
 
 /// Returns a `Vec` of animation `Info` objects.
 pub fn animation_info() -> Vec<Box<dyn Info>> {
-    vec![BreathInfo::new(), RainbowInfo::new(), StrobeInfo::new()]
+    vec![BreathInfo::new(), CycleInfo::new(), RainbowInfo::new(), StrobeInfo::new()]
 }
 
 /// Attempts to parse the given `String` into an `Animation` object, returning
@@ -55,6 +58,8 @@ where
 
     if s == BreathInfo::new().name().to_lowercase() {
         Some(Box::new(Breath::default()))
+    } else if s == CycleInfo::new().name().to_lowercase() {
+        Some(Box::new(Cycle::default()))
     } else if s == RainbowInfo::new().name().to_lowercase() {
         Some(Box::new(Rainbow::default()))
     } else if s == StrobeInfo::new().name().to_lowercase() {
