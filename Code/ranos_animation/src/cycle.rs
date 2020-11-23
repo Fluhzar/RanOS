@@ -125,7 +125,7 @@ impl Animation for Cycle {
 impl Default for Cycle {
     fn default() -> Self {
         Self::new(
-            Duration::from_secs(18),
+            Duration::from_secs_f64(60.0/165.0*3.0*15.0),
             Duration::from_secs_f64(60.0/165.0),
             0.25,
             15,
