@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use ranos_ds::{const_val::ConstVal, rgb::RGB};
+use ranos_ds::{const_val::ConstVal, rgb::{RGB, RGBOrder}};
 use ranos_core::info::Info;
 
 use super::*;
@@ -129,7 +129,12 @@ impl Default for Cycle {
             Duration::from_secs_f64(60.0/165.0),
             0.25,
             16,
-            ColorOrder::RandomBright,
+            // ColorOrder::RandomBright,
+            ColorOrder::Ordered(vec![
+                RGB::from_code(0xFF0000, RGBOrder::RGB),
+                RGB::from_code(0x00FF00, RGBOrder::RGB),
+                RGB::from_code(0x0000FF, RGBOrder::RGB),
+            ]),
         )
     }
 }
