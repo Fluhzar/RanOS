@@ -341,16 +341,19 @@ pub struct APA102CPiDrawBuilder {
 }
 
 impl APA102CPiDrawBuilder {
+    /// Creates new `APA102CPiDrawBuilder` object.
     pub fn new() -> Box<Self> {
         Box::new(Default::default())
     }
 
+    /// Sets the data pin.
     pub fn data(mut self: Box<Self>, pin: u8) -> Box<Self> {
         self.dat_pin = Some(pin);
 
         self
     }
 
+    /// Sets the clock pin.
     pub fn clock(mut self: Box<Self>, pin: u8) -> Box<Self> {
         self.clk_pin = Some(pin);
 

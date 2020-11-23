@@ -9,6 +9,7 @@ use super::*;
 
 pub use super::breath::ColorOrder as ColorOrder;
 
+/// Presents some info about `Cycle` for pretty printing.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct CycleInfo();
 
@@ -29,6 +30,9 @@ impl Info for CycleInfo {
     }
 }
 
+/// Struct for a simple cycling between colors by either walking a provided list
+/// of colors or generating random colors. Each color is shown for the set amount
+/// of time before proceeding to the next color.
 #[derive(Debug)]
 pub struct Cycle {
     runtime: ConstVal<Duration>,
@@ -44,6 +48,15 @@ pub struct Cycle {
 }
 
 impl Cycle {
+    /// Creates new `Cycle` object.
+    ///
+    /// # Parameters
+    ///
+    /// * `runtime` - The length of time this animation will run.
+    /// * `cycle_period` - The duration a single color is drawn for.
+    /// * `brightness` - The brightness value to use. Should be in range [0, 1].
+    /// * `size` - The number of LEDs this animation will animate for.
+    /// * `order` - A given order that the animation cycles through.
     pub fn new(
         runtime: Duration,
         cycle_period: Duration,

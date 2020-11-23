@@ -59,7 +59,7 @@ pub struct Breath {
 }
 
 impl Breath {
-    /// Creates new `Breath` object
+    /// Creates new `Breath` object.
     ///
     /// # Parameters
     ///

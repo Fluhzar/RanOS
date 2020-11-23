@@ -42,20 +42,24 @@ lazy_static! {
 /// help message would be the following:
 ///
 /// ```txt
+/// RanOS LED Animation App 0.1.0
+/// Fluhzar <fluhzar@pm.me>
+/// Renders some animations through a given LED drawer.
+/// 
 /// USAGE:
-/// base [FLAGS] [OPTIONS] --drawer <drawer>
-///
+///     ranos_app [FLAGS] [OPTIONS] --drawer <drawer>
+/// 
 /// FLAGS:
 ///     -h, --help       
 ///             Prints help information
-///
+/// 
 ///     -l, --loop       
 ///             Sets whether or not to loop the animations endlessly. If set, use SIGINT to terminate the program when the
 ///             currently running animation is finished or SIGTERM to end the program immediately.
 ///     -V, --version    
 ///             Prints version information
-///
-///
+/// 
+/// 
 /// OPTIONS:
 ///     -a, --animation <animations>...    
 ///             Select the name of the animation(s) to use in the order you'd like, separated by a ',':
@@ -64,14 +68,20 @@ lazy_static! {
 ///                        colors or select random colors, each color fading along a parabolic curve from
 ///                        black to the chosen color and back down to black.
 ///             
+///             Cycle      Animates a static color for a given amount of time before cutting to the next
+///                        color in a given order
+///             
 ///             Rainbow    Classic RGB rainbow puke that we all know and love but instead of displaying on
 ///                        a fancy RGB keyboard it's just these stupid LEDs puking out everything.
 ///             
 ///             Strobe     Animates a flickering light similar to the strobe lights one might see at
 ///                        concerts or otherwise.
-///              [possible values: breath, rainbow, strobe]
+///              [possible values: breath, cycle, rainbow, strobe]
+///     -b, --brightness <brightness>      
+///             Sets the given brightness level the LEDs shall be set to when running. Must be a value in the range [0, 1].
+/// 
 ///     -d, --drawer <drawer>              
-///             Select the name of the drawer to use.:
+///             Select the name of the drawer to use:
 ///             
 ///             PiDraw      Draws APA102C/SK9822 LEDs through a Raspberry Pi's GPIO pins. This
 ///                         implementation maintains compatibility with both APA102C and SK9822 LEDs.
@@ -81,6 +91,10 @@ lazy_static! {
 ///             
 ///             NullDraw    Drawer that doesn't have any form of output.
 ///              [possible values: pidraw, termdraw, nulldraw]
+///     -s, --speed <speed>                
+///             Sets the desired speed to run the program at. The value is interpreted as frames per second (FPS) and should
+///             be a numerical value, e.g. 60, 29.97, etc. If this value is omitted, then the program will run at full speed
+///             as fast as it can run on your hardware.
 /// ```
 ///
 /// [0]: clap
