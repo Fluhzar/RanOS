@@ -218,6 +218,16 @@ impl RGB {
         Self(rand::random(), rand::random(), rand::random())
     }
 
+    /// Creates a new `RGB` value with a random color that is bright and vibrant.
+    /// In HSV terms, this means the saturation and value are set close to their maximums.
+    pub fn random_bright() -> Self {
+        Self::from_hsv(
+            rand::random::<f32>() % 360.0,
+            ((rand::random::<u16>() as u32) << 16) as f32 / 0xFFFFFFF as f32,
+            ((rand::random::<u16>() as u32) << 16) as f32 / 0xFFFFFFF as f32,
+        )
+    }
+
     /// Creates a new `RGB` value from HSV values.
     ///
     /// Based on the algorithm found on [Wikipedia][0]

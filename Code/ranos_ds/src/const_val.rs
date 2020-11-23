@@ -45,3 +45,9 @@ where
         Self::new(self.val.clone())
     }
 }
+
+impl<T> From<T> for ConstVal<T> {
+    fn from(v: T) -> Self {
+        ConstVal::new(v)
+    }
+}

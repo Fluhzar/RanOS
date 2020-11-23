@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 
 ranos_core = { path = "../ranos_core", version = "0.1" }
-ranos_ds = { path = "../ranos_ds", version = "0.1" }
+ranos_ds = { path = "../ranos_ds", version = "0.2" }

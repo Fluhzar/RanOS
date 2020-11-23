@@ -11,7 +11,7 @@ edition = "2018"
 colored = "2.0"
 
 ranos_core = { path = "../ranos_core", version = "0.1" }
-ranos_ds = { path = "../ranos_ds", version = "0.1" }
+ranos_ds = { path = "../ranos_ds", version = "0.2" }
 ranos_animation = { path = "../ranos_animation", version = "0.1" }
 
 [target.'cfg(target_os="linux")'.dependencies]
