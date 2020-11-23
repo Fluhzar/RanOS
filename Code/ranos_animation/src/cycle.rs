@@ -128,7 +128,7 @@ impl Default for Cycle {
             Duration::from_secs(18),
             Duration::from_secs_f64(60.0/165.0),
             0.25,
-            16,
+            15,
             // ColorOrder::RandomBright,
             ColorOrder::Ordered(vec![
                 RGB::from_code(0xFF0000, RGBOrder::RGB),
