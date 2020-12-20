@@ -72,7 +72,7 @@ impl Rainbow {
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,
-            frame: Frame::new(None, brightness, size),
+            frame: Frame::new(brightness, size),
 
             hue: 0.0,
             sat: ConstVal::new(sat),

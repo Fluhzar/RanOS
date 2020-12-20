@@ -67,7 +67,7 @@ impl Cycle {
         Self {
             runtime: runtime.into(),
             time_remaining: runtime,
-            frame: Frame::new(None, brightness, size),
+            frame: Frame::new(brightness, size),
 
             order: order.clone(),
             ind: 0,
@@ -141,7 +141,7 @@ impl Default for Cycle {
             Duration::from_secs_f64(60.0/165.0*3.0*15.0),
             Duration::from_secs_f64(60.0/165.0),
             0.25,
-            15,
+            16,
             // ColorOrder::RandomBright,
             ColorOrder::Ordered(vec![
                 RGB::from_code(0xFF0000, RGBOrder::RGB),

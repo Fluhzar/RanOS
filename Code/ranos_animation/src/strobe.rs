@@ -79,7 +79,7 @@ impl Strobe {
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,
-            frame: Frame::new(None, brightness, size),
+            frame: Frame::new(brightness, size),
 
             period: ConstVal::new(period.as_secs_f64()),
             duty: ConstVal::new(duty),

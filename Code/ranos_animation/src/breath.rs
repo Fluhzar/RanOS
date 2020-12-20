@@ -78,7 +78,7 @@ impl Breath {
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,
-            frame: Frame::new(None, brightness, size),
+            frame: Frame::new(brightness, size),
 
             order: order.clone(),
             ind: 0,
