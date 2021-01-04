@@ -134,7 +134,7 @@ impl Default for Rainbow {
             Duration::from_secs(16),
             Duration::from_secs(2),
             0.25,
-            16,
+            64,//16,
             1.0,
             1.0,
             1.0,

@@ -142,7 +142,7 @@ impl Default for Strobe {
         Self::new(
             Duration::from_secs(8),
             0.25,
-            16,
+            64,//16,
             Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
             1.0 / ((1 << 2) as f64),
             RGB::from_code(0xFFFFFF, RGBOrder::RGB),
