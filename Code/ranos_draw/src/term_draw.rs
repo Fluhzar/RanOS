@@ -1,8 +1,8 @@
 //! # Terminal Draw
 
 use colored::Colorize;
+use ranos_animation::AnimationState;
 use std::collections::VecDeque;
-use std::time::Duration;
 
 use ranos_ds::collections::frame::Frame;
 use ranos_core::{Info, Timer};
@@ -41,6 +41,7 @@ pub struct TermDraw {
 
     queue: VecDeque<Box<dyn Animation>>,
     timer: Timer,
+    frame: Frame,
 
     stats: DrawStats,
 }
@@ -65,32 +66,33 @@ impl TermDraw {
     /// * `max_width` - The maximum number of LEDs to draw per line in the
     /// terminal. E.g. if there are 256 LEDs to draw and a `max_width` of 16,
     /// then a 16x16 grid will be displayed.
-    pub fn new(max_width: usize, timer: Timer) -> Self {
+    pub fn new(max_width: usize, timer: Timer, brightness: f32, size: usize) -> Self {
         Self {
             max_width,
 
             queue: VecDeque::new(),
             timer,
+            frame: Frame::new(brightness, size),
 
             stats: DrawStats::new(),
         }
     }
 
-    fn write_frame(&mut self, frame: &Frame) {
+    fn write_frame(&mut self) {
         // Create output string with enough capacity to minimize reallocations of memory for growing the string's capacity
         let mut output =
-            String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
+            String::with_capacity(self.frame.len() * 4 + (self.frame.len() / self.max_width) * 2);
         output.push_str("\x1B[1;1H"); // ANSI "move cursor to upper-left corner" code
 
         // Loop through the enumerated RGB values
-        for (i, led) in frame.iter().enumerate() {
+        for (i, led) in self.frame.iter().enumerate() {
             // Check if max width has been reached on the current row
             if i % self.max_width == 0 {
                 output = format!("{}\n\n", output);
             }
 
             // Scale the color and print it to the output
-            let led = led.scale(frame.brightness());
+            let led = led.scale(self.frame.brightness());
             output = format!(
                 "{}{}  ",
                 output,
@@ -115,19 +117,20 @@ impl Draw for TermDraw {
         self.timer.reset();
         self.stats.reset();
 
-        let zero_duration = Duration::new(0, 0);
-
         let mut out = Vec::new();
 
         while let Some(mut ani) = self.queue.pop_front() {
-            while ani.time_remaining() > zero_duration {
-                ani.update(self.timer.ping());
-                self.write_frame(ani.frame());
+            loop {
+                match ani.render_frame(&mut self.frame, self.timer.ping()) {
+                    AnimationState::Continue | AnimationState::ErrRetry => (),
+                    AnimationState::Last | AnimationState::ErrFatal => break,
+                }
+                self.write_frame();
 
                 self.stats.inc_frames();
             }
 
-            self.stats.set_num(ani.frame().len());
+            self.stats.set_num(self.frame.len());
             self.stats.end();
 
             out.push(ani);
@@ -138,12 +141,6 @@ impl Draw for TermDraw {
 
     fn stats(&self) -> DrawStats {
         self.stats
-    }
-}
-
-impl Default for TermDraw {
-    fn default() -> Self {
-        Self::new(8, Timer::new(None))
     }
 }
 
@@ -159,7 +156,6 @@ impl Default for TermDraw {
 #[derive(Default, Copy, Clone)]
 pub struct TermDrawBuilder {
     max_width: Option<usize>,
-    timer: Option<Timer>,
 }
 
 impl TermDrawBuilder {
@@ -179,16 +175,12 @@ impl TermDrawBuilder {
 }
 
 impl DrawBuilder for TermDrawBuilder {
-    fn timer(mut self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
-        self.timer = Some(timer);
-
-        self
-    }
-
-    fn build(self: Box<Self>) -> Box<dyn Draw> {
+    fn build(self: Box<Self>, timer: Timer, brightness: f32, size: usize) -> Box<dyn Draw> {
         Box::new(TermDraw::new(
             self.max_width.unwrap_or(8),
-            self.timer.unwrap_or(Timer::new(None)),
+            timer,
+            brightness,
+            size,
         ))
     }
 }

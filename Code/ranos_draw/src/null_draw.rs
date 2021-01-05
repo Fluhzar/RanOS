@@ -1,9 +1,10 @@
 //! # Null Draw
 
 use std::collections::VecDeque;
-use std::time::Duration;
 
+use ranos_animation::AnimationState;
 use ranos_core::{Info, Timer};
+use ranos_ds::collections::Frame;
 
 use super::*;
 
@@ -37,6 +38,7 @@ impl Info for NullDrawInfo {
 pub struct NullDraw {
     queue: VecDeque<Box<dyn Animation>>,
     timer: Timer,
+    frame: Frame,
 
     stats: DrawStats,
 }
@@ -55,10 +57,11 @@ impl NullDraw {
     }
 
     /// Creates a new `NullDraw` object.
-    pub fn new(timer: Timer) -> Self {
+    pub fn new(timer: Timer, brightness: f32, size: usize) -> Self {
         Self {
             queue: VecDeque::new(),
             timer,
+            frame: Frame::new(brightness, size),
 
             stats: DrawStats::new(),
         }
@@ -78,18 +81,19 @@ impl Draw for NullDraw {
         self.timer.reset();
         self.stats.reset();
 
-        let zero_duration = Duration::new(0, 0);
-
         let mut out = Vec::new();
 
         while let Some(mut ani) = self.queue.pop_front() {
-            while ani.time_remaining() > zero_duration {
-                ani.update(self.timer.ping());
+            loop {
+                match ani.render_frame(&mut self.frame, self.timer.ping()) {
+                    AnimationState::Continue | AnimationState::ErrRetry => (),
+                    AnimationState::Last | AnimationState::ErrFatal => break,
+                }
 
                 self.stats.inc_frames();
             }
 
-            self.stats.set_num(ani.frame().len());
+            self.stats.set_num(self.frame.len());
             self.stats.end();
             out.push(ani);
         }
@@ -99,12 +103,6 @@ impl Draw for NullDraw {
 
     fn stats(&self) -> DrawStats {
         self.stats
-    }
-}
-
-impl Default for NullDraw {
-    fn default() -> Self {
-        NullDraw::new(Timer::new(None))
     }
 }
 
@@ -118,9 +116,7 @@ impl Default for NullDraw {
 /// [1]: struct.NullDraw.html#method.new
 /// [2]: struct.NullDraw.html#method.default
 #[derive(Default, Copy, Clone)]
-pub struct NullDrawBuilder {
-    timer: Option<Timer>,
-}
+pub struct NullDrawBuilder;
 
 impl NullDrawBuilder {
     /// Creates a new builder.
@@ -130,13 +126,7 @@ impl NullDrawBuilder {
 }
 
 impl DrawBuilder for NullDrawBuilder {
-    fn timer(mut self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
-        self.timer = Some(timer);
-
-        self
-    }
-
-    fn build(self: Box<Self>) -> Box<dyn Draw> {
-        Box::new(NullDraw::new(self.timer.unwrap_or(Timer::new(None))))
+    fn build(self: Box<Self>, timer: Timer, brightness: f32, size: usize) -> Box<dyn Draw> {
+        Box::new(NullDraw::new(timer, brightness, size))
     }
 }

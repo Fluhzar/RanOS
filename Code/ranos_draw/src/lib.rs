@@ -37,14 +37,10 @@ pub mod pi_draw;
 
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
-    /// Adds an [`Animation`][0] to the queue.
-    ///
-    /// [0]: ../animation/trait.Animation.html
+    /// Adds an [`Animation`][ranos_animation::Animation] to the queue.
     fn push_queue(&mut self, a: Box<dyn Animation>);
 
-    /// Returns the number of [`Animation`][0]s in the queue.
-    ///
-    /// [0]: ../animation/trait.Animation.html
+    /// Returns the number of [`Animation`][ranos_animation::Animation]s in the queue.
     fn queue_len(&self) -> usize;
 
     /// Draws the internal frame to its destination.
@@ -54,36 +50,16 @@ pub trait Draw {
     fn stats(&self) -> DrawStats;
 }
 
-/// Defines the behavior of a builder of a type that implements [`Draw`][0].
-///
-/// Optionally allows the setting of a timer for the built object. If the parameter is not supplied, `Timer::new(None)` will
-/// likely be used as default though this behavior is implementation defined.
-///
-/// [0]: trait.Draw.html
+/// Defines the behavior of a builder of a type that implements [`Draw`][crate::Draw].
 pub trait DrawBuilder {
-    /// Sets the `timer` parameter of the object.
-    /// 
-    /// # !!! IMPORTANT NOTE !!!
-    /// 
-    /// Since rust doesn't let you create objects from traits with functions referencing `Self` in the return parameter, this
-    /// function instead returns `Box<dyn DrawBuilder>`. Once this function is called, the return value cannot be called with
-    /// any of the implementing type's functions.
-    /// 
-    /// An example of this issue would be something akin to the following:
-    /// 
-    /// ```
-    /// use base::draw::{DrawBuilder, TermDrawBuilder};
-    /// let draw = TermDrawBuilder::default()
-    ///     .timer(Timer::new(None))
-    ///     .max_width(8) // ERROR: This will fail because the return type is `Box<dyn DrawBuilder>` and not `Box<TermDrawBuilder>`
-    ///     .build();
-    /// ```
-    fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder>;
-
-    /// Consumes the builder and returns a built [`Draw`][0] object.
+    /// Builds [`Draw`][crate::Draw] object, returning it boxed up.
     ///
-    /// [0]: trait.Draw.html
-    fn build(self: Box<Self>) -> Box<dyn Draw>;
+    /// # Parameters
+    ///
+    /// * `timer` - A pre-built [`Timer`][ranos_core::Timer].
+    /// * `brightness` - The brightness setting, range \[0, 1\].
+    /// * `size` - The number of pixels to draw.
+    fn build(self: Box<Self>, timer: Timer, brightness: f32, size: usize) -> Box<dyn Draw>;
 }
 
 /// Type for tracking statistics about the drawing.
@@ -125,10 +101,11 @@ impl DrawStats {
 
     /// Sets the end time.
     ///
-    /// This method may be called multiple times during the life of the object, as it simply saves the [`Instant`][0] when this
-    /// method was called. Calling it again therefore only updates the saved [`Instant`][0] to the current value.
+    /// This method may be called multiple times during the life of the object,
+    /// as it simply saves the [`Instant`] when this method was called. Calling
+    /// it again therefore only updates the saved [`Instant`] to the current value.
     ///
-    /// [0]: https://doc.rust-lang.org/std/time/struct.Instant.html
+    /// [`Instant`]: std::time::Instant
     #[inline]
     pub fn end(&mut self) {
         self.end = Instant::now();

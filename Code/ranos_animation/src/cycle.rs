@@ -37,7 +37,6 @@ impl Info for CycleInfo {
 pub struct Cycle {
     runtime: ConstVal<Duration>,
     time_remaining: Duration,
-    frame: Frame,
 
     order: ColorOrder,
     ind: usize,
@@ -60,14 +59,11 @@ impl Cycle {
     pub fn new(
         runtime: Duration,
         cycle_period: Duration,
-        brightness: f32,
-        size: usize,
         order: ColorOrder,
     ) -> Self {
         Self {
             runtime: runtime.into(),
             time_remaining: runtime,
-            frame: Frame::new(brightness, size),
 
             order: order.clone(),
             ind: 0,
@@ -84,13 +80,7 @@ impl Cycle {
 }
 
 impl Animation for Cycle {
-    fn update(&mut self, dt: Duration) {
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            Duration::new(0,0)
-        };
-
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
         self.cycle_time_remaining = if let Some(d) = self.cycle_time_remaining.checked_sub(dt) {
             d
         } else {
@@ -103,20 +93,24 @@ impl Animation for Cycle {
             }
 
             // Only update the frame when there's a new color
-            for led in self.frame.iter_mut() {
+            for led in frame.iter_mut() {
                 *led = self.current_color;
             }
 
             self.cycle_period.get().clone() + self.cycle_time_remaining - dt
-        }
-    }
+        };
 
-    fn set_brightness(&mut self, b: f32) {
-        self.frame.set_brightness(b);
-    }
+        let mut res = AnimationState::Continue;
 
-    fn frame(&self) -> &Frame {
-        &self.frame
+        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
+            d
+        } else {
+            res = AnimationState::Last;
+
+            Duration::new(0,0)
+        };
+
+        res
     }
 
     fn time_remaining(&self) -> Duration {
@@ -140,8 +134,6 @@ impl Default for Cycle {
         Self::new(
             Duration::from_secs_f64(60.0/165.0*3.0*15.0),
             Duration::from_secs_f64(60.0/165.0),
-            0.25,
-            64,//16,
             // ColorOrder::RandomBright,
             ColorOrder::Ordered(vec![
                 RGB::from_code(0xFF0000, RGBOrder::RGB),

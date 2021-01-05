@@ -35,7 +35,6 @@ impl Info for RainbowInfo {
 pub struct Rainbow {
     runtime: ConstVal<Duration>,
     time_remaining: Duration,
-    frame: Frame,
 
     hue: f32,
     sat: ConstVal<f32>,
@@ -62,8 +61,6 @@ impl Rainbow {
     pub fn new(
         runtime: Duration,
         rainbow_length: Duration,
-        brightness: f32,
-        size: usize,
         sat: f32,
         val: f32,
         arc: f32,
@@ -72,7 +69,6 @@ impl Rainbow {
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,
-            frame: Frame::new(brightness, size),
 
             hue: 0.0,
             sat: ConstVal::new(sat),
@@ -86,21 +82,15 @@ impl Rainbow {
 }
 
 impl Animation for Rainbow {
-    fn update(&mut self, dt: Duration) {
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            Duration::new(0, 0)
-        };
-
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
         self.hue += self.dh.get() * dt.as_secs_f32();
 
         if self.hue >= 360.0 {
             self.hue -= 360.0;
         }
 
-        let len = self.frame.len() as f32;
-        for (i, led) in self.frame.iter_mut().enumerate() {
+        let len = frame.len() as f32;
+        for (i, led) in frame.iter_mut().enumerate() {
             let step = i as f32 / *self.step.get() as f32;
             let step = step.floor();
             let step = step * (*self.step.get() as f32);
@@ -108,14 +98,18 @@ impl Animation for Rainbow {
             let step = step * 360.0 * self.arc.get();
             *led = RGB::from_hsv(self.hue + step, *self.sat.get(), *self.val.get())
         }
-    }
 
-    fn set_brightness(&mut self, b: f32) {
-        self.frame.set_brightness(b);
-    }
+        let mut res = AnimationState::Continue;
 
-    fn frame(&self) -> &Frame {
-        &self.frame
+        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
+            d
+        } else {
+            res = AnimationState::Last;
+
+            Duration::new(0, 0)
+        };
+
+        res
     }
 
     fn time_remaining(&self) -> Duration {
@@ -133,8 +127,6 @@ impl Default for Rainbow {
         Self::new(
             Duration::from_secs(16),
             Duration::from_secs(2),
-            0.25,
-            64,//16,
             1.0,
             1.0,
             1.0,

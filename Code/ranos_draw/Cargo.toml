@@ -1,6 +1,6 @@
 [package]
 name = "ranos_draw"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"
 
@@ -12,7 +12,7 @@ colored = "2.0"
 
 ranos_core = { path = "../ranos_core", version = "0.1" }
 ranos_ds = { path = "../ranos_ds", version = "0.2" }
-ranos_animation = { path = "../ranos_animation", version = "0.1" }
+ranos_animation = { path = "../ranos_animation" }
 
 [target.'cfg(target_os="linux")'.dependencies]
 rppal = "0.11"

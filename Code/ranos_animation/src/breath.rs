@@ -46,7 +46,6 @@ pub enum ColorOrder {
 pub struct Breath {
     runtime: ConstVal<Duration>,
     time_remaining: Duration,
-    frame: Frame,
 
     order: ColorOrder,
     ind: usize,
@@ -65,20 +64,15 @@ impl Breath {
     ///
     /// * `runtime` - The length of time this animation will run.
     /// * `breath_duration` - The duration a single color is drawn for, from black up to full color back down to black.
-    /// * `brightness` - The brightness value to use. Should be in range [0, 1].
-    /// * `size` - The number of LEDs this animation will animate for.
     /// * `order` - A given order that the animation cycles through.
     pub fn new(
         runtime: Duration,
         breath_duration: Duration,
-        brightness: f32,
-        size: usize,
         order: ColorOrder,
     ) -> Self {
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,
-            frame: Frame::new(brightness, size),
 
             order: order.clone(),
             ind: 0,
@@ -97,13 +91,7 @@ impl Breath {
 }
 
 impl Animation for Breath {
-    fn update(&mut self, dt: Duration) {
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            Duration::new(0, 0)
-        };
-
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
         self.vel += self.acc.get() * dt.as_secs_f32();
         self.pos += self.vel * dt.as_secs_f32();
 
@@ -120,17 +108,21 @@ impl Animation for Breath {
             }
         }
 
-        for led in self.frame.iter_mut() {
+        for led in frame.iter_mut() {
             *led = self.current_color.scale(self.pos);
         }
-    }
 
-    fn set_brightness(&mut self, b: f32) {
-        self.frame.set_brightness(b);
-    }
+        let mut res = AnimationState::Continue;
 
-    fn frame(&self) -> &Frame {
-        &self.frame
+        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
+            d
+        } else {
+            res = AnimationState::Last;
+
+            Duration::new(0, 0)
+        };
+
+        res
     }
 
     fn time_remaining(&self) -> Duration {
@@ -154,8 +146,6 @@ impl Default for Breath {
         Self::new(
             Duration::from_secs(18),
             Duration::from_secs(3),
-            0.25,
-            64,//16,
             ColorOrder::Ordered(vec![
                 RGB::from_hsv(0.0, 1.0, 1.0),
                 RGB::from_hsv(30.0, 1.0, 1.0),

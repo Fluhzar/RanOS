@@ -122,3 +122,11 @@ impl Frame {
         self.leds.iter_mut()
     }
 }
+
+impl std::ops::Index<usize> for Frame {
+    type Output = RGB;
+
+    fn index(&self, ind: usize) -> &Self::Output {
+        &self.leds[ind]
+    }
+}

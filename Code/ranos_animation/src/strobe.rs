@@ -44,7 +44,6 @@ impl Info for StrobeInfo {
 pub struct Strobe {
     runtime: ConstVal<Duration>,
     time_remaining: Duration,
-    frame: Frame,
 
     period: ConstVal<f64>,
     duty: ConstVal<f64>,
@@ -68,8 +67,6 @@ impl Strobe {
     /// the percentage of time the LEDs are on within the `period`.
     pub fn new(
         runtime: Duration,
-        brightness: f32,
-        size: usize,
         period: Duration,
         duty: f64,
         color: RGB,
@@ -79,7 +76,6 @@ impl Strobe {
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,
-            frame: Frame::new(brightness, size),
 
             period: ConstVal::new(period.as_secs_f64()),
             duty: ConstVal::new(duty),
@@ -92,14 +88,7 @@ impl Strobe {
 }
 
 impl Animation for Strobe {
-    fn update(&mut self, dt: Duration) {
-        // Calculate remaining time
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            Duration::new(0, 0)
-        };
-
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
         // Accumulate the time, clamping it to a range of [0, self.period)
         self.time = (self.time + dt.as_secs_f64()) % self.period.get();
 
@@ -114,17 +103,21 @@ impl Animation for Strobe {
         };
 
         // Copy the colors to the frame
-        for led in self.frame.iter_mut() {
+        for led in frame.iter_mut() {
             *led = color;
         }
-    }
 
-    fn set_brightness(&mut self, b: f32) {
-        self.frame.set_brightness(b);
-    }
+        let mut res = AnimationState::Continue;
 
-    fn frame(&self) -> &Frame {
-        &self.frame
+        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
+            d
+        } else {
+            res = AnimationState::Last;
+
+            Duration::new(0, 0)
+        };
+
+        res
     }
 
     fn time_remaining(&self) -> Duration {
@@ -141,8 +134,6 @@ impl Default for Strobe {
     fn default() -> Self {
         Self::new(
             Duration::from_secs(8),
-            0.25,
-            64,//16,
             Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
             1.0 / ((1 << 2) as f64),
             RGB::from_code(0xFFFFFF, RGBOrder::RGB),

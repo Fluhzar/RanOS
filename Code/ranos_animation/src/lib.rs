@@ -22,17 +22,28 @@ pub mod cycle;
 pub mod rainbow;
 pub mod strobe;
 
+/// Enum denoting different end-states that an [`Animation`][crate::Animation]
+/// object may return.
+///
+/// The `ErrRetry` state is given for use in statistical tracking and more
+/// complex operations that could fail, but still be able to continue (e.g. file
+/// I/O).
+pub enum AnimationState {
+    /// Denotes that the operation was successful and the object can operate for more iterations.
+    Continue,
+    /// Denotes that the operation was successful and the object has nothing more to operate on.
+    Last,
+    /// Denotes that an error occurred but the object can continue to operate.
+    ErrRetry,
+    /// Denotes that an error occurred and cannot be recovered from.
+    ErrFatal,
+}
+
 /// Trait for types that implement animations that sets the LEDs to a given
 /// frame of the animation before being drawn.
 pub trait Animation: std::fmt::Debug {
-    /// Updates the frame with the next frame of the animation given the input `dt`.
-    fn update(&mut self, dt: Duration);
-
-    /// Exposes the ability to dynamically set the brightness.
-    fn set_brightness(&mut self, brightness: f32);
-
-    /// Returns an immutable reference to the frame stored within the animation.
-    fn frame(&self) -> &Frame;
+    /// Renders the frame with the next frame of the animation given the input `dt`.
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState;
 
     /// Returns the amount of time remaining for this animation to run before
     /// the drawer to continue to the next animation.

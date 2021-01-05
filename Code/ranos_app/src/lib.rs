@@ -172,8 +172,13 @@ impl App {
         string_registrar.insert("SpeedArg.name", "speed".to_owned());
         string_registrar.insert("SpeedArg.short", "s".to_owned());
         string_registrar.insert("SpeedArg.long", "speed".to_owned());
-        string_registrar.insert("SpeedArg.help", "Sets the desired speed to run the program at in frames per second (FPS). (e.g. 60, 29.97, etc.".to_owned());
+        string_registrar.insert("SpeedArg.help", "Sets the desired speed to run the program at in frames per second (FPS), e.g. 60, 29.97, etc.".to_owned());
         string_registrar.insert("SpeedArg.long_help", "Sets the desired speed to run the program at. The value is interpreted as frames per second (FPS) and should be a numerical value, e.g. 60, 29.97, etc. If this value is omitted, then the program will run at full speed as fast as it can run on your hardware.".to_owned());
+
+        string_registrar.insert("SizeArg.name", "size".to_owned());
+        string_registrar.insert("SizeArg.short", "n".to_owned()); // `n` short for `number`
+        string_registrar.insert("SizeArg.long", "size".to_owned());
+        string_registrar.insert("SizeArg.help", "Sets the desired number of pixels to run. Must be a positive integer.".to_owned());
 
         // Create the app
         let app = clap::App::new(string_registrar.get("App.name").unwrap())
@@ -228,34 +233,30 @@ impl App {
                     .long(string_registrar.get("SpeedArg.long").unwrap())
                     .help(string_registrar.get("SpeedArg.help").unwrap())
                     .takes_value(true)
-                    .multiple(false)
                     .long_help(string_registrar.get("SpeedArg.long_help").unwrap()),
+            )
+            // Add size option
+            .arg(
+                clap::Arg::with_name(string_registrar.get("SizeArg.name").unwrap())
+                    .required(true)
+                    .short(string_registrar.get("SizeArg.short").unwrap())
+                    .long(string_registrar.get("SizeArg.long").unwrap())
+                    .help(string_registrar.get("SizeArg.help").unwrap())
+                    .takes_value(true)
             )
         ;
 
         let matches = app.get_matches();
 
         let animations: Vec<_> = matches
-            .values_of("animations")
+            .values_of(string_registrar.get("AnimationArg.name").unwrap())
             .unwrap()
             .map(|a| ranos_animation::match_animation(a).unwrap())
             .collect();
 
-        let drawer_builder = match_draw(matches.value_of("drawer").unwrap()).unwrap();
+        let drawer_builder = match_draw(matches.value_of(string_registrar.get("DrawerArg.name").unwrap()).unwrap()).unwrap();
 
-        let brightness = if let Some(b) = matches.value_of("brightness") {
-            if let Ok(b) = b.parse::<f32>() {
-                b
-            } else {
-                0.25
-            }
-        } else {
-            0.25
-        };
-
-        let looping = matches.is_present("looping");
-
-        let speed = if let Some(s) = matches.value_of("speed") {
+        let speed = if let Some(s) = matches.value_of(string_registrar.get("SpeedArg.name").unwrap()) {
             if let Ok(s) = s.parse::<f32>() {
                 Timer::new(Some(std::time::Duration::from_secs_f32(1.0/s)))
             } else {
@@ -265,14 +266,25 @@ impl App {
             Timer::new(None)
         };
 
-        let mut drawer = drawer_builder
-            .timer(speed)
-            .build();
+        let brightness = if let Some(b) = matches.value_of(string_registrar.get("BrightnessArg.name").unwrap()) {
+            if let Ok(b) = b.parse::<f32>() {
+                b
+            } else {
+                0.25
+            }
+        } else {
+            0.25
+        };
 
-        for mut a in animations {
-            a.set_brightness(brightness);
+        let size = matches.value_of(string_registrar.get("SizeArg.name").unwrap()).unwrap().parse::<usize>().unwrap();
+
+        let mut drawer = drawer_builder.build(speed, brightness, size);
+
+        for a in animations {
             drawer.push_queue(a);
         }
+
+        let looping = matches.is_present(string_registrar.get("LoopingArg.name").unwrap());
 
         Self {
             drawer,
@@ -295,7 +307,7 @@ impl App {
             let anis = self.drawer.run();
             total_stats += self.drawer.stats();
 
-            // If an interrupt has occurred, exit the run function, returning an appropriate error.
+            // If an interrupt has occurred, exit the run function.
             if self.should_exit.load(Ordering::Relaxed) == true {
                 self.looping = false;
             }
