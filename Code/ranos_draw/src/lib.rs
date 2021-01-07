@@ -11,7 +11,7 @@
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
-extern crate ranos_animation;
+extern crate ranos_display;
 extern crate ranos_core;
 
 pub use null_draw::{NullDraw, NullDrawBuilder, NullDrawInfo};
@@ -26,7 +26,7 @@ pub use pi_draw::{
 use std::time::Instant;
 use std::{fmt, ops};
 
-use ranos_animation::Animation;
+use ranos_display::Display;
 use ranos_core::{Info, Timer};
 
 pub mod null_draw;
@@ -37,14 +37,14 @@ pub mod pi_draw;
 
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
-    /// Adds an [`Animation`][ranos_animation::Animation] to the queue.
-    fn push_queue(&mut self, a: Box<dyn Animation>);
-
-    /// Returns the number of [`Animation`][ranos_animation::Animation]s in the queue.
-    fn queue_len(&self) -> usize;
+    /// Adds a [`Display`][ranos_display::Display] to the drawer.
+    ///
+    /// Be sure to add animations to the display object before adding it to the
+    /// drawer as it will be inaccessible afterwards.
+    fn add_display(&mut self, d: Display);
 
     /// Draws the internal frame to its destination.
-    fn run(&mut self) -> Vec<Box<dyn Animation>>;
+    fn run(&mut self);
 
     /// Returns the statistics tracking object.
     fn stats(&self) -> DrawStats;
@@ -57,9 +57,7 @@ pub trait DrawBuilder {
     /// # Parameters
     ///
     /// * `timer` - A pre-built [`Timer`][ranos_core::Timer].
-    /// * `brightness` - The brightness setting, range \[0, 1\].
-    /// * `size` - The number of pixels to draw.
-    fn build(self: Box<Self>, timer: Timer, brightness: f32, size: usize) -> Box<dyn Draw>;
+    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw>;
 }
 
 /// Type for tracking statistics about the drawing.

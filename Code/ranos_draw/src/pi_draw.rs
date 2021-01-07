@@ -6,7 +6,7 @@
 
 #![cfg(target_os="linux")]
 
-use ranos_animation::AnimationState;
+use ranos_display::DisplayState;
 use rppal::gpio;
 use std::collections::VecDeque;
 
@@ -16,8 +16,8 @@ use ranos_core::{Info, Timer};
 
 use super::*;
 
-const DEFAULT_DAT_PIN: u8 = 6;
-const DEFAULT_CLK_PIN: u8 = 5;
+pub const DEFAULT_DAT_PIN: u8 = 6;
+pub const DEFAULT_CLK_PIN: u8 = 5;
 
 /// Presents some info about `APA102CPiDraw` for pretty printing.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
@@ -100,11 +100,12 @@ pub struct APA102CPiDraw {
     data: Pin,
     clock: Pin,
 
-    queue: VecDeque<Box<dyn Animation>>,
+    displays: VecDeque<(Display, bool)>,
     timer: Timer,
-    frame: Frame,
 
     stats: DrawStats,
+
+    num: usize,
 }
 
 impl APA102CPiDraw {
@@ -128,16 +129,17 @@ impl APA102CPiDraw {
     ///
     /// * `data` - The data pin for the LEDs.
     /// * `clock` - The clock pin for the LEDs.
-    pub fn new(data: Pin, clock: Pin, timer: Timer, brightness: f32, size: usize) -> Self {
+    pub fn new(data: Pin, clock: Pin, timer: Timer) -> Self {
         Self {
             data: data,
             clock: clock,
 
-            queue: VecDeque::new(),
+            displays: VecDeque::new(),
             timer,
-            frame: Frame::new(brightness, size),
 
             stats: DrawStats::new(),
+
+            num: 0,
         }
     }
 
@@ -233,64 +235,65 @@ impl APA102CPiDraw {
 
     /// Writes a frame to the LEDs. Uses color order BGR as defined in the
     /// datasheet.
-    fn write_frame(&mut self) {
+    fn write_frame(&mut self, frame: &Frame) {
         self.start_frame();
 
-        let brightness_mask = 0xE0 | self.frame.brightness_apa102c();
+        let brightness_mask = 0xE0 | frame.brightness_apa102c();
 
-        for i in 0..self.frame.len() {
+        for i in 0..frame.len() {
             self.write_byte(brightness_mask);
-            let color = self.frame[i].as_tuple(RGBOrder::BGR);
+            let color = frame[i].as_tuple(RGBOrder::BGR);
             self.write_byte(color.0);
             self.write_byte(color.1);
             self.write_byte(color.2);
         }
 
-        self.end_frame(self.frame.len());
+        self.end_frame(frame.len());
     }
 }
 
 impl Draw for APA102CPiDraw {
-    fn push_queue(&mut self, a: Box<dyn Animation>) {
-        self.queue.push_back(a);
+    fn add_display(&mut self, d: Display) {
+        self.displays.push_back((d, false));
+        self.num += self.displays.back().unwrap().0.frame_len();
     }
 
-    fn queue_len(&self) -> usize {
-        self.queue.len()
-    }
-
-    fn run(&mut self) -> Vec<Box<dyn Animation>> {
+    fn run(&mut self) {
         // Reset timer and stats to track just this run
         self.timer.reset();
         self.stats.reset();
 
-        let mut out = Vec::with_capacity(self.queue.len());
+        let mut numFinished = 0;
 
-        // Loop while there are still animations to run
-        while let Some(mut ani) = self.queue.pop_front() {
-            // While the animation has time left to run
-            loop {
-                // Render the animation frame with the current delta-time and write the frames to the LEDs
-                match ani.render_frame(&mut self.frame, self.timer.ping()) {
-                    AnimationState::Continue | AnimationState::ErrRetry => (),
-                    AnimationState::Last | AnimationState::ErrFatal => break,
+        while numFinished < self.displays.len() {
+            let dt = self.timer.ping();
+            let mut totalLEDs = 0;
+
+            for i in 0..self.displays.len() {
+                {
+                    let (d, has_finished) = self.displays.get_mut(i).unwrap();
+
+                    totalLEDs += d.frame_len();
+
+                    if !*has_finished {
+                        match d.render_frame(dt) {
+                            DisplayState::Continue => (),
+                            DisplayState::Last => {
+                                *has_finished = true;
+                                numFinished += 1;
+                            },
+                            DisplayState::Err => return,
+                        }
+                    }
                 }
-                self.write_frame();
 
-                // Track stats
+                self.write_frame(self.displays.get(i).unwrap().0.frame());
                 self.stats.inc_frames();
             }
 
-            self.stats.set_num(self.frame.len());
-            // Mark the end of the animation for stats-tracking. We know this is safe to do multiple times bc `DrawStats::end`'s
-            // documentation says so
+            self.stats.set_num(totalLEDs);
             self.stats.end();
-
-
-            out.push(ani);
         }
-
-        out
     }
 
     fn stats(&self) -> DrawStats {
@@ -302,7 +305,7 @@ impl Drop for APA102CPiDraw {
     /// For our eye's sake, this custom `Drop` implementation ensures that when the LED controller is stopped, the LEDs will be
     /// set to off so they don't blind anyone.
     fn drop(&mut self) {
-        self.stop(self.frame.len());
+        self.stop(self.num);
     }
 }
 
@@ -344,7 +347,7 @@ impl APA102CPiDrawBuilder {
 
 impl DrawBuilder for APA102CPiDrawBuilder {
 
-    fn build(self: Box<Self>, timer: Timer, brightness: f32, size: usize) -> Box<dyn Draw> {
+    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
         let gpio = gpio::Gpio::new().unwrap();
         Box::new(APA102CPiDraw::new(
             gpio.get(self.dat_pin.unwrap_or(DEFAULT_DAT_PIN))
@@ -354,8 +357,6 @@ impl DrawBuilder for APA102CPiDrawBuilder {
                 .unwrap()
                 .into_output(),
             timer,
-            brightness,
-            size,
         ))
     }
 }

@@ -7,9 +7,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.33"
 ctrlc = "3.1"
 lazy_static = "1.4"
+structopt = "0.3"
 
 ranos_animation = { path="../ranos_animation" }
 ranos_draw = { path="../ranos_draw" }

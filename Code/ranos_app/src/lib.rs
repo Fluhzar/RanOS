@@ -9,6 +9,8 @@
 #[macro_use]
 extern crate lazy_static;
 
+pub mod config;
+
 use clap;
 use std::collections::HashMap;
 use std::sync::{

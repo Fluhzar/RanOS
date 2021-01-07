@@ -2,7 +2,7 @@
 
 use std::collections::VecDeque;
 
-use ranos_animation::AnimationState;
+use ranos_display::DisplayState;
 use ranos_core::{Info, Timer};
 use ranos_ds::collections::Frame;
 
@@ -36,9 +36,8 @@ impl Info for NullDrawInfo {
 /// [1]: ../trait.Draw.html
 #[derive(Debug)]
 pub struct NullDraw {
-    queue: VecDeque<Box<dyn Animation>>,
+    displays: VecDeque<(Display, bool)>,
     timer: Timer,
-    frame: Frame,
 
     stats: DrawStats,
 }
@@ -57,11 +56,10 @@ impl NullDraw {
     }
 
     /// Creates a new `NullDraw` object.
-    pub fn new(timer: Timer, brightness: f32, size: usize) -> Self {
+    pub fn new(timer: Timer) -> Self {
         Self {
-            queue: VecDeque::new(),
+            displays: VecDeque::new(),
             timer,
-            frame: Frame::new(brightness, size),
 
             stats: DrawStats::new(),
         }
@@ -69,36 +67,40 @@ impl NullDraw {
 }
 
 impl Draw for NullDraw {
-    fn push_queue(&mut self, a: Box<dyn Animation>) {
-        self.queue.push_back(a);
+    fn add_display(&mut self, d: Display) {
+        self.displays.push_back((d, false));
     }
 
-    fn queue_len(&self) -> usize {
-        self.queue.len()
-    }
-
-    fn run(&mut self) -> Vec<Box<dyn Animation>> {
+    // TODO: Prime candidate for refactoring.
+    fn run(&mut self) {
         self.timer.reset();
         self.stats.reset();
 
-        let mut out = Vec::new();
+        let mut numFinished = 0;
 
-        while let Some(mut ani) = self.queue.pop_front() {
-            loop {
-                match ani.render_frame(&mut self.frame, self.timer.ping()) {
-                    AnimationState::Continue | AnimationState::ErrRetry => (),
-                    AnimationState::Last | AnimationState::ErrFatal => break,
+        while numFinished < self.displays.len() {
+            let dt = self.timer.ping();
+            let mut totalLEDs = 0;
+
+            for i in 0..self.displays.len() {
+                let (d, has_finished) = self.displays.get_mut(i).unwrap();
+
+                if !*has_finished {
+                    match d.render_frame(dt) {
+                        DisplayState::Continue => (),
+                        DisplayState::Last => { *has_finished = true; numFinished += 1; },
+                        DisplayState::Err => return,
+                    }
+
+                    self.stats.inc_frames();
                 }
 
-                self.stats.inc_frames();
+                totalLEDs += d.frame_len();
             }
 
-            self.stats.set_num(self.frame.len());
+            self.stats.set_num(totalLEDs);
             self.stats.end();
-            out.push(ani);
         }
-
-        out
     }
 
     fn stats(&self) -> DrawStats {
@@ -126,7 +128,7 @@ impl NullDrawBuilder {
 }
 
 impl DrawBuilder for NullDrawBuilder {
-    fn build(self: Box<Self>, timer: Timer, brightness: f32, size: usize) -> Box<dyn Draw> {
-        Box::new(NullDraw::new(timer, brightness, size))
+    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
+        Box::new(NullDraw::new(timer))
     }
 }
