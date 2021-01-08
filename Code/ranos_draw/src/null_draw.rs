@@ -17,18 +17,27 @@ pub struct NullDrawBuilder {
     timer: Timer,
 }
 
-impl DrawBuilder for NullDrawBuilder {
-    fn build(mut self, timer: Timer) -> Box<dyn Draw> {
+impl NullDrawBuilder {
+    /// Sets the timer.
+    pub fn timer(mut self, timer: Timer) -> Self {
         self.timer = timer;
-        Box::new(NullDraw::from_builder(self))
+
+        self
+    }
+
+    /// Constructs a [`NullDraw`](NullDraw) object.
+    pub fn build(self) -> NullDraw {
+        NullDraw::from_builder(self)
     }
 }
 
-/// Drawer that doesn't have any form of output, and only holds a [`Frame`][0]
-/// to satisfy the requirements of [`Draw`][1].
-///
-/// [0]: ../../util/frame/struct.Frame.html
-/// [1]: ../trait.Draw.html
+impl DrawBuilder for NullDrawBuilder {
+    fn build(self, timer: Timer) -> Box<dyn Draw> {
+        Box::new(self.timer(timer).build())
+    }
+}
+
+/// Drawer that doesn't have any form of output.
 #[derive(Debug)]
 pub struct NullDraw {
     displays: VecDeque<(Display, bool)>,
@@ -38,14 +47,7 @@ pub struct NullDraw {
 }
 
 impl NullDraw {
-    /// Returns a builder for this struct.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use base::draw::{Draw, DrawBuilder, NullDraw, NullDrawBuilder};
-    /// let drawer = NullDraw::builder().build();
-    /// ```
+    /// Constructs a builder object with safe default values.
     pub fn builder() -> NullDrawBuilder {
         NullDrawBuilder {
             timer: Timer::new(None),

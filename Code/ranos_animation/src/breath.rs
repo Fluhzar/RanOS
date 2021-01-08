@@ -38,11 +38,16 @@ impl BreathBuilder {
 
         self
     }
+
+    /// Constructs a [`Breath`](Breath) object.
+    pub fn build(self) -> Breath {
+        Breath::from_builder(self)
+    }
 }
 
 impl AnimationBuilder for BreathBuilder {
     fn build(self) -> Box<dyn Animation> {
-        Box::new(Breath::from_builder(self))
+        Box::new(self.build())
     }
 }
 

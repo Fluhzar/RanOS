@@ -84,7 +84,7 @@ impl RGB {
         ))
     }
 
-    /// Attempts to read a `n`umber of `RGB`s from the `reader` in the given `order`, returning the resulting [`Vec`][0].
+    /// Attempts to read a `n`umber of `RGB`s from the `reader` in the given `order`, returning the resulting [`Vec`][Vec].
     ///
     /// # Errors
     ///

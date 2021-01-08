@@ -38,11 +38,16 @@ impl CycleBuilder {
 
         self
     }
+
+    /// Constructs a [`Cycle`](Cycle) object.
+    pub fn build(self) -> Cycle {
+        Cycle::from_builder(self)
+    }
 }
 
 impl AnimationBuilder for CycleBuilder {
     fn build(self) -> Box<dyn Animation> {
-        Box::new(Cycle::from_builder(self))
+        Box::new(self.build())
     }
 }
 

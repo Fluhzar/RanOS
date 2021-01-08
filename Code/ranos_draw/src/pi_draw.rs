@@ -41,15 +41,7 @@ pub type SK9822PiDrawBuilder = APA102CPiDrawBuilder;
 /// transmission protocol.
 pub type SK9822PiDraw = APA102CPiDraw;
 
-/// Builder for [`APA102CPiDraw`][0].
-///
-/// Allows for optional setting of the `data`, `clock`, and `timer` parameters of [`PiDraw::new`][1]. If a parameter is not
-/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
-/// default parameter seen in [`PiDraw::default`][2].
-///
-/// [0]: struct.APA102CPiDraw.html
-/// [1]: struct.APA102CPiDraw.html#method.new
-/// [2]: struct.APA102CPiDraw.html#method.default
+/// Builder for [`APA102CPiDraw`](APA102CPiDraw).
 #[derive(Default, Copy, Clone, Serialize, Deserialize)]
 #[serde(rename = "APA102CPiDraw")]
 pub struct APA102CPiDrawBuilder {
@@ -73,20 +65,36 @@ impl APA102CPiDrawBuilder {
 
         self
     }
+
+    /// Sets the timer.
+    pub fn timer(mut self, timer: Timer) -> Self {
+        self.timer = timer;
+
+        self
+    }
+
+    /// Constructs a [`APA102CPiDraw`](APA102CPiDraw) object.
+    pub fn build(self) -> APA102CPiDraw {
+        APA102CPiDraw::from_builder(self)
+    }
 }
 
 impl DrawBuilder for APA102CPiDrawBuilder {
 
-    fn build(mut self, timer: Timer) -> Box<dyn Draw> {
-        self.timer = timer;
-        Box::new(APA102CPiDraw::from_builder(self))
+    fn build(self, timer: Timer) -> Box<dyn Draw> {
+        Box::new(self.timer(timer).build())
     }
 }
 
 /// Struct that draws [APA102C][0] LEDs through the Raspberry Pi's GPIO pins.
 ///
-/// This implementation is also compatible with the SK9822 LEDs, which are more or less a clone of the APA102C LED, though there are
-/// some notable differences seen [here][1] that are accounted for in this implementation.
+/// To create a `APA102CPiDraw` object, use the associated [builder](APA102CPiDrawBuilder) which can be accessed by calling
+/// [`APA102CPiDraw::builder()`](APA102CPiDraw::builder).
+///
+/// ## Compatibility
+///
+/// This implementation is also compatible with the SK9822 LEDs, which are more or less a clone of the APA102C LED, though there
+/// are some notable differences seen [here][1] that are accounted for in this implementation.
 ///
 /// For APA102C LEDs, it generally isn't recommended to have the brightness set to anything other than full as the PWM that
 /// handles the brightness runs at 440Hz, which can cause flicker issues on lower brightness settings. The SK9822 clone gets
@@ -103,14 +111,14 @@ impl DrawBuilder for APA102CPiDrawBuilder {
 /// Most of the private functions include documentation relevant to their operation. You are free to take a look at it in its
 /// context, but it will also be provided here for clarity and concise-ness.
 ///
-/// ## Start Frame
+/// ### Start Frame
 ///
 /// The start frame representing the start of a message to the LEDs as
 /// defined by the [datasheet][2].
 ///
 /// [2]: https://cdn-shop.adafruit.com/datasheets/APA102.pdf
 ///
-/// ## End Frame
+/// ### End Frame
 ///
 /// The end frame representing the end of a message to the LEDs as defined
 /// by the [datasheet][3] with modifications as revealed in
@@ -135,16 +143,7 @@ pub struct APA102CPiDraw {
 }
 
 impl APA102CPiDraw {
-    /// Returns a builder for this struct.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # #[cfg(target_os="linux")] {
-    /// # use crate::draw::{Draw, DrawBuilder, APA102CPiDraw, APA102CPiDrawBuilder};
-    /// let drawer = APA102CPiDraw::builder().build();
-    /// # }
-    /// ```
+    /// Constructs a builder object with safe default values.
     pub fn builder() -> APA102CPiDrawBuilder {
         APA102CPiDrawBuilder {
             data_pin: DEFAULT_DAT_PIN,

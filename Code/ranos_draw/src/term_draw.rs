@@ -10,15 +10,7 @@ use ranos_display::DisplayState;
 
 use super::*;
 
-/// Builder for [`TermDraw`][0].
-///
-/// Allows for optional setting of the `max_width` and `timer` parameters of [`TermDraw::new`][1]. If a parameter is not
-/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
-/// default parameter seen in [`TermDraw::default`][2].
-///
-/// [0]: struct.TermDraw.html
-/// [1]: struct.TermDraw.html#method.new
-/// [2]: struct.TermDraw.html#method.default
+/// Builder for [`TermDraw`](TermDraw).
 #[derive(Default, Copy, Clone, Serialize, Deserialize)]
 #[serde(rename = "TermDraw")]
 pub struct TermDrawBuilder {
@@ -36,6 +28,18 @@ impl TermDrawBuilder {
 
         self
     }
+
+    /// Sets the timer.
+    pub fn timer(mut self, timer: Timer) -> Self {
+        self.timer = timer;
+
+        self
+    }
+
+    /// Constructs a [`TermDraw`](TermDraw) object.
+    pub fn build(self) -> TermDraw {
+        TermDraw::from_builder(self)
+    }
 }
 
 impl DrawBuilder for TermDrawBuilder {
@@ -49,7 +53,10 @@ impl DrawBuilder for TermDrawBuilder {
 /// backgrounds to a terminal that supports full RGB colors.
 ///
 /// LEDs are displayed in a rectangular grid with 1 LED's worth of space between
-/// each column and row.build_helper
+/// each column and row.
+///
+/// To create a `TermDraw` object, use the [associated builder](TermDrawBuilder)
+/// which can be accessed by calling [`TermDraw::builder()`](TermDraw::builder).
 #[derive(Debug)]
 pub struct TermDraw {
     max_width: usize,
@@ -63,14 +70,7 @@ pub struct TermDraw {
 }
 
 impl TermDraw {
-    /// Returns a builder for this struct.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use base::draw::{Draw, DrawBuilder, TermDraw, TermDrawBuilder};
-    /// let drawer = TermDraw::builder().build();
-    /// ```
+    /// Constructs a builder object with safe default values.
     pub fn builder() -> TermDrawBuilder {
         TermDrawBuilder {
             max_width: 8,

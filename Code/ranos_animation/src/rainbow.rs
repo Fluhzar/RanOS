@@ -71,11 +71,16 @@ impl RainbowBuilder {
 
         self
     }
+
+    /// Constructs a [`Rainbow`](Rainbow) object.
+    pub fn build(self) -> Rainbow {
+        Rainbow::from_builder(self)
+    }
 }
 
 impl AnimationBuilder for RainbowBuilder {
     fn build(self) -> Box<dyn Animation> {
-        Box::new(Rainbow::from_builder(self))
+        Box::new(self.build())
     }
 }
 

@@ -51,11 +51,16 @@ impl StrobeBuilder {
 
         self
     }
+
+    /// Constructs a [`Strobe`](Strobe) object.
+    pub fn build(self) -> Strobe {
+        Strobe::from_builder(self)
+    }
 }
 
 impl AnimationBuilder for StrobeBuilder {
     fn build(self) -> Box<dyn Animation> {
-        Box::new(Strobe::from_builder(self))
+        Box::new(self.build())
     }
 }
 
