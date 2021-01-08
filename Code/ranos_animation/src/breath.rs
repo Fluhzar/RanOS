@@ -2,41 +2,48 @@
 
 use std::time::Duration;
 
+use serde::{Serialize, Deserialize};
+
 use ranos_ds::{const_val::ConstVal, rgb::RGB};
-use ranos_core::info::Info;
 
 use super::*;
 
-/// Presents some info about `Breath` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct BreathInfo();
+/// Builder for the [`Breath`](Breath) animation.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename = "Breath")]
+pub struct BreathBuilder {
+    runtime: Duration,
+    breath_duration: Duration,
+    order: ColorOrder,
+}
 
-impl Info for BreathInfo {
-    fn new() -> Box<dyn Info>
-    where
-        Self: Sized,
-    {
-        Box::new(BreathInfo::default())
+impl BreathBuilder {
+    /// Sets the length of time the animation should run for.
+    pub fn runtime(mut self, runtime: Duration) -> Self {
+        self.runtime = runtime;
+
+        self
     }
 
-    fn name(&self) -> String {
-        "Breath".to_owned()
+    /// Sets the duration a single color is drawn for, from black up to full color back down to black.
+    pub fn breath_duration(mut self, breath_duration: Duration) -> Self {
+        self.breath_duration = breath_duration;
+
+        self
     }
 
-    fn details(&self) -> String {
-        "Animates a breathing display that will either walk through a provided list of colors or select random colors, each color fading along a parabolic curve from black to the chosen color and back down to black.".to_owned()
+    /// Sets a given order that the animation cycles through.
+    pub fn order(mut self, order: ColorOrder) -> Self {
+        self.order = order;
+
+        self
     }
 }
 
-/// Color order used by `Breath`, can be a predetermined order or a random order.
-#[derive(Debug, Clone)]
-pub enum ColorOrder {
-    /// Order determined by random colors generated when needed.
-    Random,
-    /// Order determined by random bright colors generated when needed.
-    RandomBright,
-    /// Order determined by the associated data which is looped through sequentially.
-    Ordered(Vec<RGB>),
+impl AnimationBuilder for BreathBuilder {
+    fn build(self) -> Box<dyn Animation> {
+        Box::new(Breath::from_builder(self))
+    }
 }
 
 /// Struct for an animated breathing display that will either walk through a
@@ -58,14 +65,27 @@ pub struct Breath {
 }
 
 impl Breath {
-    /// Creates new `Breath` object.
-    ///
-    /// # Parameters
-    ///
-    /// * `runtime` - The length of time this animation will run.
-    /// * `breath_duration` - The duration a single color is drawn for, from black up to full color back down to black.
-    /// * `order` - A given order that the animation cycles through.
-    pub fn new(
+    /// Constructs a builder object with safe default values.
+    pub fn builder() -> BreathBuilder {
+        BreathBuilder {
+            runtime: Duration::from_secs(18),
+            breath_duration: Duration::from_secs(3),
+            order: ColorOrder::Ordered(vec![
+                RGB::from_hsv(0.0, 1.0, 1.0),
+                RGB::from_hsv(60.0, 1.0, 1.0),
+                RGB::from_hsv(120.0, 1.0, 1.0),
+                RGB::from_hsv(180.0, 1.0, 1.0),
+                RGB::from_hsv(240.0, 1.0, 1.0),
+                RGB::from_hsv(300.0, 1.0, 1.0),
+            ]),
+        }
+    }
+
+    fn from_builder(builder: BreathBuilder) -> Self {
+        Self::new(builder.runtime, builder.breath_duration, builder.order)
+    }
+
+    fn new(
         runtime: Duration,
         breath_duration: Duration,
         order: ColorOrder,
@@ -138,22 +158,5 @@ impl Animation for Breath {
             ColorOrder::RandomBright => RGB::random_bright(),
         };
         self.vel = *self.vel0.get();
-    }
-}
-
-impl Default for Breath {
-    fn default() -> Self {
-        Self::new(
-            Duration::from_secs(18),
-            Duration::from_secs(3),
-            ColorOrder::Ordered(vec![
-                RGB::from_hsv(0.0, 1.0, 1.0),
-                RGB::from_hsv(30.0, 1.0, 1.0),
-                RGB::from_hsv(60.0, 1.0, 1.0),
-                RGB::from_hsv(120.0, 1.0, 1.0),
-                RGB::from_hsv(210.0, 1.0, 1.0),
-                RGB::from_hsv(280.0, 1.0, 1.0),
-            ]),
-        )
     }
 }

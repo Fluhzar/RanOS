@@ -8,5 +8,7 @@ edition = "2018"
 
 [dependencies]
 
+serde = { version = "^1.0.118", features = ["derive"] }
+
 ranos_core = { path = "../ranos_core", version = "0.1" }
 ranos_ds = { path = "../ranos_ds", version = "0.2" }

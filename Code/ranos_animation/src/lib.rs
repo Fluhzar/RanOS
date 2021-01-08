@@ -9,14 +9,15 @@ extern crate ranos_ds;
 
 use std::time::Duration;
 
-pub use breath::{Breath, BreathInfo};
-pub use cycle::{Cycle, CycleInfo};
-pub use rainbow::{Rainbow, RainbowInfo};
-pub use strobe::{Strobe, StrobeInfo};
+pub use color_order::ColorOrder;
+pub use breath::Breath;
+pub use cycle::Cycle;
+pub use rainbow::Rainbow;
+pub use strobe::Strobe;
 
 use ranos_ds::collections::frame::Frame;
-use ranos_core::Info;
 
+pub mod color_order;
 pub mod breath;
 pub mod cycle;
 pub mod rainbow;
@@ -54,28 +55,8 @@ pub trait Animation: std::fmt::Debug {
     fn reset(&mut self);
 }
 
-/// Returns a `Vec` of animation `Info` objects.
-pub fn animation_info() -> Vec<Box<dyn Info>> {
-    vec![BreathInfo::new(), CycleInfo::new(), RainbowInfo::new(), StrobeInfo::new()]
-}
-
-/// Attempts to parse the given `String` into an `Animation` object, returning
-/// `None` on failure.
-pub fn match_animation<T>(s: T) -> Option<Box<dyn Animation>>
-where
-    T: std::ops::Deref<Target = str>,
-{
-    let s = s.to_lowercase();
-
-    if s == BreathInfo::new().name().to_lowercase() {
-        Some(Box::new(Breath::default()))
-    } else if s == CycleInfo::new().name().to_lowercase() {
-        Some(Box::new(Cycle::default()))
-    } else if s == RainbowInfo::new().name().to_lowercase() {
-        Some(Box::new(Rainbow::default()))
-    } else if s == StrobeInfo::new().name().to_lowercase() {
-        Some(Box::new(Strobe::default()))
-    } else {
-        None
-    }
+/// Trait for building animation types.
+pub trait AnimationBuilder {
+    /// Creates a new animation object from the builder.
+    fn build(self) -> Box<dyn Animation>;
 }

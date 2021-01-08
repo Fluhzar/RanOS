@@ -7,5 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+serde = { version = "^1.0.118", features = ["derive"] }
 rand = "0.7"
 vectors = "0.3"

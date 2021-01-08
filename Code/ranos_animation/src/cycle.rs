@@ -2,31 +2,47 @@
 
 use std::time::Duration;
 
+use serde::{Serialize, Deserialize};
+
 use ranos_ds::{const_val::ConstVal, rgb::{RGB, RGBOrder}};
-use ranos_core::info::Info;
 
 use super::*;
 
-pub use super::breath::ColorOrder as ColorOrder;
+/// Builder for the [`Cycle`](Cycle) animation.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename = "Cycle")]
+pub struct CycleBuilder {
+    runtime: Duration,
+    cycle_period: Duration,
+    order: ColorOrder,
+}
 
-/// Presents some info about `Cycle` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct CycleInfo();
+impl CycleBuilder {
+    /// Sets the length of time the animation should run for.
+    pub fn runtime(mut self, runtime: Duration) -> Self {
+        self.runtime = runtime;
 
-impl Info for CycleInfo {
-    fn new() -> Box<dyn Info>
-    where
-        Self: Sized,
-    {
-        Box::new(CycleInfo::default())
+        self
     }
 
-    fn name(&self) -> String {
-        "Cycle".to_owned()
+    /// Sets the duration a single color is drawn for.
+    pub fn cycle_period(mut self, cycle_period: Duration) -> Self {
+        self.cycle_period = cycle_period;
+
+        self
     }
 
-    fn details(&self) -> String {
-        "Animates a static color for a given amount of time before cutting to the next color in a given order".to_owned()
+    /// Sets a given order that the animation cycles through.
+    pub fn order(mut self, order: ColorOrder) -> Self {
+        self.order = order;
+
+        self
+    }
+}
+
+impl AnimationBuilder for CycleBuilder {
+    fn build(self) -> Box<dyn Animation> {
+        Box::new(Cycle::from_builder(self))
     }
 }
 
@@ -47,16 +63,24 @@ pub struct Cycle {
 }
 
 impl Cycle {
-    /// Creates new `Cycle` object.
-    ///
-    /// # Parameters
-    ///
-    /// * `runtime` - The length of time this animation will run.
-    /// * `cycle_period` - The duration a single color is drawn for.
-    /// * `brightness` - The brightness value to use. Should be in range [0, 1].
-    /// * `size` - The number of LEDs this animation will animate for.
-    /// * `order` - A given order that the animation cycles through.
-    pub fn new(
+    /// Constructs a builder object with safe default values.
+    pub fn builder() -> CycleBuilder {
+        CycleBuilder {
+            runtime: Duration::from_secs_f64(60.0/165.0*3.0*15.0),
+            cycle_period: Duration::from_secs_f64(60.0/165.0),
+            order: ColorOrder::Ordered(vec![
+                RGB::from_code(0xFF0000, RGBOrder::RGB),
+                RGB::from_code(0x00FF00, RGBOrder::RGB),
+                RGB::from_code(0x0000FF, RGBOrder::RGB),
+            ]),
+        }
+    }
+
+    fn from_builder(builder: CycleBuilder) -> Self {
+        Self::new(builder.runtime, builder.cycle_period, builder.order)
+    }
+
+    fn new(
         runtime: Duration,
         cycle_period: Duration,
         order: ColorOrder,
@@ -126,20 +150,5 @@ impl Animation for Cycle {
             ColorOrder::RandomBright => RGB::random_bright(),
         };
         self.cycle_time_remaining = *self.cycle_period.get();
-    }
-}
-
-impl Default for Cycle {
-    fn default() -> Self {
-        Self::new(
-            Duration::from_secs_f64(60.0/165.0*3.0*15.0),
-            Duration::from_secs_f64(60.0/165.0),
-            // ColorOrder::RandomBright,
-            ColorOrder::Ordered(vec![
-                RGB::from_code(0xFF0000, RGBOrder::RGB),
-                RGB::from_code(0x00FF00, RGBOrder::RGB),
-                RGB::from_code(0x0000FF, RGBOrder::RGB),
-            ]),
-        )
     }
 }

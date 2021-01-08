@@ -2,6 +2,8 @@
 
 use std::io;
 
+use serde::{Serialize, Deserialize};
+
 /// Enum defining all possible combinations of color order.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum RGBOrder {
@@ -21,7 +23,7 @@ pub enum RGBOrder {
 
 /// Simple RGB struct that holds the color as a single `u32` value.
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RGB(u8, u8, u8);
 
 impl RGB {
