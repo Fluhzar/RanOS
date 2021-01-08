@@ -14,20 +14,20 @@
 extern crate ranos_display;
 extern crate ranos_core;
 
-pub use null_draw::{NullDraw, NullDrawBuilder, NullDrawInfo};
-pub use term_draw::{TermDraw, TermDrawBuilder, TermDrawInfo};
+pub use null_draw::{NullDraw, NullDrawBuilder};
+pub use term_draw::{TermDraw, TermDrawBuilder};
 
 #[cfg(target_os = "linux")]
 pub use pi_draw::{
-    APA102CPiDraw, APA102CPiDrawBuilder, APA102CPiDrawInfo,
-    SK9822PiDraw, SK9822PiDrawBuilder, SK9822PiDrawInfo,
+    APA102CPiDraw, APA102CPiDrawBuilder,
+    SK9822PiDraw, SK9822PiDrawBuilder,
 };
 
 use std::time::Instant;
 use std::{fmt, ops};
 
 use ranos_display::Display;
-use ranos_core::{Info, Timer};
+use ranos_core::Timer;
 
 pub mod null_draw;
 pub mod term_draw;
@@ -57,7 +57,7 @@ pub trait DrawBuilder {
     /// # Parameters
     ///
     /// * `timer` - A pre-built [`Timer`][ranos_core::Timer].
-    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw>;
+    fn build(self, timer: Timer) -> Box<dyn Draw>;
 }
 
 /// Type for tracking statistics about the drawing.
@@ -163,61 +163,5 @@ impl ops::AddAssign<DrawStats> for DrawStats {
         } else {
             rhs.num
         };
-    }
-}
-
-/// Returns a `Vec` of drawer `Info` objects
-#[cfg(target_os = "linux")]
-pub fn draw_info() -> Vec<Box<dyn Info>> {
-    vec![
-        APA102CPiDrawInfo::new(),
-        TermDrawInfo::new(),
-        NullDrawInfo::new(),
-    ]
-}
-
-/// Returns a `Vec` of drawer `Info` objects
-#[cfg(not(target_os = "linux"))]
-pub fn draw_info() -> Vec<Box<dyn Info>> {
-    vec![TermDrawInfo::new(), NullDrawInfo::new()]
-}
-
-/// Attempts to parse the given `String` into a `DrawBuilder` object, returning `None`
-/// on failure.
-#[cfg(target_os = "linux")]
-pub fn match_draw<T>(s: T) -> Option<Box<dyn DrawBuilder>>
-where
-    T: std::ops::Deref<Target = str>,
-{
-    let s = s.to_lowercase();
-
-    if s == APA102CPiDrawInfo::new().name().to_lowercase() {
-        Some(APA102CPiDraw::builder())
-    } else if s == TermDrawInfo::new().name().to_lowercase() {
-        println!("{}", "\x1B[2J"); // ANSI clear screen code
-        Some(TermDraw::builder())
-    } else if s == NullDrawInfo::new().name().to_lowercase() {
-        Some(NullDraw::builder())
-    } else {
-        None
-    }
-}
-
-/// Attempts to parse the given `String` into a `Draw` object, returning `None`
-/// on failure.
-#[cfg(not(target_os = "linux"))]
-pub fn match_draw<T>(s: T) -> Option<Box<dyn DrawBuilder>>
-where
-    T: std::ops::Deref<Target = str>,
-{
-    let s = s.to_lowercase();
-
-    if s == TermDrawInfo::new().name().to_lowercase() {
-        println!("{}", "\x1B[2J"); // ANSI clear screen code
-        Some(TermDraw::builder())
-    } else if s == NullDrawInfo::new().name().to_lowercase() {
-        Some(NullDraw::builder())
-    } else {
-        None
     }
 }

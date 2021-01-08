@@ -2,29 +2,25 @@
 
 use std::collections::VecDeque;
 
+use serde::{Serialize, Deserialize};
+
+use ranos_core::Timer;
 use ranos_display::DisplayState;
-use ranos_core::{Info, Timer};
 
 use super::*;
 
-/// Presents some info about `TermDraw` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct NullDrawInfo();
+/// Builder for [`NullDraw`](NullDraw).
+#[derive(Default, Copy, Clone, Serialize, Deserialize)]
+#[serde(rename = "NullDraw")]
+pub struct NullDrawBuilder {
+    #[serde(skip)]
+    timer: Timer,
+}
 
-impl Info for NullDrawInfo {
-    fn new() -> Box<dyn Info>
-    where
-        Self: Sized,
-    {
-        Box::new(NullDrawInfo::default())
-    }
-
-    fn name(&self) -> String {
-        "NullDraw".to_owned()
-    }
-
-    fn details(&self) -> String {
-        "Drawer that doesn't have any form of output.".to_owned()
+impl DrawBuilder for NullDrawBuilder {
+    fn build(mut self, timer: Timer) -> Box<dyn Draw> {
+        self.timer = timer;
+        Box::new(NullDraw::from_builder(self))
     }
 }
 
@@ -50,12 +46,17 @@ impl NullDraw {
     /// # use base::draw::{Draw, DrawBuilder, NullDraw, NullDrawBuilder};
     /// let drawer = NullDraw::builder().build();
     /// ```
-    pub fn builder() -> Box<NullDrawBuilder> {
-        NullDrawBuilder::new()
+    pub fn builder() -> NullDrawBuilder {
+        NullDrawBuilder {
+            timer: Timer::new(None),
+        }
     }
 
-    /// Creates a new `NullDraw` object.
-    pub fn new(timer: Timer) -> Self {
+    fn from_builder(builder: NullDrawBuilder) -> Self {
+        Self::new(builder.timer)
+    }
+
+    fn new(timer: Timer) -> Self {
         Self {
             displays: VecDeque::new(),
             timer,
@@ -104,30 +105,5 @@ impl Draw for NullDraw {
 
     fn stats(&self) -> DrawStats {
         self.stats
-    }
-}
-
-/// Builder for [`NullDraw`][0].
-///
-/// Allows for optional setting of the `timer` parameter of [`NullDraw::new`][1]. If the parameter is not supplied, a default
-/// value will be inserted in its place. This default parameter will be the same as the default parameter seen in
-/// [`NullDraw::default`][2].
-///
-/// [0]: struct.NullDraw.html
-/// [1]: struct.NullDraw.html#method.new
-/// [2]: struct.NullDraw.html#method.default
-#[derive(Default, Copy, Clone)]
-pub struct NullDrawBuilder;
-
-impl NullDrawBuilder {
-    /// Creates a new builder.
-    pub fn new() -> Box<Self> {
-        Box::new(Default::default())
-    }
-}
-
-impl DrawBuilder for NullDrawBuilder {
-    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
-        Box::new(NullDraw::new(timer))
     }
 }

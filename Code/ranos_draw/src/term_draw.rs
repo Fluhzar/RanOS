@@ -1,31 +1,47 @@
 //! # Terminal Draw
 
-use colored::Colorize;
-use ranos_display::DisplayState;
 use std::collections::HashMap;
 
-use ranos_core::{Info, Timer};
+use colored::Colorize;
+use serde::{Serialize, Deserialize};
+
+use ranos_core::Timer;
+use ranos_display::DisplayState;
 
 use super::*;
 
-/// Presents some info about `TermDraw` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct TermDrawInfo();
+/// Builder for [`TermDraw`][0].
+///
+/// Allows for optional setting of the `max_width` and `timer` parameters of [`TermDraw::new`][1]. If a parameter is not
+/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
+/// default parameter seen in [`TermDraw::default`][2].
+///
+/// [0]: struct.TermDraw.html
+/// [1]: struct.TermDraw.html#method.new
+/// [2]: struct.TermDraw.html#method.default
+#[derive(Default, Copy, Clone, Serialize, Deserialize)]
+#[serde(rename = "TermDraw")]
+pub struct TermDrawBuilder {
+    max_width: usize,
+    #[serde(skip)]
+    timer: Timer,
+}
 
-impl Info for TermDrawInfo {
-    fn new() -> Box<dyn Info>
-    where
-        Self: Sized,
-    {
-        Box::new(TermDrawInfo::default())
+impl TermDrawBuilder {
+    /// Sets the maximum number of LEDs to draw per line.
+    ///
+    /// If this parameter is not set, the default value of `8` will be used instead.
+    pub fn max_width(mut self, width: usize) -> Self {
+        self.max_width = width;
+
+        self
     }
+}
 
-    fn name(&self) -> String {
-        "TermDraw".to_owned()
-    }
-
-    fn details(&self) -> String {
-        "Emulates an LED display by writing whitespace with specified colored backgrounds to a terminal that supports full RGB colors.".to_owned()
+impl DrawBuilder for TermDrawBuilder {
+    fn build(mut self, timer: Timer) -> Box<dyn Draw> {
+        self.timer = timer;
+        Box::new(TermDraw::from_builder(self))
     }
 }
 
@@ -55,18 +71,18 @@ impl TermDraw {
     /// # use base::draw::{Draw, DrawBuilder, TermDraw, TermDrawBuilder};
     /// let drawer = TermDraw::builder().build();
     /// ```
-    pub fn builder() -> Box<TermDrawBuilder> {
-        TermDrawBuilder::new()
+    pub fn builder() -> TermDrawBuilder {
+        TermDrawBuilder {
+            max_width: 8,
+            timer: Timer::new(None),
+        }
     }
 
-    /// Creates a new `TermDraw` object.
-    ///
-    /// # Parameters
-    ///
-    /// * `max_width` - The maximum number of LEDs to draw per line in the
-    /// terminal. E.g. if there are 256 LEDs to draw and a `max_width` of 16,
-    /// then a 16x16 grid will be displayed.
-    pub fn new(max_width: usize, timer: Timer) -> Self {
+    fn from_builder(builder: TermDrawBuilder) -> Self {
+        Self::new(builder.max_width, builder.timer)
+    }
+
+    fn new(max_width: usize, timer: Timer) -> Self {
         Self {
             max_width,
 
@@ -154,44 +170,5 @@ impl Draw for TermDraw {
 
     fn stats(&self) -> DrawStats {
         self.stats
-    }
-}
-
-/// Builder for [`TermDraw`][0].
-///
-/// Allows for optional setting of the `max_width` and `timer` parameters of [`TermDraw::new`][1]. If a parameter is not
-/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
-/// default parameter seen in [`TermDraw::default`][2].
-///
-/// [0]: struct.TermDraw.html
-/// [1]: struct.TermDraw.html#method.new
-/// [2]: struct.TermDraw.html#method.default
-#[derive(Default, Copy, Clone)]
-pub struct TermDrawBuilder {
-    max_width: Option<usize>,
-}
-
-impl TermDrawBuilder {
-    /// Creates a new builder
-    pub fn new() -> Box<Self> {
-        Box::new(Default::default())
-    }
-
-    /// Sets the maximum number of LEDs to draw per line.
-    ///
-    /// If this parameter is not set, the default value of `8` will be used instead.
-    pub fn max_width(mut self: Box<Self>, width: usize) -> Box<Self> {
-        self.max_width = Some(width);
-
-        self
-    }
-}
-
-impl DrawBuilder for TermDrawBuilder {
-    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
-        Box::new(TermDraw::new(
-            self.max_width.unwrap_or(8),
-            timer,
-        ))
     }
 }

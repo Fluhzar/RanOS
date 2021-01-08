@@ -6,12 +6,14 @@
 
 #![cfg(target_os="linux")]
 
-use ranos_display::DisplayState;
-use rppal::gpio;
 use std::collections::HashMap;
 
+use rppal::gpio;
+use serde::{Serialize, Deserialize};
+
+use ranos_core::Timer;
+use ranos_display::DisplayState;
 use ranos_ds::rgb::*;
-use ranos_core::{Info, Timer};
 
 use super::*;
 
@@ -19,24 +21,6 @@ use super::*;
 pub const DEFAULT_DAT_PIN: u8 = 6;
 /// The default clock pin to use when one isn't supplied.
 pub const DEFAULT_CLK_PIN: u8 = 5;
-
-/// Presents some info about `APA102CPiDraw` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct APA102CPiDrawInfo();
-
-impl Info for APA102CPiDrawInfo {
-    fn new() -> Box<dyn Info> {
-        Box::new(APA102CPiDrawInfo::default())
-    }
-
-    fn name(&self) -> String {
-        "PiDraw".to_owned()
-    }
-
-    fn details(&self) -> String {
-        "Draws APA102C/SK9822 LEDs through a Raspberry Pi's GPIO pins. This implementation maintains compatibility with both APA102C and SK9822 LEDs.".to_owned()
-    }
-}
 
 #[inline]
 fn bit_to_level(byte: u8, bit: u8) -> gpio::Level {
@@ -50,15 +34,54 @@ fn bit_to_level(byte: u8, bit: u8) -> gpio::Level {
 /// Local rename of the GPIO pin type.
 pub type Pin = gpio::OutputPin;
 
+/// Type alias of `APA102CPiDrawBuilder` for the compatible SK9822 LEDs
+pub type SK9822PiDrawBuilder = APA102CPiDrawBuilder;
+
 /// Type alias for the SK9822 LED, which is a clone of the APA102C and compatible with our implementation of the APA102C's data
 /// transmission protocol.
 pub type SK9822PiDraw = APA102CPiDraw;
 
-/// Type alias of `APA102CPiDrawBuilder` for the compatible SK9822 LEDs
-pub type SK9822PiDrawBuilder = APA102CPiDrawBuilder;
+/// Builder for [`APA102CPiDraw`][0].
+///
+/// Allows for optional setting of the `data`, `clock`, and `timer` parameters of [`PiDraw::new`][1]. If a parameter is not
+/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
+/// default parameter seen in [`PiDraw::default`][2].
+///
+/// [0]: struct.APA102CPiDraw.html
+/// [1]: struct.APA102CPiDraw.html#method.new
+/// [2]: struct.APA102CPiDraw.html#method.default
+#[derive(Default, Copy, Clone, Serialize, Deserialize)]
+#[serde(rename = "APA102CPiDraw")]
+pub struct APA102CPiDrawBuilder {
+    data_pin: u8,
+    clock_pin: u8,
+    #[serde(skip)]
+    timer: Timer,
+}
 
-/// Type alias of `APA102CPiDrawInfo` for the compatible SK9822 LEDs
-pub type SK9822PiDrawInfo = APA102CPiDrawInfo;
+impl APA102CPiDrawBuilder {
+    /// Sets the data pin.
+    pub fn data(mut self, pin: u8) -> Self {
+        self.data_pin = pin;
+
+        self
+    }
+
+    /// Sets the clock pin.
+    pub fn clock(mut self, pin: u8) -> Self {
+        self.clock_pin = pin;
+
+        self
+    }
+}
+
+impl DrawBuilder for APA102CPiDrawBuilder {
+
+    fn build(mut self, timer: Timer) -> Box<dyn Draw> {
+        self.timer = timer;
+        Box::new(APA102CPiDraw::from_builder(self))
+    }
+}
 
 /// Struct that draws [APA102C][0] LEDs through the Raspberry Pi's GPIO pins.
 ///
@@ -122,17 +145,25 @@ impl APA102CPiDraw {
     /// let drawer = APA102CPiDraw::builder().build();
     /// # }
     /// ```
-    pub fn builder() -> Box<APA102CPiDrawBuilder> {
-        APA102CPiDrawBuilder::new()
+    pub fn builder() -> APA102CPiDrawBuilder {
+        APA102CPiDrawBuilder {
+            data_pin: DEFAULT_DAT_PIN,
+            clock_pin: DEFAULT_CLK_PIN,
+            timer: Timer::new(None),
+        }
     }
 
-    /// Creates a new `APA102CPiDraw` object.
-    ///
-    /// # Parameters
-    ///
-    /// * `data` - The data pin for the LEDs.
-    /// * `clock` - The clock pin for the LEDs.
-    pub fn new(data: Pin, clock: Pin, timer: Timer) -> Self {
+    fn from_builder(builder: APA102CPiDrawBuilder) -> Self {
+        let gpio = gpio::Gpio::new().unwrap();
+
+        Self::new(
+            gpio.get(builder.data_pin).unwrap().into_output(),
+            gpio.get(builder.clock_pin).unwrap().into_output(),
+            builder.timer,
+        )
+    }
+
+    fn new(data: Pin, clock: Pin, timer: Timer) -> Self {
         Self {
             data: data,
             clock: clock,
@@ -319,57 +350,5 @@ impl Drop for APA102CPiDraw {
     /// set to off so they don't blind anyone.
     fn drop(&mut self) {
         self.stop(self.num);
-    }
-}
-
-/// Builder for [`APA102CPiDraw`][0].
-///
-/// Allows for optional setting of the `data`, `clock`, and `timer` parameters of [`PiDraw::new`][1]. If a parameter is not
-/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
-/// default parameter seen in [`PiDraw::default`][2].
-///
-/// [0]: struct.PiDraw.html
-/// [1]: struct.PiDraw.html#method.new
-/// [2]: struct.PiDraw.html#method.default
-#[derive(Default, Copy, Clone)]
-pub struct APA102CPiDrawBuilder {
-    dat_pin: Option<u8>,
-    clk_pin: Option<u8>,
-}
-
-impl APA102CPiDrawBuilder {
-    /// Creates new `APA102CPiDrawBuilder` object.
-    pub fn new() -> Box<Self> {
-        Box::new(Default::default())
-    }
-
-    /// Sets the data pin.
-    pub fn data(mut self: Box<Self>, pin: u8) -> Box<Self> {
-        self.dat_pin = Some(pin);
-
-        self
-    }
-
-    /// Sets the clock pin.
-    pub fn clock(mut self: Box<Self>, pin: u8) -> Box<Self> {
-        self.clk_pin = Some(pin);
-
-        self
-    }
-}
-
-impl DrawBuilder for APA102CPiDrawBuilder {
-
-    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
-        let gpio = gpio::Gpio::new().unwrap();
-        Box::new(APA102CPiDraw::new(
-            gpio.get(self.dat_pin.unwrap_or(DEFAULT_DAT_PIN))
-                .unwrap()
-                .into_output(),
-            gpio.get(self.clk_pin.unwrap_or(DEFAULT_CLK_PIN))
-                .unwrap()
-                .into_output(),
-            timer,
-        ))
     }
 }
