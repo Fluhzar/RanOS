@@ -2,9 +2,8 @@
 
 use colored::Colorize;
 use ranos_display::DisplayState;
-use std::collections::VecDeque;
+use std::collections::HashMap;
 
-use ranos_ds::collections::frame::Frame;
 use ranos_core::{Info, Timer};
 
 use super::*;
@@ -39,7 +38,9 @@ impl Info for TermDrawInfo {
 pub struct TermDraw {
     max_width: usize,
 
-    displays: VecDeque<(Display, bool)>,
+    displays: HashMap<usize, (Display, bool)>,
+    display_ids: Vec<usize>,
+
     timer: Timer,
 
     stats: DrawStats,
@@ -69,14 +70,18 @@ impl TermDraw {
         Self {
             max_width,
 
-            displays: VecDeque::new(),
+            displays: HashMap::new(),
+            display_ids: Vec::new(),
+
             timer,
 
             stats: DrawStats::new(),
         }
     }
 
-    fn write_frame(&mut self, frame: &Frame) {
+    fn write_frame(&mut self, display_id: usize) {
+        let frame = self.displays.get(&display_id).unwrap().0.frame();
+
         // Create output string with enough capacity to minimize reallocations of memory for growing the string's capacity
         let mut output =
             String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
@@ -104,42 +109,45 @@ impl TermDraw {
 
 impl Draw for TermDraw {
     fn add_display(&mut self, d: Display) {
-        self.displays.push_back((d, false));
+        self.display_ids.push(d.id());
+        self.displays.insert(*self.display_ids.last().unwrap(), (d, false));
     }
 
     fn run(&mut self) {
         self.timer.reset();
         self.stats.reset();
 
-        let mut numFinished = 0;
+        let mut num_finished = 0;
 
-        while numFinished < self.displays.len() {
+        while num_finished < self.displays.len() {
             let dt = self.timer.ping();
-            let mut totalLEDs = 0;
+            let mut total_leds = 0;
 
             for i in 0..self.displays.len() {
-                {
-                    let (d, has_finished) = self.displays.get_mut(i).unwrap();
+                let display_id = {
+                    let (d, has_finished) = self.displays.get_mut(&self.display_ids[i]).unwrap();
 
-                    totalLEDs += d.frame_len();
+                    total_leds += d.frame_len();
 
                     if !*has_finished {
                         match d.render_frame(dt) {
                             DisplayState::Continue => (),
                             DisplayState::Last => {
                                 *has_finished = true;
-                                numFinished += 1;
+                                num_finished += 1;
                             },
                             DisplayState::Err => return,
                         }
                     }
-                }
 
-                self.write_frame(self.displays.get(i).unwrap().0.frame());
+                    d.id()
+                };
+
+                self.write_frame(display_id);
                 self.stats.inc_frames();
             }
 
-            self.stats.set_num(totalLEDs);
+            self.stats.set_num(total_leds);
             self.stats.end();
         }
     }

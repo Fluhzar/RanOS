@@ -11,6 +11,7 @@ pub enum DisplayState {
 
 #[derive(Debug)]
 pub struct Display {
+    id: usize,
     frame: Frame,
     animations: Vec<Box<dyn Animation>>,
 }
@@ -18,6 +19,7 @@ pub struct Display {
 impl Display {
     pub fn new(brightness: f32, size: usize, animations: Vec<Box<dyn Animation>>) -> Self {
         Display {
+            id: ranos_core::id::generate(),
             frame: Frame::new(brightness, size),
             animations,
         }
@@ -28,9 +30,14 @@ impl Display {
         I: std::iter::Iterator<Item = Box<dyn Animation>>,
     {
         Display {
+            id: ranos_core::id::generate(),
             frame: Frame::new(brightness, size),
             animations: iter.collect(),
         }
+    }
+
+    pub fn id(&self) -> usize {
+        self.id
     }
 
     pub fn frame(&self) -> &Frame {

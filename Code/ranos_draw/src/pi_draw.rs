@@ -8,15 +8,16 @@
 
 use ranos_display::DisplayState;
 use rppal::gpio;
-use std::collections::VecDeque;
+use std::collections::HashMap;
 
-use ranos_ds::collections::frame::Frame;
 use ranos_ds::rgb::*;
 use ranos_core::{Info, Timer};
 
 use super::*;
 
+/// The default data pin to use when one isn't supplied.
 pub const DEFAULT_DAT_PIN: u8 = 6;
+/// The default clock pin to use when one isn't supplied.
 pub const DEFAULT_CLK_PIN: u8 = 5;
 
 /// Presents some info about `APA102CPiDraw` for pretty printing.
@@ -100,7 +101,9 @@ pub struct APA102CPiDraw {
     data: Pin,
     clock: Pin,
 
-    displays: VecDeque<(Display, bool)>,
+    displays: HashMap<usize, (Display, bool)>,
+    display_ids: Vec<usize>,
+
     timer: Timer,
 
     stats: DrawStats,
@@ -134,7 +137,9 @@ impl APA102CPiDraw {
             data: data,
             clock: clock,
 
-            displays: VecDeque::new(),
+            displays: HashMap::new(),
+            display_ids: Vec::new(),
+
             timer,
 
             stats: DrawStats::new(),
@@ -235,27 +240,33 @@ impl APA102CPiDraw {
 
     /// Writes a frame to the LEDs. Uses color order BGR as defined in the
     /// datasheet.
-    fn write_frame(&mut self, frame: &Frame) {
+    fn write_frame(&mut self, display_id: usize) {
+        let (brightness_mask, len) = {
+            let frame = self.displays.get(&display_id).unwrap().0.frame();
+            (0xE0 | frame.brightness_apa102c(), frame.len())
+        };
+
         self.start_frame();
 
-        let brightness_mask = 0xE0 | frame.brightness_apa102c();
-
-        for i in 0..frame.len() {
+        for i in 0..len {
             self.write_byte(brightness_mask);
-            let color = frame[i].as_tuple(RGBOrder::BGR);
+            let color = {
+                self.displays.get(&display_id).unwrap().0.frame()[i].as_tuple(RGBOrder::BGR)
+            };
             self.write_byte(color.0);
             self.write_byte(color.1);
             self.write_byte(color.2);
         }
 
-        self.end_frame(frame.len());
+        self.end_frame(len);
     }
 }
 
 impl Draw for APA102CPiDraw {
     fn add_display(&mut self, d: Display) {
-        self.displays.push_back((d, false));
-        self.num += self.displays.back().unwrap().0.frame_len();
+        self.num += d.frame_len();
+        self.display_ids.push(d.id());
+        self.displays.insert(*self.display_ids.last().unwrap(), (d, false));
     }
 
     fn run(&mut self) {
@@ -263,35 +274,37 @@ impl Draw for APA102CPiDraw {
         self.timer.reset();
         self.stats.reset();
 
-        let mut numFinished = 0;
+        let mut num_finished = 0;
 
-        while numFinished < self.displays.len() {
+        while num_finished < self.displays.len() {
             let dt = self.timer.ping();
-            let mut totalLEDs = 0;
+            let mut total_leds = 0;
 
             for i in 0..self.displays.len() {
-                {
-                    let (d, has_finished) = self.displays.get_mut(i).unwrap();
+                let display_id = {
+                    let (d, has_finished) = self.displays.get_mut(&self.display_ids[i]).unwrap();
 
-                    totalLEDs += d.frame_len();
+                    total_leds += d.frame_len();
 
                     if !*has_finished {
                         match d.render_frame(dt) {
                             DisplayState::Continue => (),
                             DisplayState::Last => {
                                 *has_finished = true;
-                                numFinished += 1;
+                                num_finished += 1;
                             },
                             DisplayState::Err => return,
                         }
                     }
-                }
 
-                self.write_frame(self.displays.get(i).unwrap().0.frame());
+                    d.id()
+                };
+
+                self.write_frame(display_id/*self.displays.get(i).unwrap().0.frame()*/);
                 self.stats.inc_frames();
             }
 
-            self.stats.set_num(totalLEDs);
+            self.stats.set_num(total_leds);
             self.stats.end();
         }
     }

@@ -7,5 +7,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ranos_core = { path = "../ranos_core" }
 ranos_ds = { path = "../ranos_ds" }
 ranos_animation = { path = "../ranos_animation" }

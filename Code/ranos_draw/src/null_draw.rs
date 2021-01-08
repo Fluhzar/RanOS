@@ -4,7 +4,6 @@ use std::collections::VecDeque;
 
 use ranos_display::DisplayState;
 use ranos_core::{Info, Timer};
-use ranos_ds::collections::Frame;
 
 use super::*;
 
@@ -76,11 +75,11 @@ impl Draw for NullDraw {
         self.timer.reset();
         self.stats.reset();
 
-        let mut numFinished = 0;
+        let mut num_finished = 0;
 
-        while numFinished < self.displays.len() {
+        while num_finished < self.displays.len() {
             let dt = self.timer.ping();
-            let mut totalLEDs = 0;
+            let mut total_leds = 0;
 
             for i in 0..self.displays.len() {
                 let (d, has_finished) = self.displays.get_mut(i).unwrap();
@@ -88,17 +87,17 @@ impl Draw for NullDraw {
                 if !*has_finished {
                     match d.render_frame(dt) {
                         DisplayState::Continue => (),
-                        DisplayState::Last => { *has_finished = true; numFinished += 1; },
+                        DisplayState::Last => { *has_finished = true; num_finished += 1; },
                         DisplayState::Err => return,
                     }
 
                     self.stats.inc_frames();
                 }
 
-                totalLEDs += d.frame_len();
+                total_leds += d.frame_len();
             }
 
-            self.stats.set_num(totalLEDs);
+            self.stats.set_num(total_leds);
             self.stats.end();
         }
     }
