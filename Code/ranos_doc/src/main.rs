@@ -1,5 +1,3 @@
-use ranos_app::*;
-
 fn main() {
-    config::write_base_rons();
+    ranos_app::write_base_rons();
 }
