@@ -1,6 +1,6 @@
 .vscode/
 
-local_config.ron
+ignore
 
 Code/hardware/test/Macro\.hpp
 

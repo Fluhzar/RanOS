@@ -1,6 +1,6 @@
 [package]
 name = "ranos_animation"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"
 
@@ -11,8 +11,8 @@ edition = "2018"
 typetag = "0.1.6"
 serde = { version = "^1.0.118", features = ["derive"] }
 
-ranos_core = { path = "../ranos_core", version = "0.1" }
-ranos_ds = { path = "../ranos_ds", version = "0.2" }
+ranos_core = { path = "../ranos_core" }
+ranos_ds = { path = "../ranos_ds" }
 
 [dev-dependencies]
 serde_json = "1.0"

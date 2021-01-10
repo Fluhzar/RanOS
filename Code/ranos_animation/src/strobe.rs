@@ -36,7 +36,7 @@ impl StrobeBuilder {
         self
     }
 
-    /// Sets the duty cycle, a value in the range of [0, 1) representing the
+    /// Sets the duty cycle, a value in the range of \[0, 1) representing the
     /// percentage of time that the LEDs are on within the `period`.
     pub fn duty(mut self: Box<Self>, duty: f64) -> Box<Self> {
         let duty = duty.min(1.0).max(0.0);

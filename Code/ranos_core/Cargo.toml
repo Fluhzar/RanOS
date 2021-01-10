@@ -1,6 +1,6 @@
 [package]
 name = "ranos_core"
-version = "0.1.2"
+version = "0.3.0"
 authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"
 

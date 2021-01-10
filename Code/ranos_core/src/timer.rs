@@ -74,7 +74,7 @@ mod timer_test {
     fn target_dt() {
         let mut acc_dt = Duration::new(0, 0);
 
-        let max_iteration = 1024 * 4;
+        let max_iteration = 144;
 
         let mut timer = Timer::new(Some(Duration::from_secs_f64(1.0 / 144.0)));
         for _ in 0..max_iteration {

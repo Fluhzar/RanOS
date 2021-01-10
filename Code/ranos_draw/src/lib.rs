@@ -49,7 +49,7 @@ pub trait Draw {
 /// Note: As the trait's functions return `Box<dyn DrawBuilder>` rather than `Box<Self>`, be sure to set any parameters for the
 /// specific `Draw`-implementing type you're using before calling these functions, as the original type will be inaccessible
 /// after calling one of the functions from this trait.
-#[typetag::serde(tag = "type")]
+#[typetag::serde(tag = "type", content = "value")]
 pub trait DrawBuilder {
     /// Sets the timer parameter from a pre-built object.
     fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder>;
@@ -75,12 +75,12 @@ mod builder_test {
 
         let data = serde_json::ser::to_string(&builder).unwrap();
 
-        assert_eq!(data, r#"{"type":"NullDrawBuilder","timer":{"target_dt":null},"displays":[]}"#);
+        assert_eq!(data, r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"{"type":"NullDrawBuilder","timer":{"target_dt":null},"displays":[]}"#;
+        let input = r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#;
 
         assert_eq!(
             serde_json::ser::to_string(

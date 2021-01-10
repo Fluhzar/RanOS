@@ -6,11 +6,9 @@
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
-pub use info::Info;
 pub use max_line::MaxLine;
 pub use timer::Timer;
 
 pub mod id;
-pub mod info;
 pub mod max_line;
 pub mod timer;

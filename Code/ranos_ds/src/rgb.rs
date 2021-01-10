@@ -164,7 +164,7 @@ impl RGB {
         Ok(count)
     }
 
-    /// Creates a new `RGB` value from the given `u32` color code, interpreted as in the specified order.
+    /// Creates a new `RGB` value from the given `u32` color code, interpreted as in the specified order (e.g. `RGBOrder::RGB => code: 0xRR_GG_BB`).
     #[inline]
     pub fn from_code(x: u32, o: RGBOrder) -> Self {
         match o {
@@ -272,6 +272,7 @@ impl RGB {
     /// # Example
     ///
     /// ```
+    /// # use ranos_ds::rgb::RGB;
     /// let (h, s, v) = RGB::random().into_hsv();
     /// ```
     ///

@@ -2,7 +2,7 @@
 //!
 //! This module contains the application interface that controls the LEDs.
 
-// #![warn(missing_docs)]
+#![warn(missing_docs)]
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
@@ -14,9 +14,7 @@ use std::sync::{
     Arc,
 };
 
-use ranos_animation;
-use ranos_draw::{Draw, DrawStats};
-use ranos_core::{Timer, info};
+pub mod config;
 
 lazy_static! {
     static ref SIGINT: Arc<AtomicBool> = {
@@ -30,11 +28,6 @@ lazy_static! {
         arc
     };
 }
-
-// Config file makeup:
-// * Master drawer
-//   * Vec of displays
-//     * Vec of animations
 
 struct App {
 
