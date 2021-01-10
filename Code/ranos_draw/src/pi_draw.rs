@@ -47,6 +47,9 @@ pub type SK9822PiDraw = APA102CPiDraw;
 pub struct APA102CPiDrawBuilder {
     data_pin: u8,
     clock_pin: u8,
+
+    brightness: u8, // should be in the range [0, 31].
+
     timer: Timer,
     displays: VecDeque<DisplayBuilder>,
 }
@@ -62,6 +65,13 @@ impl APA102CPiDrawBuilder {
     /// Sets the clock pin.
     pub fn clock(mut self: Box<Self>, pin: u8) -> Box<Self> {
         self.clock_pin = pin;
+
+        self
+    }
+
+    /// Sets the hardware brightness value. Should be in the range \[0, 31\].
+    pub fn brightness(mut self: Box<Self>, brightness: u8) -> Box<Self> {
+        self.brightness = brightness.min(31);
 
         self
     }
@@ -178,6 +188,8 @@ pub struct APA102CPiDraw {
     data: Pin,
     clock: Pin,
 
+    brightness: u8,
+
     displays: HashMap<usize, (Display, bool)>,
     display_ids: Vec<usize>,
 
@@ -194,6 +206,7 @@ impl APA102CPiDraw {
         Box::new(APA102CPiDrawBuilder {
             data_pin: DEFAULT_DAT_PIN,
             clock_pin: DEFAULT_CLK_PIN,
+            brightness: 1,
             timer: Timer::new(None),
             displays: VecDeque::new(),
         })
@@ -205,12 +218,13 @@ impl APA102CPiDraw {
         Self::new(
             gpio.get(builder.data_pin).unwrap().into_output(),
             gpio.get(builder.clock_pin).unwrap().into_output(),
+            builder.brightness,
             builder.timer,
             builder.displays.drain(0..),
         )
     }
 
-    fn new<I>(data: Pin, clock: Pin, timer: Timer, display_iter: I) -> Self
+    fn new<I>(data: Pin, clock: Pin, brightness: u8, timer: Timer, display_iter: I) -> Self
     where
         I: Iterator<Item = DisplayBuilder>,
     {
@@ -229,6 +243,8 @@ impl APA102CPiDraw {
         Self {
             data: data,
             clock: clock,
+
+            brightness,
 
             displays,
             display_ids,
@@ -334,17 +350,16 @@ impl APA102CPiDraw {
     /// Writes a frame to the LEDs. Uses color order BGR as defined in the
     /// datasheet.
     fn write_frame(&mut self, display_id: usize) {
-        let (brightness_mask, len) = {
-            let frame = self.displays.get(&display_id).unwrap().0.frame();
-            (0xE0 | frame.brightness_apa102c(), frame.len())
-        };
+        let (brightness_mask, len) = (0xE0 | self.brightness, self.displays.get(&display_id).unwrap().0.frame().len());
 
         self.start_frame();
 
         for i in 0..len {
             self.write_byte(brightness_mask);
-            let color =
-                { self.displays.get(&display_id).unwrap().0.frame()[i].as_tuple(RGBOrder::BGR) };
+            let color = {
+                let frame = self.displays.get(&display_id).unwrap().0.frame();
+                frame[i].scale(frame.brightness()).as_tuple(RGBOrder::BGR)
+            };
             self.write_byte(color.0);
             self.write_byte(color.1);
             self.write_byte(color.2);
