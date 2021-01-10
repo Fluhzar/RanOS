@@ -1,3 +1,3 @@
 fn main() {
-    ranos_app::write_base_rons();
+    ranos_doc::write_base_rons();
 }
