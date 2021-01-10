@@ -163,19 +163,21 @@ impl Display {
         self.frame.len()
     }
 
-    /// Renders a frame from 
+    /// Renders a frame from
     pub fn render_frame(&mut self, dt: Duration) -> DisplayState {
         if let Some(mut anim) = self.animations.pop() {
             match anim.render_frame(&mut self.frame, dt) {
                 AnimationState::Continue => {
                     self.animations.push(anim);
                     DisplayState::Continue
-                },
-                AnimationState::Last => if self.animations.len() > 0 {
-                    DisplayState::Continue
-                } else {
-                    DisplayState::Last
-                },
+                }
+                AnimationState::Last => {
+                    if self.animations.len() > 0 {
+                        DisplayState::Continue
+                    } else {
+                        DisplayState::Last
+                    }
+                }
                 AnimationState::ErrRetry => self.render_frame(dt),
                 AnimationState::ErrFatal => DisplayState::Err,
             }
