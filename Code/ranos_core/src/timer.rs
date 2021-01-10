@@ -9,12 +9,13 @@ fn default_instant() -> Instant {
 }
 
 /// Timer struct that will keep track of the time spent between pings.
-#[derive(Debug, Copy, Clone, PartialOrd, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialOrd, Serialize, Deserialize)]
 pub struct Timer {
     #[serde(skip, default = "default_instant")]
     ctime: Instant,
     #[serde(skip, default = "default_instant")]
     ptime: Instant,
+    #[serde(skip)]
     dt: Duration,
     target_dt: Option<Duration>,
 }
@@ -56,6 +57,12 @@ impl Timer {
 impl Default for Timer {
     fn default() -> Self {
         Self::new(None)
+    }
+}
+
+impl std::cmp::PartialEq<Timer> for Timer {
+    fn eq(&self, other: &Timer) -> bool {
+        self.target_dt == other.target_dt
     }
 }
 

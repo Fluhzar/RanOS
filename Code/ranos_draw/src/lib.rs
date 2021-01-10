@@ -67,8 +67,7 @@ pub trait DrawBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use ranos_core::Timer;
-    use crate::{DrawBuilder, NullDraw, NullDrawBuilder};
+    use crate::{DrawBuilder, NullDraw};
 
     #[test]
     fn test_serialize() {

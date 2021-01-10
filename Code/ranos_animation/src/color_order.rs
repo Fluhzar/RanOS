@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 use ranos_ds::rgb::RGB;
 
 /// Color order used by `Breath`, can be a predetermined order or a random order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ColorOrder {
     /// Order determined by random colors generated when needed.
     Random,

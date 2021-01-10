@@ -60,6 +60,32 @@ impl DisplayBuilder {
     }
 }
 
+#[cfg(test)]
+mod builder_test {
+    use crate::{Display, DisplayBuilder};
+
+    #[test]
+    fn test_serializer() {
+        let builder = Display::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"brightness":1.0,"size":64,"animation_builders":[]}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserializer() {
+        let input = r#"{"brightness":1.0,"size":64,"animation_builders":[]}"#;
+
+        let data: DisplayBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.brightness, 1.0);
+        assert_eq!(data.size, 64);
+        assert_eq!(data.animation_builders.len(), 0);
+    }
+}
+
 #[derive(Debug)]
 pub struct Display {
     id: usize,

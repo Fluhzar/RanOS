@@ -61,3 +61,30 @@ pub trait AnimationBuilder: std::fmt::Debug {
     /// Creates a new animation object from the builder.
     fn build(self: Box<Self>) -> Box<dyn Animation>;
 }
+
+#[cfg(test)]
+mod builder_test {
+    use crate::{AnimationBuilder, Cycle};
+
+    #[test]
+    fn test_serialize() {
+        let builder: Box<dyn AnimationBuilder> = Cycle::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"type":"CycleBuilder","runtime":{"secs":16,"nanos":363636363},"cycle_period":{"secs":0,"nanos":363636363},"order":{"Ordered":[[255,0,0],[0,255,0],[0,0,255]]}}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"type":"CycleBuilder","runtime":{"secs":16,"nanos":363636363},"cycle_period":{"secs":0,"nanos":363636363},"order":{"Ordered":[[255,0,0],[0,255,0],[0,0,255]]}}"#;
+
+        assert_eq!(
+            serde_json::ser::to_string(
+                &serde_json::de::from_str::<Box<dyn AnimationBuilder>>(input).unwrap()
+            ).unwrap(),
+            input
+        );
+    }
+}

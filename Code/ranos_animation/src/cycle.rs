@@ -52,6 +52,42 @@ impl AnimationBuilder for CycleBuilder {
     }
 }
 
+#[cfg(test)]
+mod builder_test {
+    use std::time::Duration;
+    use ranos_ds::rgb::{RGB, RGBOrder};
+    use crate::{ColorOrder, Cycle};
+    use super::CycleBuilder;
+
+    #[test]
+    fn test_serialize() {
+        let builder = Cycle::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"runtime":{"secs":16,"nanos":363636363},"cycle_period":{"secs":0,"nanos":363636363},"order":{"Ordered":[[255,0,0],[0,255,0],[0,0,255]]}}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"runtime":{"secs":16,"nanos":363636363},"cycle_period":{"secs":0,"nanos":363636363},"order":{"Ordered":[[255,0,0],[0,255,0],[0,0,255]]}}"#;
+
+        let data: CycleBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.runtime, Duration::from_secs_f64(60.0/165.0*3.0*15.0));
+        assert_eq!(data.cycle_period, Duration::from_secs_f64(60.0/165.0));
+        assert_eq!(
+            data.order,
+            ColorOrder::Ordered(vec![
+                RGB::from_code(0xFF0000, RGBOrder::RGB),
+                RGB::from_code(0x00FF00, RGBOrder::RGB),
+                RGB::from_code(0x0000FF, RGBOrder::RGB),
+            ]),
+        );
+    }
+}
+
 /// Struct for a simple cycling between colors by either walking a provided list
 /// of colors or generating random colors. Each color is shown for the set amount
 /// of time before proceeding to the next color.

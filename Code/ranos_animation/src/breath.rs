@@ -52,6 +52,45 @@ impl AnimationBuilder for BreathBuilder {
     }
 }
 
+#[cfg(test)]
+mod builder_test {
+    use std::time::Duration;
+    use ranos_ds::rgb::RGB;
+    use crate::ColorOrder;
+    use super::{Breath, BreathBuilder};
+
+    #[test]
+    fn test_serialize() {
+        let builder = Breath::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"runtime":{"secs":18,"nanos":0},"breath_duration":{"secs":3,"nanos":0},"order":{"Ordered":[[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]]}}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"runtime":{"secs":18,"nanos":0},"breath_duration":{"secs":3,"nanos":0},"order":{"Ordered":[[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]]}}"#;
+
+        let data: BreathBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.runtime, Duration::from_secs(18));
+        assert_eq!(data.breath_duration, Duration::from_secs(3));
+        assert_eq!(
+            data.order,
+            ColorOrder::Ordered(vec![
+                RGB::from_hsv(0.0, 1.0, 1.0),
+                RGB::from_hsv(60.0, 1.0, 1.0),
+                RGB::from_hsv(120.0, 1.0, 1.0),
+                RGB::from_hsv(180.0, 1.0, 1.0),
+                RGB::from_hsv(240.0, 1.0, 1.0),
+                RGB::from_hsv(300.0, 1.0, 1.0),
+            ])
+        );
+    }
+}
+
 /// Struct for an animated breathing display that will either walk through a
 /// provided list of colors or select random colors, each color fading along a
 /// parabolic curve from black to the chosen color and back down to black.
