@@ -1,9 +1,11 @@
 [package]
 name = "ranos_core"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+serde = { version = "1.0", features = ["derive"] }
+uid = "0.1"

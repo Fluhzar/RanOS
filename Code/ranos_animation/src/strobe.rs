@@ -2,32 +2,99 @@
 
 use std::time::Duration;
 
+use serde::{Deserialize, Serialize};
+
 use ranos_ds::{
     const_val::ConstVal,
     rgb::{RGBOrder, RGB},
 };
-use ranos_core::info::Info;
 
 use super::*;
 
-/// Presents some info about `Strobe` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct StrobeInfo();
+/// Builder for the [`Strobe`](Strobe) animation.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename = "Strobe")]
+pub struct StrobeBuilder {
+    runtime: Duration,
+    period: Duration,
+    duty: f64,
+    color: RGB,
+}
 
-impl Info for StrobeInfo {
-    fn new() -> Box<dyn Info>
-    where
-        Self: Sized,
-    {
-        Box::new(StrobeInfo::default())
+impl StrobeBuilder {
+    /// Sets the length of time the animation should run for.
+    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
+        self.runtime = runtime;
+
+        self
     }
 
-    fn name(&self) -> String {
-        "Strobe".to_owned()
+    /// Sets the period, the amount of time before the strobe pattern repeats.
+    pub fn period(mut self: Box<Self>, period: Duration) -> Box<Self> {
+        self.period = period;
+
+        self
     }
 
-    fn details(&self) -> String {
-        "Animates a flickering light similar to the strobe lights one might see at concerts or otherwise.".to_owned()
+    /// Sets the duty cycle, a value in the range of \[0, 1) representing the
+    /// percentage of time that the LEDs are on within the `period`.
+    pub fn duty(mut self: Box<Self>, duty: f64) -> Box<Self> {
+        let duty = duty.min(1.0).max(0.0);
+        self.duty = duty;
+
+        self
+    }
+
+    /// Sets the color that will be strobing.
+    pub fn color(mut self: Box<Self>, color: RGB) -> Box<Self> {
+        self.color = color;
+
+        self
+    }
+
+    /// Constructs a [`Strobe`](Strobe) object.
+    pub fn build(self: Box<Self>) -> Strobe {
+        Strobe::from_builder(self)
+    }
+}
+
+#[typetag::serde]
+impl AnimationBuilder for StrobeBuilder {
+    fn build(self: Box<Self>) -> Box<dyn Animation> {
+        Box::new(self.build())
+    }
+}
+
+#[cfg(test)]
+mod builder_test {
+    use super::StrobeBuilder;
+    use crate::Strobe;
+    use ranos_ds::rgb::{RGBOrder, RGB};
+    use std::time::Duration;
+
+    #[test]
+    fn test_serialize() {
+        let builder = Strobe::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"runtime":{"secs":8,"nanos":0},"period":{"secs":0,"nanos":500000000},"duty":0.25,"color":[255,255,255]}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"runtime":{"secs":8,"nanos":0},"period":{"secs":0,"nanos":500000000},"duty":0.25,"color":[255,255,255]}"#;
+
+        let data: StrobeBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.runtime, Duration::from_secs(8));
+        assert_eq!(
+            data.period,
+            Duration::from_secs_f64(1.0 / ((1 << 1) as f64))
+        );
+        assert_eq!(data.duty, 1.0 / ((1 << 2) as f64));
+        assert_eq!(data.color, RGB::from_code(0xFFFFFF, RGBOrder::RGB));
     }
 }
 
@@ -44,7 +111,6 @@ impl Info for StrobeInfo {
 pub struct Strobe {
     runtime: ConstVal<Duration>,
     time_remaining: Duration,
-    frame: Frame,
 
     period: ConstVal<f64>,
     duty: ConstVal<f64>,
@@ -55,31 +121,26 @@ pub struct Strobe {
 }
 
 impl Strobe {
-    /// Creates a new `Strobe` animation.
-    ///
-    /// # Parameters
-    ///
-    /// - `runtime` - The length of time this animation will run for.
-    /// - `brightness` - The brightness value to use. Should be in range [0, 1].
-    /// - `size` - The number of LEDs this animation will animate for.
-    /// - `period` - The period of time before the strobe animation repeats,
-    /// typically a number less than 1.
-    /// - `duty` - The percentage of time in the range of [0, 1) representing
-    /// the percentage of time the LEDs are on within the `period`.
-    pub fn new(
-        runtime: Duration,
-        brightness: f32,
-        size: usize,
-        period: Duration,
-        duty: f64,
-        color: RGB,
-    ) -> Self {
+    /// Constructs a builder object with safe default values.
+    pub fn builder() -> Box<StrobeBuilder> {
+        Box::new(StrobeBuilder {
+            runtime: Duration::from_secs(8),
+            period: Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
+            duty: 1.0 / ((1 << 2) as f64),
+            color: RGB::from_code(0xFFFFFF, RGBOrder::RGB),
+        })
+    }
+
+    fn from_builder(builder: Box<StrobeBuilder>) -> Self {
+        Self::new(builder.runtime, builder.period, builder.duty, builder.color)
+    }
+
+    fn new(runtime: Duration, period: Duration, duty: f64, color: RGB) -> Self {
         let duty = duty.min(1.0).max(0.0);
 
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,
-            frame: Frame::new(None, brightness, size),
 
             period: ConstVal::new(period.as_secs_f64()),
             duty: ConstVal::new(duty),
@@ -92,14 +153,7 @@ impl Strobe {
 }
 
 impl Animation for Strobe {
-    fn update(&mut self, dt: Duration) {
-        // Calculate remaining time
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            Duration::new(0, 0)
-        };
-
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
         // Accumulate the time, clamping it to a range of [0, self.period)
         self.time = (self.time + dt.as_secs_f64()) % self.period.get();
 
@@ -114,17 +168,21 @@ impl Animation for Strobe {
         };
 
         // Copy the colors to the frame
-        for led in self.frame.iter_mut() {
+        for led in frame.iter_mut() {
             *led = color;
         }
-    }
 
-    fn set_brightness(&mut self, b: f32) {
-        self.frame.set_brightness(b);
-    }
+        let mut res = AnimationState::Continue;
 
-    fn frame(&self) -> &Frame {
-        &self.frame
+        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
+            d
+        } else {
+            res = AnimationState::Last;
+
+            Duration::new(0, 0)
+        };
+
+        res
     }
 
     fn time_remaining(&self) -> Duration {
@@ -134,18 +192,5 @@ impl Animation for Strobe {
     fn reset(&mut self) {
         self.time_remaining = *self.runtime.get();
         self.time = 0.0;
-    }
-}
-
-impl Default for Strobe {
-    fn default() -> Self {
-        Self::new(
-            Duration::from_secs(8),
-            0.25,
-            64,//16,
-            Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
-            1.0 / ((1 << 2) as f64),
-            RGB::from_code(0xFFFFFF, RGBOrder::RGB),
-        )
     }
 }

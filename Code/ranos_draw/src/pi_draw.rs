@@ -2,42 +2,25 @@
 //!
 //! This module is designed with the APA102C LEDs in mind. There are additionally aliases for the SK9822 LEDs, which have a compatible protocol to the APA102C's.
 //!
-//! For more details see the [`APA102CPiDraw`][0] documentation
-//!
-//! [0]: struct.APA102CPiDraw.html
+//! For more details see the [`APA102CPiDraw`][crate::APA102CPiDraw] documentation.
 
-#![cfg(target_os="linux")]
+#![cfg(target_os = "linux")]
+
+use std::collections::{HashMap, VecDeque};
 
 use rppal::gpio;
-use std::collections::VecDeque;
-use std::time::Duration;
+use serde::{Deserialize, Serialize};
 
-use ranos_ds::collections::frame::Frame;
+use ranos_core::Timer;
+use ranos_display::DisplayState;
 use ranos_ds::rgb::*;
-use ranos_core::{Info, Timer};
 
 use super::*;
 
-const DEFAULT_DAT_PIN: u8 = 6;
-const DEFAULT_CLK_PIN: u8 = 5;
-
-/// Presents some info about `APA102CPiDraw` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct APA102CPiDrawInfo();
-
-impl Info for APA102CPiDrawInfo {
-    fn new() -> Box<dyn Info> {
-        Box::new(APA102CPiDrawInfo::default())
-    }
-
-    fn name(&self) -> String {
-        "PiDraw".to_owned()
-    }
-
-    fn details(&self) -> String {
-        "Draws APA102C/SK9822 LEDs through a Raspberry Pi's GPIO pins. This implementation maintains compatibility with both APA102C and SK9822 LEDs.".to_owned()
-    }
-}
+/// The default data pin to use when one isn't supplied.
+pub const DEFAULT_DAT_PIN: u8 = 6;
+/// The default clock pin to use when one isn't supplied.
+pub const DEFAULT_CLK_PIN: u8 = 5;
 
 #[inline]
 fn bit_to_level(byte: u8, bit: u8) -> gpio::Level {
@@ -51,20 +34,113 @@ fn bit_to_level(byte: u8, bit: u8) -> gpio::Level {
 /// Local rename of the GPIO pin type.
 pub type Pin = gpio::OutputPin;
 
+/// Type alias of `APA102CPiDrawBuilder` for the compatible SK9822 LEDs
+pub type SK9822PiDrawBuilder = APA102CPiDrawBuilder;
+
 /// Type alias for the SK9822 LED, which is a clone of the APA102C and compatible with our implementation of the APA102C's data
 /// transmission protocol.
 pub type SK9822PiDraw = APA102CPiDraw;
 
-/// Type alias of `APA102CPiDrawBuilder` for the compatible SK9822 LEDs
-pub type SK9822PiDrawBuilder = APA102CPiDrawBuilder;
+/// Builder for [`APA102CPiDraw`](APA102CPiDraw).
+#[derive(Serialize, Deserialize)]
+#[serde(rename = "APA102CPiDraw")]
+pub struct APA102CPiDrawBuilder {
+    data_pin: u8,
+    clock_pin: u8,
+    timer: Timer,
+    displays: VecDeque<DisplayBuilder>,
+}
 
-/// Type alias of `APA102CPiDrawInfo` for the compatible SK9822 LEDs
-pub type SK9822PiDrawInfo = APA102CPiDrawInfo;
+impl APA102CPiDrawBuilder {
+    /// Sets the data pin.
+    pub fn data(mut self: Box<Self>, pin: u8) -> Box<Self> {
+        self.data_pin = pin;
+
+        self
+    }
+
+    /// Sets the clock pin.
+    pub fn clock(mut self: Box<Self>, pin: u8) -> Box<Self> {
+        self.clock_pin = pin;
+
+        self
+    }
+
+    /// Sets the timer.
+    pub fn timer(mut self: Box<Self>, timer: Timer) -> Box<Self> {
+        self.timer = timer;
+
+        self
+    }
+
+    /// Add a builder for a display that will be built at the same time as this builder.
+    ///
+    /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
+    ///
+    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    pub fn display(mut self: Box<Self>, display: DisplayBuilder) -> Box<Self> {
+        self.displays.push_back(display);
+
+        self
+    }
+
+    /// Constructs a [`APA102CPiDraw`](APA102CPiDraw) object.
+    pub fn build(self: Box<Self>) -> APA102CPiDraw {
+        APA102CPiDraw::from_builder(self)
+    }
+}
+
+#[typetag::serde]
+impl DrawBuilder for APA102CPiDrawBuilder {
+    fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
+        self.timer(timer)
+    }
+
+    fn display(self: Box<Self>, display: DisplayBuilder) -> Box<dyn DrawBuilder> {
+        self.display(display)
+    }
+
+    fn build(self: Box<Self>) -> Box<dyn Draw> {
+        Box::new(self.build())
+    }
+}
+
+#[cfg(test)]
+mod builder_test {
+    use super::{APA102CPiDraw, APA102CPiDrawBuilder, DEFAULT_CLK_PIN, DEFAULT_DAT_PIN};
+    use ranos_core::Timer;
+
+    #[test]
+    fn test_serialize() {
+        let builder = APA102CPiDraw::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"data_pin":6,"clock_pin":5,"timer":{"target_dt":null},"displays":[]}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"data_pin":6,"clock_pin":5,"timer":{"target_dt":null},"displays":[]}"#;
+        let data: APA102CPiDrawBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.data_pin, DEFAULT_DAT_PIN);
+        assert_eq!(data.clock_pin, DEFAULT_CLK_PIN);
+        assert_eq!(data.timer, Timer::new(None));
+        assert_eq!(data.displays.len(), 0);
+    }
+}
 
 /// Struct that draws [APA102C][0] LEDs through the Raspberry Pi's GPIO pins.
 ///
-/// This struct is also compatible with the SK9822 LEDs, which are more or less a clone of the APA102C LED, though there are
-/// some notable differences seen [here][1] that are accounted for in this struct.
+/// To create a `APA102CPiDraw` object, use the associated [builder](APA102CPiDrawBuilder) which can be accessed by calling
+/// [`APA102CPiDraw::builder()`](APA102CPiDraw::builder).
+///
+/// ## Compatibility
+///
+/// This implementation is also compatible with the SK9822 LEDs, which are more or less a clone of the APA102C LED, though there
+/// are some notable differences seen [here][1] that are accounted for in this implementation.
 ///
 /// For APA102C LEDs, it generally isn't recommended to have the brightness set to anything other than full as the PWM that
 /// handles the brightness runs at 440Hz, which can cause flicker issues on lower brightness settings. The SK9822 clone gets
@@ -81,14 +157,14 @@ pub type SK9822PiDrawInfo = APA102CPiDrawInfo;
 /// Most of the private functions include documentation relevant to their operation. You are free to take a look at it in its
 /// context, but it will also be provided here for clarity and concise-ness.
 ///
-/// ## Start Frame
+/// ### Start Frame
 ///
 /// The start frame representing the start of a message to the LEDs as
 /// defined by the [datasheet][2].
 ///
 /// [2]: https://cdn-shop.adafruit.com/datasheets/APA102.pdf
 ///
-/// ## End Frame
+/// ### End Frame
 ///
 /// The end frame representing the end of a message to the LEDs as defined
 /// by the [datasheet][3] with modifications as revealed in
@@ -102,46 +178,66 @@ pub struct APA102CPiDraw {
     data: Pin,
     clock: Pin,
 
-    queue: VecDeque<Box<dyn Animation>>,
+    displays: HashMap<usize, (Display, bool)>,
+    display_ids: Vec<usize>,
+
     timer: Timer,
 
-    known_len: usize,
-
     stats: DrawStats,
+
+    num: usize,
 }
 
 impl APA102CPiDraw {
-    /// Returns a builder for this struct.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # #[cfg(target_os="linux")] {
-    /// # use crate::draw::{Draw, DrawBuilder, APA102CPiDraw, APA102CPiDrawBuilder};
-    /// let drawer = APA102CPiDraw::builder().build();
-    /// # }
-    /// ```
+    /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<APA102CPiDrawBuilder> {
-        APA102CPiDrawBuilder::new()
+        Box::new(APA102CPiDrawBuilder {
+            data_pin: DEFAULT_DAT_PIN,
+            clock_pin: DEFAULT_CLK_PIN,
+            timer: Timer::new(None),
+            displays: VecDeque::new(),
+        })
     }
 
-    /// Creates a new `APA102CPiDraw` object.
-    ///
-    /// # Parameters
-    ///
-    /// * `data` - The data pin for the LEDs.
-    /// * `clock` - The clock pin for the LEDs.
-    pub fn new(data: Pin, clock: Pin, timer: Timer) -> Self {
+    fn from_builder(mut builder: Box<APA102CPiDrawBuilder>) -> Self {
+        let gpio = gpio::Gpio::new().unwrap();
+
+        Self::new(
+            gpio.get(builder.data_pin).unwrap().into_output(),
+            gpio.get(builder.clock_pin).unwrap().into_output(),
+            builder.timer,
+            builder.displays.drain(0..),
+        )
+    }
+
+    fn new<I>(data: Pin, clock: Pin, timer: Timer, display_iter: I) -> Self
+    where
+        I: Iterator<Item = DisplayBuilder>,
+    {
+        let mut num = 0;
+        let mut ids = Vec::new();
+        let displays = display_iter
+            .map(|b| {
+                let disp = b.build();
+                num += disp.frame_len();
+                ids.push(disp.id());
+                (disp.id(), (disp, false))
+            })
+            .collect();
+        let display_ids = ids;
+
         Self {
             data: data,
             clock: clock,
 
-            queue: VecDeque::new(),
+            displays,
+            display_ids,
+
             timer,
 
-            known_len: 0,
-
             stats: DrawStats::new(),
+
+            num,
         }
     }
 
@@ -237,67 +333,66 @@ impl APA102CPiDraw {
 
     /// Writes a frame to the LEDs. Uses color order BGR as defined in the
     /// datasheet.
-    fn write_frame(&mut self, frame: &Frame) {
+    fn write_frame(&mut self, display_id: usize) {
+        let (brightness_mask, len) = {
+            let frame = self.displays.get(&display_id).unwrap().0.frame();
+            (0xE0 | frame.brightness_apa102c(), frame.len())
+        };
+
         self.start_frame();
 
-        for led in frame.iter() {
-            self.write_byte(0xE0 | frame.brightness_apa102c());
-            let color = led.as_tuple(RGBOrder::BGR);
+        for i in 0..len {
+            self.write_byte(brightness_mask);
+            let color =
+                { self.displays.get(&display_id).unwrap().0.frame()[i].as_tuple(RGBOrder::BGR) };
             self.write_byte(color.0);
             self.write_byte(color.1);
             self.write_byte(color.2);
         }
 
-        self.end_frame(frame.len());
+        self.end_frame(len);
     }
 }
 
 impl Draw for APA102CPiDraw {
-    fn push_queue(&mut self, a: Box<dyn Animation>) {
-        self.queue.push_back(a);
-    }
-
-    fn queue_len(&self) -> usize {
-        self.queue.len()
-    }
-
-    fn run(&mut self) -> Vec<Box<dyn Animation>> {
+    fn run(&mut self) {
         // Reset timer and stats to track just this run
         self.timer.reset();
         self.stats.reset();
 
-        // Variable for a nicer conditional for the inner while-loop and avoids unnecessary re-initialization of an unchanging
-        // value
-        let zero_duration = Duration::new(0, 0);
+        let mut num_finished = 0;
 
-        let mut out = Vec::with_capacity(self.queue.len());
+        while num_finished < self.displays.len() {
+            let dt = self.timer.ping();
+            let mut total_leds = 0;
 
-        // Loop while there are still animations to run
-        while let Some(mut ani) = self.queue.pop_front() {
-            // While the animation has time left to run
-            while ani.time_remaining() > zero_duration {
-                // Update the animation with the current delta-time and write the frames to the LEDs
-                ani.update(self.timer.ping());
-                self.write_frame(ani.frame());
+            for i in 0..self.displays.len() {
+                let display_id = {
+                    let (d, has_finished) = self.displays.get_mut(&self.display_ids[i]).unwrap();
 
-                // Track stats
+                    total_leds += d.frame_len();
+
+                    if !*has_finished {
+                        match d.render_frame(dt) {
+                            DisplayState::Continue => (),
+                            DisplayState::Last => {
+                                *has_finished = true;
+                                num_finished += 1;
+                            }
+                            DisplayState::Err => return,
+                        }
+                    }
+
+                    d.id()
+                };
+
+                self.write_frame(display_id);
                 self.stats.inc_frames();
             }
 
-            self.stats.set_num(ani.frame().len());
-            // Mark the end of the animation for stats-tracking. We know this is safe to do multiple times bc `DrawStats::end`'s
-            // documentation says so
+            self.stats.set_num(total_leds);
             self.stats.end();
-
-            // If the current animation's frame is longer than the previous known longest, save it
-            if ani.frame().len() > self.known_len {
-                self.known_len = ani.frame().len();
-            }
-
-            out.push(ani);
         }
-
-        out
     }
 
     fn stats(&self) -> DrawStats {
@@ -309,75 +404,6 @@ impl Drop for APA102CPiDraw {
     /// For our eye's sake, this custom `Drop` implementation ensures that when the LED controller is stopped, the LEDs will be
     /// set to off so they don't blind anyone.
     fn drop(&mut self) {
-        self.stop(self.known_len);
-    }
-}
-
-impl Default for APA102CPiDraw {
-    fn default() -> Self {
-        let gpio = gpio::Gpio::new().unwrap();
-        APA102CPiDraw::new(
-            gpio.get(DEFAULT_DAT_PIN).unwrap().into_output(),
-            gpio.get(DEFAULT_CLK_PIN).unwrap().into_output(),
-            Timer::new(None),
-        )
-    }
-}
-
-/// Builder for [`APA102CPiDraw`][0].
-///
-/// Allows for optional setting of the `data`, `clock`, and `timer` parameters of [`PiDraw::new`][1]. If a parameter is not
-/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
-/// default parameter seen in [`PiDraw::default`][2].
-///
-/// [0]: struct.PiDraw.html
-/// [1]: struct.PiDraw.html#method.new
-/// [2]: struct.PiDraw.html#method.default
-#[derive(Default, Copy, Clone)]
-pub struct APA102CPiDrawBuilder {
-    dat_pin: Option<u8>,
-    clk_pin: Option<u8>,
-    timer: Option<Timer>,
-}
-
-impl APA102CPiDrawBuilder {
-    /// Creates new `APA102CPiDrawBuilder` object.
-    pub fn new() -> Box<Self> {
-        Box::new(Default::default())
-    }
-
-    /// Sets the data pin.
-    pub fn data(mut self: Box<Self>, pin: u8) -> Box<Self> {
-        self.dat_pin = Some(pin);
-
-        self
-    }
-
-    /// Sets the clock pin.
-    pub fn clock(mut self: Box<Self>, pin: u8) -> Box<Self> {
-        self.clk_pin = Some(pin);
-
-        self
-    }
-}
-
-impl DrawBuilder for APA102CPiDrawBuilder {
-    fn timer(mut self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
-        self.timer = Some(timer);
-
-        self
-    }
-
-    fn build(self: Box<Self>) -> Box<dyn Draw> {
-        let gpio = gpio::Gpio::new().unwrap();
-        Box::new(APA102CPiDraw::new(
-            gpio.get(self.dat_pin.unwrap_or(DEFAULT_DAT_PIN))
-                .unwrap()
-                .into_output(),
-            gpio.get(self.clk_pin.unwrap_or(DEFAULT_CLK_PIN))
-                .unwrap()
-                .into_output(),
-            self.timer.unwrap_or(Timer::new(None)),
-        ))
+        self.stop(self.num);
     }
 }

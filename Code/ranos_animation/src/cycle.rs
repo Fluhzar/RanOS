@@ -2,31 +2,95 @@
 
 use std::time::Duration;
 
-use ranos_ds::{const_val::ConstVal, rgb::{RGB, RGBOrder}};
-use ranos_core::info::Info;
+use serde::{Deserialize, Serialize};
+
+use ranos_ds::{
+    const_val::ConstVal,
+    rgb::{RGBOrder, RGB},
+};
 
 use super::*;
 
-pub use super::breath::ColorOrder as ColorOrder;
+/// Builder for the [`Cycle`](Cycle) animation.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename = "Cycle")]
+pub struct CycleBuilder {
+    runtime: Duration,
+    cycle_period: Duration,
+    order: ColorOrder,
+}
 
-/// Presents some info about `Cycle` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct CycleInfo();
+impl CycleBuilder {
+    /// Sets the length of time the animation should run for.
+    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
+        self.runtime = runtime;
 
-impl Info for CycleInfo {
-    fn new() -> Box<dyn Info>
-    where
-        Self: Sized,
-    {
-        Box::new(CycleInfo::default())
+        self
     }
 
-    fn name(&self) -> String {
-        "Cycle".to_owned()
+    /// Sets the duration a single color is drawn for.
+    pub fn cycle_period(mut self: Box<Self>, cycle_period: Duration) -> Box<Self> {
+        self.cycle_period = cycle_period;
+
+        self
     }
 
-    fn details(&self) -> String {
-        "Animates a static color for a given amount of time before cutting to the next color in a given order".to_owned()
+    /// Sets a given order that the animation cycles through.
+    pub fn order(mut self: Box<Self>, order: ColorOrder) -> Box<Self> {
+        self.order = order;
+
+        self
+    }
+
+    /// Constructs a [`Cycle`](Cycle) object.
+    pub fn build(self: Box<Self>) -> Cycle {
+        Cycle::from_builder(self)
+    }
+}
+
+#[typetag::serde]
+impl AnimationBuilder for CycleBuilder {
+    fn build(self: Box<Self>) -> Box<dyn Animation> {
+        Box::new(self.build())
+    }
+}
+
+#[cfg(test)]
+mod builder_test {
+    use super::CycleBuilder;
+    use crate::{ColorOrder, Cycle};
+    use ranos_ds::rgb::{RGBOrder, RGB};
+    use std::time::Duration;
+
+    #[test]
+    fn test_serialize() {
+        let builder = Cycle::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"runtime":{"secs":16,"nanos":363636363},"cycle_period":{"secs":0,"nanos":363636363},"order":{"Ordered":[[255,0,0],[0,255,0],[0,0,255]]}}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"runtime":{"secs":16,"nanos":363636363},"cycle_period":{"secs":0,"nanos":363636363},"order":{"Ordered":[[255,0,0],[0,255,0],[0,0,255]]}}"#;
+
+        let data: CycleBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(
+            data.runtime,
+            Duration::from_secs_f64(60.0 / 165.0 * 3.0 * 15.0)
+        );
+        assert_eq!(data.cycle_period, Duration::from_secs_f64(60.0 / 165.0));
+        assert_eq!(
+            data.order,
+            ColorOrder::Ordered(vec![
+                RGB::from_code(0xFF0000, RGBOrder::RGB),
+                RGB::from_code(0x00FF00, RGBOrder::RGB),
+                RGB::from_code(0x0000FF, RGBOrder::RGB),
+            ]),
+        );
     }
 }
 
@@ -37,7 +101,6 @@ impl Info for CycleInfo {
 pub struct Cycle {
     runtime: ConstVal<Duration>,
     time_remaining: Duration,
-    frame: Frame,
 
     order: ColorOrder,
     ind: usize,
@@ -48,26 +111,27 @@ pub struct Cycle {
 }
 
 impl Cycle {
-    /// Creates new `Cycle` object.
-    ///
-    /// # Parameters
-    ///
-    /// * `runtime` - The length of time this animation will run.
-    /// * `cycle_period` - The duration a single color is drawn for.
-    /// * `brightness` - The brightness value to use. Should be in range [0, 1].
-    /// * `size` - The number of LEDs this animation will animate for.
-    /// * `order` - A given order that the animation cycles through.
-    pub fn new(
-        runtime: Duration,
-        cycle_period: Duration,
-        brightness: f32,
-        size: usize,
-        order: ColorOrder,
-    ) -> Self {
+    /// Constructs a builder object with safe default values.
+    pub fn builder() -> Box<CycleBuilder> {
+        Box::new(CycleBuilder {
+            runtime: Duration::from_secs_f64(60.0 / 165.0 * 3.0 * 15.0),
+            cycle_period: Duration::from_secs_f64(60.0 / 165.0),
+            order: ColorOrder::Ordered(vec![
+                RGB::from_code(0xFF0000, RGBOrder::RGB),
+                RGB::from_code(0x00FF00, RGBOrder::RGB),
+                RGB::from_code(0x0000FF, RGBOrder::RGB),
+            ]),
+        })
+    }
+
+    fn from_builder(builder: Box<CycleBuilder>) -> Self {
+        Self::new(builder.runtime, builder.cycle_period, builder.order)
+    }
+
+    fn new(runtime: Duration, cycle_period: Duration, order: ColorOrder) -> Self {
         Self {
             runtime: runtime.into(),
             time_remaining: runtime,
-            frame: Frame::new(None, brightness, size),
 
             order: order.clone(),
             ind: 0,
@@ -84,13 +148,7 @@ impl Cycle {
 }
 
 impl Animation for Cycle {
-    fn update(&mut self, dt: Duration) {
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            Duration::new(0,0)
-        };
-
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
         self.cycle_time_remaining = if let Some(d) = self.cycle_time_remaining.checked_sub(dt) {
             d
         } else {
@@ -103,20 +161,24 @@ impl Animation for Cycle {
             }
 
             // Only update the frame when there's a new color
-            for led in self.frame.iter_mut() {
+            for led in frame.iter_mut() {
                 *led = self.current_color;
             }
 
             self.cycle_period.get().clone() + self.cycle_time_remaining - dt
-        }
-    }
+        };
 
-    fn set_brightness(&mut self, b: f32) {
-        self.frame.set_brightness(b);
-    }
+        let mut res = AnimationState::Continue;
 
-    fn frame(&self) -> &Frame {
-        &self.frame
+        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
+            d
+        } else {
+            res = AnimationState::Last;
+
+            Duration::new(0, 0)
+        };
+
+        res
     }
 
     fn time_remaining(&self) -> Duration {
@@ -132,22 +194,5 @@ impl Animation for Cycle {
             ColorOrder::RandomBright => RGB::random_bright(),
         };
         self.cycle_time_remaining = *self.cycle_period.get();
-    }
-}
-
-impl Default for Cycle {
-    fn default() -> Self {
-        Self::new(
-            Duration::from_secs_f64(60.0/165.0*3.0*15.0),
-            Duration::from_secs_f64(60.0/165.0),
-            0.25,
-            64,//16
-            // ColorOrder::RandomBright,
-            ColorOrder::Ordered(vec![
-                RGB::from_code(0xFF0000, RGBOrder::RGB),
-                RGB::from_code(0x00FF00, RGBOrder::RGB),
-                RGB::from_code(0x0000FF, RGBOrder::RGB),
-            ]),
-        )
     }
 }

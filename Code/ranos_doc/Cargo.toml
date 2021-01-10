@@ -1,5 +1,5 @@
 [package]
-name = "ranos_animation"
+name = "ranos_app"
 version = "0.3.0"
 authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"
@@ -7,11 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-typetag = "0.1.6"
-serde = { version = "^1.0.118", features = ["derive"] }
+ron = "0.6"
 
-ranos_core = { path = "../ranos_core" }
+ranos_core = { path="../ranos_core" }
+ranos_animation = { path="../ranos_animation" }
+ranos_display = { path = "../ranos_display" }
+ranos_draw = { path="../ranos_draw" }
 ranos_ds = { path = "../ranos_ds" }
-
-[dev-dependencies]
-serde_json = "1.0"

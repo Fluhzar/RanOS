@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    "ranos",
+    "ranos_doc",
+    "ranos_animation",
+    "ranos_draw",
+    "ranos_display",
+    "ranos_core",
+    "ranos_ds",
+]
+
+exclude = [
+    "deprecated",
+]

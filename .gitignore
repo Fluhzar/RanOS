@@ -1,5 +1,7 @@
 .vscode/
 
+ignore
+
 Code/hardware/test/Macro\.hpp
 
 Code/animation_generator/build/

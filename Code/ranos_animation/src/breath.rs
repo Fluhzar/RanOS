@@ -2,41 +2,93 @@
 
 use std::time::Duration;
 
+use serde::{Deserialize, Serialize};
+
 use ranos_ds::{const_val::ConstVal, rgb::RGB};
-use ranos_core::info::Info;
 
 use super::*;
 
-/// Presents some info about `Breath` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct BreathInfo();
+/// Builder for the [`Breath`](Breath) animation.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename = "Breath")]
+pub struct BreathBuilder {
+    runtime: Duration,
+    breath_duration: Duration,
+    order: ColorOrder,
+}
 
-impl Info for BreathInfo {
-    fn new() -> Box<dyn Info>
-    where
-        Self: Sized,
-    {
-        Box::new(BreathInfo::default())
+impl BreathBuilder {
+    /// Sets the length of time the animation should run for.
+    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
+        self.runtime = runtime;
+
+        self
     }
 
-    fn name(&self) -> String {
-        "Breath".to_owned()
+    /// Sets the duration a single color is drawn for, from black up to full color back down to black.
+    pub fn breath_duration(mut self: Box<Self>, breath_duration: Duration) -> Box<Self> {
+        self.breath_duration = breath_duration;
+
+        self
     }
 
-    fn details(&self) -> String {
-        "Animates a breathing display that will either walk through a provided list of colors or select random colors, each color fading along a parabolic curve from black to the chosen color and back down to black.".to_owned()
+    /// Sets a given order that the animation cycles through.
+    pub fn order(mut self: Box<Self>, order: ColorOrder) -> Box<Self> {
+        self.order = order;
+
+        self
+    }
+
+    /// Constructs a [`Breath`](Breath) object.
+    pub fn build(self: Box<Self>) -> Breath {
+        Breath::from_builder(self)
     }
 }
 
-/// Color order used by `Breath`, can be a predetermined order or a random order.
-#[derive(Debug, Clone)]
-pub enum ColorOrder {
-    /// Order determined by random colors generated when needed.
-    Random,
-    /// Order determined by random bright colors generated when needed.
-    RandomBright,
-    /// Order determined by the associated data which is looped through sequentially.
-    Ordered(Vec<RGB>),
+#[typetag::serde]
+impl AnimationBuilder for BreathBuilder {
+    fn build(self: Box<Self>) -> Box<dyn Animation> {
+        Box::new(self.build())
+    }
+}
+
+#[cfg(test)]
+mod builder_test {
+    use super::{Breath, BreathBuilder};
+    use crate::ColorOrder;
+    use ranos_ds::rgb::RGB;
+    use std::time::Duration;
+
+    #[test]
+    fn test_serialize() {
+        let builder = Breath::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"runtime":{"secs":18,"nanos":0},"breath_duration":{"secs":3,"nanos":0},"order":{"Ordered":[[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]]}}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"runtime":{"secs":18,"nanos":0},"breath_duration":{"secs":3,"nanos":0},"order":{"Ordered":[[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]]}}"#;
+
+        let data: BreathBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.runtime, Duration::from_secs(18));
+        assert_eq!(data.breath_duration, Duration::from_secs(3));
+        assert_eq!(
+            data.order,
+            ColorOrder::Ordered(vec![
+                RGB::from_hsv(0.0, 1.0, 1.0),
+                RGB::from_hsv(60.0, 1.0, 1.0),
+                RGB::from_hsv(120.0, 1.0, 1.0),
+                RGB::from_hsv(180.0, 1.0, 1.0),
+                RGB::from_hsv(240.0, 1.0, 1.0),
+                RGB::from_hsv(300.0, 1.0, 1.0),
+            ])
+        );
+    }
 }
 
 /// Struct for an animated breathing display that will either walk through a
@@ -46,7 +98,6 @@ pub enum ColorOrder {
 pub struct Breath {
     runtime: ConstVal<Duration>,
     time_remaining: Duration,
-    frame: Frame,
 
     order: ColorOrder,
     ind: usize,
@@ -59,26 +110,30 @@ pub struct Breath {
 }
 
 impl Breath {
-    /// Creates new `Breath` object.
-    ///
-    /// # Parameters
-    ///
-    /// * `runtime` - The length of time this animation will run.
-    /// * `breath_duration` - The duration a single color is drawn for, from black up to full color back down to black.
-    /// * `brightness` - The brightness value to use. Should be in range [0, 1].
-    /// * `size` - The number of LEDs this animation will animate for.
-    /// * `order` - A given order that the animation cycles through.
-    pub fn new(
-        runtime: Duration,
-        breath_duration: Duration,
-        brightness: f32,
-        size: usize,
-        order: ColorOrder,
-    ) -> Self {
+    /// Constructs a builder object with safe default values.
+    pub fn builder() -> Box<BreathBuilder> {
+        Box::new(BreathBuilder {
+            runtime: Duration::from_secs(18),
+            breath_duration: Duration::from_secs(3),
+            order: ColorOrder::Ordered(vec![
+                RGB::from_hsv(0.0, 1.0, 1.0),
+                RGB::from_hsv(60.0, 1.0, 1.0),
+                RGB::from_hsv(120.0, 1.0, 1.0),
+                RGB::from_hsv(180.0, 1.0, 1.0),
+                RGB::from_hsv(240.0, 1.0, 1.0),
+                RGB::from_hsv(300.0, 1.0, 1.0),
+            ]),
+        })
+    }
+
+    fn from_builder(builder: Box<BreathBuilder>) -> Self {
+        Self::new(builder.runtime, builder.breath_duration, builder.order)
+    }
+
+    fn new(runtime: Duration, breath_duration: Duration, order: ColorOrder) -> Self {
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,
-            frame: Frame::new(None, brightness, size),
 
             order: order.clone(),
             ind: 0,
@@ -97,13 +152,7 @@ impl Breath {
 }
 
 impl Animation for Breath {
-    fn update(&mut self, dt: Duration) {
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            Duration::new(0, 0)
-        };
-
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
         self.vel += self.acc.get() * dt.as_secs_f32();
         self.pos += self.vel * dt.as_secs_f32();
 
@@ -120,17 +169,21 @@ impl Animation for Breath {
             }
         }
 
-        for led in self.frame.iter_mut() {
+        for led in frame.iter_mut() {
             *led = self.current_color.scale(self.pos);
         }
-    }
 
-    fn set_brightness(&mut self, b: f32) {
-        self.frame.set_brightness(b);
-    }
+        let mut res = AnimationState::Continue;
 
-    fn frame(&self) -> &Frame {
-        &self.frame
+        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
+            d
+        } else {
+            res = AnimationState::Last;
+
+            Duration::new(0, 0)
+        };
+
+        res
     }
 
     fn time_remaining(&self) -> Duration {
@@ -146,24 +199,5 @@ impl Animation for Breath {
             ColorOrder::RandomBright => RGB::random_bright(),
         };
         self.vel = *self.vel0.get();
-    }
-}
-
-impl Default for Breath {
-    fn default() -> Self {
-        Self::new(
-            Duration::from_secs(18),
-            Duration::from_secs(3),
-            0.25,
-            64,//16,
-            ColorOrder::Ordered(vec![
-                RGB::from_hsv(0.0, 1.0, 1.0),
-                RGB::from_hsv(30.0, 1.0, 1.0),
-                RGB::from_hsv(60.0, 1.0, 1.0),
-                RGB::from_hsv(120.0, 1.0, 1.0),
-                RGB::from_hsv(210.0, 1.0, 1.0),
-                RGB::from_hsv(280.0, 1.0, 1.0),
-            ]),
-        )
     }
 }

@@ -2,6 +2,8 @@
 
 use std::io;
 
+use serde::{Deserialize, Serialize};
+
 /// Enum defining all possible combinations of color order.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum RGBOrder {
@@ -21,7 +23,7 @@ pub enum RGBOrder {
 
 /// Simple RGB struct that holds the color as a single `u32` value.
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RGB(u8, u8, u8);
 
 impl RGB {
@@ -82,7 +84,7 @@ impl RGB {
         ))
     }
 
-    /// Attempts to read a `n`umber of `RGB`s from the `reader` in the given `order`, returning the resulting [`Vec`][0].
+    /// Attempts to read a `n`umber of `RGB`s from the `reader` in the given `order`, returning the resulting [`Vec`][Vec].
     ///
     /// # Errors
     ///
@@ -162,7 +164,7 @@ impl RGB {
         Ok(count)
     }
 
-    /// Creates a new `RGB` value from the given `u32` color code, interpreted as in the specified order.
+    /// Creates a new `RGB` value from the given `u32` color code, interpreted as in the specified order (e.g. `RGBOrder::RGB => code: 0xRR_GG_BB`).
     #[inline]
     pub fn from_code(x: u32, o: RGBOrder) -> Self {
         match o {
@@ -270,6 +272,7 @@ impl RGB {
     /// # Example
     ///
     /// ```
+    /// # use ranos_ds::rgb::RGB;
     /// let (h, s, v) = RGB::random().into_hsv();
     /// ```
     ///

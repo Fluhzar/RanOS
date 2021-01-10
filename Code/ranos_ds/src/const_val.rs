@@ -8,6 +8,7 @@
 /// such as:
 ///
 /// ```
+/// # use ranos_ds::const_val::ConstVal;
 /// let mut a = ConstVal::new(6);
 /// a = ConstVal::new(a.unwrap() + 3);
 /// ```

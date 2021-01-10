@@ -1,32 +1,97 @@
 //! # Terminal Draw
 
-use colored::Colorize;
-use std::collections::VecDeque;
-use std::time::Duration;
+use std::collections::{HashMap, VecDeque};
 
-use ranos_ds::collections::frame::Frame;
-use ranos_core::{Info, Timer};
+use colored::Colorize;
+use serde::{Deserialize, Serialize};
+
+use ranos_core::Timer;
+use ranos_display::DisplayState;
 
 use super::*;
 
-/// Presents some info about `TermDraw` for pretty printing.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct TermDrawInfo();
+/// Builder for [`TermDraw`](TermDraw).
+#[derive(Serialize, Deserialize)]
+#[serde(rename = "TermDraw")]
+pub struct TermDrawBuilder {
+    max_width: usize,
+    timer: Timer,
+    displays: VecDeque<DisplayBuilder>,
+}
 
-impl Info for TermDrawInfo {
-    fn new() -> Box<dyn Info>
-    where
-        Self: Sized,
-    {
-        Box::new(TermDrawInfo::default())
+impl TermDrawBuilder {
+    /// Sets the maximum number of LEDs to draw per line.
+    ///
+    /// If this parameter is not set, the default value of `8` will be used instead.
+    pub fn max_width(mut self: Box<Self>, width: usize) -> Box<Self> {
+        self.max_width = width;
+
+        self
     }
 
-    fn name(&self) -> String {
-        "TermDraw".to_owned()
+    /// Sets the timer.
+    pub fn timer(mut self: Box<Self>, timer: Timer) -> Box<Self> {
+        self.timer = timer;
+
+        self
     }
 
-    fn details(&self) -> String {
-        "Emulates an LED display by writing whitespace with specified colored backgrounds to a terminal that supports full RGB colors.".to_owned()
+    /// Add a builder for a display that will be built at the same time as this builder.
+    ///
+    /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
+    ///
+    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    pub fn display(mut self: Box<Self>, display: DisplayBuilder) -> Box<Self> {
+        self.displays.push_back(display);
+
+        self
+    }
+
+    /// Constructs a [`TermDraw`](TermDraw) object.
+    pub fn build(self: Box<Self>) -> TermDraw {
+        TermDraw::from_builder(self)
+    }
+}
+
+#[typetag::serde]
+impl DrawBuilder for TermDrawBuilder {
+    fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
+        self.timer(timer)
+    }
+
+    fn display(self: Box<Self>, display: DisplayBuilder) -> Box<dyn DrawBuilder> {
+        self.display(display)
+    }
+
+    fn build(self: Box<Self>) -> Box<dyn Draw> {
+        Box::new(TermDraw::from_builder(self))
+    }
+}
+
+#[cfg(test)]
+mod builder_test {
+    use crate::{TermDraw, TermDrawBuilder};
+    use ranos_core::Timer;
+
+    #[test]
+    fn test_serialize() {
+        let builder = TermDraw::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"max_width":8,"timer":{"target_dt":null},"displays":[]}"#.to_owned();
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"max_width":8,"timer":{"target_dt":null},"displays":[]}"#;
+
+        let data: TermDrawBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.max_width, 8);
+        assert_eq!(data.timer, Timer::new(None));
+        assert_eq!(data.displays.len(), 0);
     }
 }
 
@@ -34,52 +99,73 @@ impl Info for TermDrawInfo {
 /// backgrounds to a terminal that supports full RGB colors.
 ///
 /// LEDs are displayed in a rectangular grid with 1 LED's worth of space between
-/// each column and row.build_helper
+/// each column and row.
+///
+/// To create a `TermDraw` object, use the [associated builder](TermDrawBuilder)
+/// which can be accessed by calling [`TermDraw::builder()`](TermDraw::builder).
 #[derive(Debug)]
 pub struct TermDraw {
     max_width: usize,
 
-    queue: VecDeque<Box<dyn Animation>>,
+    displays: HashMap<usize, (Display, bool)>,
+    display_ids: Vec<usize>,
+
     timer: Timer,
 
     stats: DrawStats,
 }
 
 impl TermDraw {
-    /// Returns a builder for this struct.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use base::draw::{Draw, DrawBuilder, TermDraw, TermDrawBuilder};
-    /// let drawer = TermDraw::builder().build();
-    /// ```
+    /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<TermDrawBuilder> {
-        TermDrawBuilder::new()
+        Box::new(TermDrawBuilder {
+            max_width: 8,
+            timer: Timer::new(None),
+            displays: VecDeque::new(),
+        })
     }
 
-    /// Creates a new `TermDraw` object.
-    ///
-    /// # Parameters
-    ///
-    /// * `max_width` - The maximum number of LEDs to draw per line in the
-    /// terminal. E.g. if there are 256 LEDs to draw and a `max_width` of 16,
-    /// then a 16x16 grid will be displayed.
-    pub fn new(max_width: usize, timer: Timer) -> Self {
+    fn from_builder(mut builder: Box<TermDrawBuilder>) -> Self {
+        Self::new(
+            builder.max_width,
+            builder.timer,
+            builder.displays.drain(0..),
+        )
+    }
+
+    fn new<I>(max_width: usize, timer: Timer, display_iter: I) -> Self
+    where
+        I: Iterator<Item = DisplayBuilder>,
+    {
+        let mut ids = Vec::new();
+        let displays = display_iter
+            .map(|b| {
+                let disp = b.build();
+                ids.push(disp.id());
+                (disp.id(), (disp, false))
+            })
+            .collect();
+        let display_ids = ids;
+
         Self {
             max_width,
 
-            queue: VecDeque::new(),
+            displays,
+            display_ids,
+
             timer,
 
             stats: DrawStats::new(),
         }
     }
 
-    fn write_frame(&mut self, frame: &Frame) {
+    fn write_frame(&mut self, display_id: usize) {
+        let frame = self.displays.get(&display_id).unwrap().0.frame();
+
         // Create output string with enough capacity to minimize reallocations of memory for growing the string's capacity
         let mut output =
             String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
+        output.push_str("\x1B[2J"); // ANSI clear-screen code
         output.push_str("\x1B[1;1H"); // ANSI "move cursor to upper-left corner" code
 
         // Loop through the enumerated RGB values
@@ -103,92 +189,46 @@ impl TermDraw {
 }
 
 impl Draw for TermDraw {
-    fn push_queue(&mut self, a: Box<dyn Animation>) {
-        self.queue.push_back(a);
-    }
-
-    fn queue_len(&self) -> usize {
-        self.queue.len()
-    }
-
-    fn run(&mut self) -> Vec<Box<dyn Animation>> {
+    fn run(&mut self) {
         self.timer.reset();
         self.stats.reset();
 
-        let zero_duration = Duration::new(0, 0);
+        let mut num_finished = 0;
 
-        let mut out = Vec::new();
+        while num_finished < self.displays.len() {
+            let dt = self.timer.ping();
+            let mut total_leds = 0;
 
-        while let Some(mut ani) = self.queue.pop_front() {
-            while ani.time_remaining() > zero_duration {
-                ani.update(self.timer.ping());
-                self.write_frame(ani.frame());
+            for i in 0..self.displays.len() {
+                let display_id = {
+                    let (d, has_finished) = self.displays.get_mut(&self.display_ids[i]).unwrap();
 
+                    total_leds += d.frame_len();
+
+                    if !*has_finished {
+                        match d.render_frame(dt) {
+                            DisplayState::Continue => (),
+                            DisplayState::Last => {
+                                *has_finished = true;
+                                num_finished += 1;
+                            }
+                            DisplayState::Err => return,
+                        }
+                    }
+
+                    d.id()
+                };
+
+                self.write_frame(display_id);
                 self.stats.inc_frames();
             }
 
-            self.stats.set_num(ani.frame().len());
+            self.stats.set_num(total_leds);
             self.stats.end();
-
-            out.push(ani);
         }
-
-        out
     }
 
     fn stats(&self) -> DrawStats {
         self.stats
-    }
-}
-
-impl Default for TermDraw {
-    fn default() -> Self {
-        Self::new(8, Timer::new(None))
-    }
-}
-
-/// Builder for [`TermDraw`][0].
-///
-/// Allows for optional setting of the `max_width` and `timer` parameters of [`TermDraw::new`][1]. If a parameter is not
-/// supplied, a default value will be inserted in its place. This default parameter will be the same as the corresponding
-/// default parameter seen in [`TermDraw::default`][2].
-///
-/// [0]: struct.TermDraw.html
-/// [1]: struct.TermDraw.html#method.new
-/// [2]: struct.TermDraw.html#method.default
-#[derive(Default, Copy, Clone)]
-pub struct TermDrawBuilder {
-    max_width: Option<usize>,
-    timer: Option<Timer>,
-}
-
-impl TermDrawBuilder {
-    /// Creates a new builder
-    pub fn new() -> Box<Self> {
-        Box::new(Default::default())
-    }
-
-    /// Sets the maximum number of LEDs to draw per line.
-    ///
-    /// If this parameter is not set, the default value of `8` will be used instead.
-    pub fn max_width(mut self: Box<Self>, width: usize) -> Box<Self> {
-        self.max_width = Some(width);
-
-        self
-    }
-}
-
-impl DrawBuilder for TermDrawBuilder {
-    fn timer(mut self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
-        self.timer = Some(timer);
-
-        self
-    }
-
-    fn build(self: Box<Self>) -> Box<dyn Draw> {
-        Box::new(TermDraw::new(
-            self.max_width.unwrap_or(8),
-            self.timer.unwrap_or(Timer::new(None)),
-        ))
     }
 }

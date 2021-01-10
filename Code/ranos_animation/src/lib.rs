@@ -9,30 +9,42 @@ extern crate ranos_ds;
 
 use std::time::Duration;
 
-pub use breath::{Breath, BreathInfo};
-pub use cycle::{Cycle, CycleInfo};
-pub use rainbow::{Rainbow, RainbowInfo};
-pub use strobe::{Strobe, StrobeInfo};
-
 use ranos_ds::collections::frame::Frame;
-use ranos_core::Info;
+
+pub use breath::Breath;
+pub use color_order::ColorOrder;
+pub use cycle::Cycle;
+pub use rainbow::Rainbow;
+pub use strobe::Strobe;
 
 pub mod breath;
+pub mod color_order;
 pub mod cycle;
 pub mod rainbow;
 pub mod strobe;
 
+/// Enum denoting different end-states that an [`Animation`](crate::Animation)
+/// object may return.
+///
+/// The `ErrRetry` state is given for use in statistical tracking and more
+/// complex operations that could fail, but still be able to continue (e.g. file
+/// I/O).
+pub enum AnimationState {
+    /// Denotes that the operation was successful and the object can operate for more iterations.
+    Continue,
+    /// Denotes that the operation was successful and the object has nothing more to operate on.
+    Last,
+    /// Denotes that an error occurred but the object can continue to operate.
+    ErrRetry,
+    /// Denotes that an error occurred and cannot be recovered from.
+    ErrFatal,
+}
+
 /// Trait for types that implement animations that sets the LEDs to a given
 /// frame of the animation before being drawn.
 pub trait Animation: std::fmt::Debug {
-    /// Updates the frame with the next frame of the animation given the input `dt`.
-    fn update(&mut self, dt: Duration);
-
-    /// Exposes the ability to dynamically set the brightness.
-    fn set_brightness(&mut self, brightness: f32);
-
-    /// Returns an immutable reference to the frame stored within the animation.
-    fn frame(&self) -> &Frame;
+    /// Renders the frame with the next frame of the animation given the input `dt`.
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState;
 
     /// Returns the amount of time remaining for this animation to run before
     /// the drawer to continue to the next animation.
@@ -43,28 +55,37 @@ pub trait Animation: std::fmt::Debug {
     fn reset(&mut self);
 }
 
-/// Returns a `Vec` of animation `Info` objects.
-pub fn animation_info() -> Vec<Box<dyn Info>> {
-    vec![BreathInfo::new(), CycleInfo::new(), RainbowInfo::new(), StrobeInfo::new()]
+/// Trait for building animation types.
+#[typetag::serde(tag = "type", content = "value")]
+pub trait AnimationBuilder: std::fmt::Debug {
+    /// Creates a new animation object from the builder.
+    fn build(self: Box<Self>) -> Box<dyn Animation>;
 }
 
-/// Attempts to parse the given `String` into an `Animation` object, returning
-/// `None` on failure.
-pub fn match_animation<T>(s: T) -> Option<Box<dyn Animation>>
-where
-    T: std::ops::Deref<Target = str>,
-{
-    let s = s.to_lowercase();
+#[cfg(test)]
+mod builder_test {
+    use crate::{AnimationBuilder, Cycle};
 
-    if s == BreathInfo::new().name().to_lowercase() {
-        Some(Box::new(Breath::default()))
-    } else if s == CycleInfo::new().name().to_lowercase() {
-        Some(Box::new(Cycle::default()))
-    } else if s == RainbowInfo::new().name().to_lowercase() {
-        Some(Box::new(Rainbow::default()))
-    } else if s == StrobeInfo::new().name().to_lowercase() {
-        Some(Box::new(Strobe::default()))
-    } else {
-        None
+    #[test]
+    fn test_serialize() {
+        let builder: Box<dyn AnimationBuilder> = Cycle::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"type":"CycleBuilder","value":{"runtime":{"secs":16,"nanos":363636363},"cycle_period":{"secs":0,"nanos":363636363},"order":{"Ordered":[[255,0,0],[0,255,0],[0,0,255]]}}}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"type":"CycleBuilder","value":{"runtime":{"secs":16,"nanos":363636363},"cycle_period":{"secs":0,"nanos":363636363},"order":{"Ordered":[[255,0,0],[0,255,0],[0,0,255]]}}}"#;
+
+        assert_eq!(
+            serde_json::ser::to_string(
+                &serde_json::de::from_str::<Box<dyn AnimationBuilder>>(input).unwrap()
+            )
+            .unwrap(),
+            input
+        );
     }
 }

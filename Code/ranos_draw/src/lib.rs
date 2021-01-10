@@ -11,23 +11,20 @@
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
-extern crate ranos_animation;
 extern crate ranos_core;
+extern crate ranos_display;
 
-pub use null_draw::{NullDraw, NullDrawBuilder, NullDrawInfo};
-pub use term_draw::{TermDraw, TermDrawBuilder, TermDrawInfo};
+pub use null_draw::{NullDraw, NullDrawBuilder};
+pub use term_draw::{TermDraw, TermDrawBuilder};
 
 #[cfg(target_os = "linux")]
-pub use pi_draw::{
-    APA102CPiDraw, APA102CPiDrawBuilder, APA102CPiDrawInfo,
-    SK9822PiDraw, SK9822PiDrawBuilder, SK9822PiDrawInfo,
-};
+pub use pi_draw::{APA102CPiDraw, APA102CPiDrawBuilder, SK9822PiDraw, SK9822PiDrawBuilder};
 
 use std::time::Instant;
 use std::{fmt, ops};
 
-use ranos_animation::Animation;
-use ranos_core::{Info, Timer};
+use ranos_core::Timer;
+use ranos_display::{Display, DisplayBuilder};
 
 pub mod null_draw;
 pub mod term_draw;
@@ -37,53 +34,63 @@ pub mod pi_draw;
 
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
-    /// Adds an [`Animation`][0] to the queue.
-    ///
-    /// [0]: ../animation/trait.Animation.html
-    fn push_queue(&mut self, a: Box<dyn Animation>);
-
-    /// Returns the number of [`Animation`][0]s in the queue.
-    ///
-    /// [0]: ../animation/trait.Animation.html
-    fn queue_len(&self) -> usize;
-
     /// Draws the internal frame to its destination.
-    fn run(&mut self) -> Vec<Box<dyn Animation>>;
+    fn run(&mut self);
 
     /// Returns the statistics tracking object.
     fn stats(&self) -> DrawStats;
 }
 
-/// Defines the behavior of a builder of a type that implements [`Draw`][0].
+/// Defines the behavior of a builder of a type that implements [`Draw`][crate::Draw].
 ///
-/// Optionally allows the setting of a timer for the built object. If the parameter is not supplied, `Timer::new(None)` will
-/// likely be used as default though this behavior is implementation defined.
-///
-/// [0]: trait.Draw.html
+/// Note: As the trait's functions return `Box<dyn DrawBuilder>` rather than `Box<Self>`, be sure to set any parameters for the
+/// specific `Draw`-implementing type you're using before calling these functions, as the original type will be inaccessible
+/// after calling one of the functions from this trait.
+#[typetag::serde(tag = "type", content = "value")]
 pub trait DrawBuilder {
-    /// Sets the `timer` parameter of the object.
-    /// 
-    /// # !!! IMPORTANT NOTE !!!
-    /// 
-    /// Since rust doesn't let you create objects from traits with functions referencing `Self` in the return parameter, this
-    /// function instead returns `Box<dyn DrawBuilder>`. Once this function is called, the return value cannot be called with
-    /// any of the implementing type's functions.
-    /// 
-    /// An example of this issue would be something akin to the following:
-    /// 
-    /// ```
-    /// use base::draw::{DrawBuilder, TermDrawBuilder};
-    /// let draw = TermDrawBuilder::default()
-    ///     .timer(Timer::new(None))
-    ///     .max_width(8) // ERROR: This will fail because the return type is `Box<dyn DrawBuilder>` and not `Box<TermDrawBuilder>`
-    ///     .build();
-    /// ```
+    /// Sets the timer parameter from a pre-built object.
     fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder>;
 
-    /// Consumes the builder and returns a built [`Draw`][0] object.
+    /// Add a builder for a display that will be built at the same time as this builder.
     ///
-    /// [0]: trait.Draw.html
+    /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
+    ///
+    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    fn display(self: Box<Self>, display: DisplayBuilder) -> Box<dyn DrawBuilder>;
+
+    /// Builds [`Draw`][crate::Draw] object, returning it boxed up.
     fn build(self: Box<Self>) -> Box<dyn Draw>;
+}
+
+#[cfg(test)]
+mod builder_test {
+    use crate::{DrawBuilder, NullDraw};
+
+    #[test]
+    fn test_serialize() {
+        let builder: Box<dyn DrawBuilder> = NullDraw::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        assert_eq!(
+            data,
+            r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#
+        );
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input =
+            r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#;
+
+        assert_eq!(
+            serde_json::ser::to_string(
+                &serde_json::de::from_str::<Box<dyn DrawBuilder>>(input).unwrap()
+            )
+            .unwrap(),
+            input
+        );
+    }
 }
 
 /// Type for tracking statistics about the drawing.
@@ -125,10 +132,11 @@ impl DrawStats {
 
     /// Sets the end time.
     ///
-    /// This method may be called multiple times during the life of the object, as it simply saves the [`Instant`][0] when this
-    /// method was called. Calling it again therefore only updates the saved [`Instant`][0] to the current value.
+    /// This method may be called multiple times during the life of the object,
+    /// as it simply saves the [`Instant`] when this method was called. Calling
+    /// it again therefore only updates the saved [`Instant`] to the current value.
     ///
-    /// [0]: https://doc.rust-lang.org/std/time/struct.Instant.html
+    /// [`Instant`]: std::time::Instant
     #[inline]
     pub fn end(&mut self) {
         self.end = Instant::now();
@@ -188,61 +196,5 @@ impl ops::AddAssign<DrawStats> for DrawStats {
         } else {
             rhs.num
         };
-    }
-}
-
-/// Returns a `Vec` of drawer `Info` objects
-#[cfg(target_os = "linux")]
-pub fn draw_info() -> Vec<Box<dyn Info>> {
-    vec![
-        APA102CPiDrawInfo::new(),
-        TermDrawInfo::new(),
-        NullDrawInfo::new(),
-    ]
-}
-
-/// Returns a `Vec` of drawer `Info` objects
-#[cfg(not(target_os = "linux"))]
-pub fn draw_info() -> Vec<Box<dyn Info>> {
-    vec![TermDrawInfo::new(), NullDrawInfo::new()]
-}
-
-/// Attempts to parse the given `String` into a `DrawBuilder` object, returning `None`
-/// on failure.
-#[cfg(target_os = "linux")]
-pub fn match_draw<T>(s: T) -> Option<Box<dyn DrawBuilder>>
-where
-    T: std::ops::Deref<Target = str>,
-{
-    let s = s.to_lowercase();
-
-    if s == APA102CPiDrawInfo::new().name().to_lowercase() {
-        Some(APA102CPiDraw::builder())
-    } else if s == TermDrawInfo::new().name().to_lowercase() {
-        println!("{}", "\x1B[2J"); // ANSI clear screen code
-        Some(TermDraw::builder())
-    } else if s == NullDrawInfo::new().name().to_lowercase() {
-        Some(NullDraw::builder())
-    } else {
-        None
-    }
-}
-
-/// Attempts to parse the given `String` into a `Draw` object, returning `None`
-/// on failure.
-#[cfg(not(target_os = "linux"))]
-pub fn match_draw<T>(s: T) -> Option<Box<dyn DrawBuilder>>
-where
-    T: std::ops::Deref<Target = str>,
-{
-    let s = s.to_lowercase();
-
-    if s == TermDrawInfo::new().name().to_lowercase() {
-        println!("{}", "\x1B[2J"); // ANSI clear screen code
-        Some(TermDraw::builder())
-    } else if s == NullDrawInfo::new().name().to_lowercase() {
-        Some(NullDraw::builder())
-    } else {
-        None
     }
 }
