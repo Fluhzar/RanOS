@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    # "ranos_app",
+    "ranos_app",
     "ranos_animation",
     "ranos_draw",
     "ranos_display",

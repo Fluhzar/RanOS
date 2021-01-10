@@ -163,8 +163,8 @@ impl TermDraw {
         let frame = self.displays.get(&display_id).unwrap().0.frame();
 
         // Create output string with enough capacity to minimize reallocations of memory for growing the string's capacity
-        let mut output =
-            String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
+        let mut output = String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
+        output.push_str("\x1B[2J"); // ANSI clear-screen code
         output.push_str("\x1B[1;1H"); // ANSI "move cursor to upper-left corner" code
 
         // Loop through the enumerated RGB values
