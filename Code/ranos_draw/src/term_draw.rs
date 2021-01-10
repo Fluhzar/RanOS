@@ -1,6 +1,6 @@
 //! # Terminal Draw
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use colored::Colorize;
 use serde::{Serialize, Deserialize};
@@ -11,12 +11,12 @@ use ranos_display::DisplayState;
 use super::*;
 
 /// Builder for [`TermDraw`](TermDraw).
-#[derive(Default, Copy, Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename = "TermDraw")]
 pub struct TermDrawBuilder {
     max_width: usize,
-    #[serde(skip)]
     timer: Timer,
+    displays: VecDeque<DisplayBuilder>,
 }
 
 impl TermDrawBuilder {
@@ -36,6 +36,17 @@ impl TermDrawBuilder {
         self
     }
 
+    /// Add a builder for a display that will be built at the same time as this builder.
+    ///
+    /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
+    ///
+    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    pub fn display(mut self: Box<Self>, display: DisplayBuilder) -> Box<Self> {
+        self.displays.push_back(display);
+
+        self
+    }
+
     /// Constructs a [`TermDraw`](TermDraw) object.
     pub fn build(self: Box<Self>) -> TermDraw {
         TermDraw::from_builder(self)
@@ -44,8 +55,15 @@ impl TermDrawBuilder {
 
 #[typetag::serde]
 impl DrawBuilder for TermDrawBuilder {
-    fn build(mut self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
-        self.timer = timer;
+    fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
+        self.timer(timer)
+    }
+
+    fn display(self: Box<Self>, display: DisplayBuilder) -> Box<dyn DrawBuilder> {
+        self.display(display)
+    }
+
+    fn build(self: Box<Self>) -> Box<dyn Draw> {
         Box::new(TermDraw::from_builder(self))
     }
 }
@@ -77,20 +95,36 @@ impl TermDraw {
             TermDrawBuilder {
                 max_width: 8,
                 timer: Timer::new(None),
+                displays: VecDeque::new(),
             }
         )
     }
 
-    fn from_builder(builder: Box<TermDrawBuilder>) -> Self {
-        Self::new(builder.max_width, builder.timer)
+    fn from_builder(mut builder: Box<TermDrawBuilder>) -> Self {
+        Self::new(builder.max_width, builder.timer, builder.displays.drain(0..))
     }
 
-    fn new(max_width: usize, timer: Timer) -> Self {
+    fn new<I>(max_width: usize, timer: Timer, display_iter: I) -> Self
+    where
+        I: Iterator<Item = DisplayBuilder>,
+    {
+        let mut ids = Vec::new();
+        let displays = display_iter
+            .map(
+                |b| {
+                    let disp = b.build();
+                    ids.push(disp.id());
+                    (disp.id(), (disp, false))
+                }
+            )
+            .collect();
+        let display_ids = ids;
+
         Self {
             max_width,
 
-            displays: HashMap::new(),
-            display_ids: Vec::new(),
+            displays,
+            display_ids,
 
             timer,
 
@@ -127,11 +161,6 @@ impl TermDraw {
 }
 
 impl Draw for TermDraw {
-    fn add_display(&mut self, d: Display) {
-        self.display_ids.push(d.id());
-        self.displays.insert(*self.display_ids.last().unwrap(), (d, false));
-    }
-
     fn run(&mut self) {
         self.timer.reset();
         self.stats.reset();

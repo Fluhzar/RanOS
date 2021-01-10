@@ -26,7 +26,7 @@ pub use pi_draw::{
 use std::time::Instant;
 use std::{fmt, ops};
 
-use ranos_display::Display;
+use ranos_display::{Display, DisplayBuilder};
 use ranos_core::Timer;
 
 pub mod null_draw;
@@ -37,12 +37,6 @@ pub mod pi_draw;
 
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {
-    /// Adds a [`Display`][ranos_display::Display] to the drawer.
-    ///
-    /// Be sure to add animations to the display object before adding it to the
-    /// drawer as it will be inaccessible afterwards.
-    fn add_display(&mut self, d: Display);
-
     /// Draws the internal frame to its destination.
     fn run(&mut self);
 
@@ -52,13 +46,23 @@ pub trait Draw {
 
 #[typetag::serde]
 /// Defines the behavior of a builder of a type that implements [`Draw`][crate::Draw].
+///
+/// Note: As the trait's functions return `Box<dyn DrawBuilder>` rather than `Box<Self>`, be sure to set any parameters for the
+/// specific `Draw`-implementing type you're using before calling these functions, as the original type will be inaccessible
+/// after calling one of the functions from this trait.
 pub trait DrawBuilder {
+    /// Sets the timer parameter from a pre-built object.
+    fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder>;
+
+    /// Add a builder for a display that will be built at the same time as this builder.
+    ///
+    /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
+    ///
+    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    fn display(self: Box<Self>, display: DisplayBuilder) -> Box<dyn DrawBuilder>;
+
     /// Builds [`Draw`][crate::Draw] object, returning it boxed up.
-    ///
-    /// # Parameters
-    ///
-    /// * `timer` - A pre-built [`Timer`][ranos_core::Timer].
-    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw>;
+    fn build(self: Box<Self>) -> Box<dyn Draw>;
 }
 
 /// Type for tracking statistics about the drawing.

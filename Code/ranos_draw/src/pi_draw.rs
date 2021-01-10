@@ -6,7 +6,7 @@
 
 #![cfg(target_os="linux")]
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use rppal::gpio;
 use serde::{Serialize, Deserialize};
@@ -42,13 +42,13 @@ pub type SK9822PiDrawBuilder = APA102CPiDrawBuilder;
 pub type SK9822PiDraw = APA102CPiDraw;
 
 /// Builder for [`APA102CPiDraw`](APA102CPiDraw).
-#[derive(Default, Copy, Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename = "APA102CPiDraw")]
 pub struct APA102CPiDrawBuilder {
     data_pin: u8,
     clock_pin: u8,
-    #[serde(skip)]
     timer: Timer,
+    displays: VecDeque<DisplayBuilder>,
 }
 
 impl APA102CPiDrawBuilder {
@@ -73,6 +73,17 @@ impl APA102CPiDrawBuilder {
         self
     }
 
+    /// Add a builder for a display that will be built at the same time as this builder.
+    ///
+    /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
+    ///
+    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    pub fn display(mut self: Box<Self>, display: DisplayBuilder) -> Box<Self> {
+        self.displays.push_back(display);
+
+        self
+    }
+
     /// Constructs a [`APA102CPiDraw`](APA102CPiDraw) object.
     pub fn build(self: Box<Self>) -> APA102CPiDraw {
         APA102CPiDraw::from_builder(self)
@@ -81,9 +92,16 @@ impl APA102CPiDrawBuilder {
 
 #[typetag::serde]
 impl DrawBuilder for APA102CPiDrawBuilder {
+    fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder> {
+        self.timer(timer)
+    }
 
-    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
-        Box::new(self.timer(timer).build())
+    fn display(self: Box<Self>, display: DisplayBuilder) -> Box<dyn DrawBuilder> {
+        self.display(display)
+    }
+
+    fn build(self: Box<Self>) -> Box<dyn Draw> {
+        Box::new(self.build())
     }
 }
 
@@ -151,33 +169,52 @@ impl APA102CPiDraw {
                 data_pin: DEFAULT_DAT_PIN,
                 clock_pin: DEFAULT_CLK_PIN,
                 timer: Timer::new(None),
+                displays: VecDeque::new(),
             }
         )
     }
 
-    fn from_builder(builder: Box<APA102CPiDrawBuilder>) -> Self {
+    fn from_builder(mut builder: Box<APA102CPiDrawBuilder>) -> Self {
         let gpio = gpio::Gpio::new().unwrap();
 
         Self::new(
             gpio.get(builder.data_pin).unwrap().into_output(),
             gpio.get(builder.clock_pin).unwrap().into_output(),
             builder.timer,
+            builder.displays.drain(0..),
         )
     }
 
-    fn new(data: Pin, clock: Pin, timer: Timer) -> Self {
+    fn new<I>(data: Pin, clock: Pin, timer: Timer, display_iter: I) -> Self
+    where
+        I: Iterator<Item = DisplayBuilder>,
+    {
+        let mut num = 0;
+        let mut ids = Vec::new();
+        let displays = display_iter
+            .map(
+                |b| {
+                    let disp = b.build();
+                    num += disp.frame_len();
+                    ids.push(disp.id());
+                    (disp.id(), (disp, false))
+                }
+            )
+            .collect();
+        let display_ids = ids;
+
         Self {
             data: data,
             clock: clock,
 
-            displays: HashMap::new(),
-            display_ids: Vec::new(),
+            displays,
+            display_ids,
 
             timer,
 
             stats: DrawStats::new(),
 
-            num: 0,
+            num,
         }
     }
 
@@ -296,12 +333,6 @@ impl APA102CPiDraw {
 }
 
 impl Draw for APA102CPiDraw {
-    fn add_display(&mut self, d: Display) {
-        self.num += d.frame_len();
-        self.display_ids.push(d.id());
-        self.displays.insert(*self.display_ids.last().unwrap(), (d, false));
-    }
-
     fn run(&mut self) {
         // Reset timer and stats to track just this run
         self.timer.reset();
