@@ -78,6 +78,7 @@ impl RainbowBuilder {
     }
 }
 
+#[typetag::serde]
 impl AnimationBuilder for RainbowBuilder {
     fn build(self: Box<Self>) -> Box<dyn Animation> {
         Box::new(self.build())

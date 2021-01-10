@@ -53,35 +53,36 @@ pub struct APA102CPiDrawBuilder {
 
 impl APA102CPiDrawBuilder {
     /// Sets the data pin.
-    pub fn data(mut self, pin: u8) -> Self {
+    pub fn data(mut self: Box<Self>, pin: u8) -> Box<Self> {
         self.data_pin = pin;
 
         self
     }
 
     /// Sets the clock pin.
-    pub fn clock(mut self, pin: u8) -> Self {
+    pub fn clock(mut self: Box<Self>, pin: u8) -> Box<Self> {
         self.clock_pin = pin;
 
         self
     }
 
     /// Sets the timer.
-    pub fn timer(mut self, timer: Timer) -> Self {
+    pub fn timer(mut self: Box<Self>, timer: Timer) -> Box<Self> {
         self.timer = timer;
 
         self
     }
 
     /// Constructs a [`APA102CPiDraw`](APA102CPiDraw) object.
-    pub fn build(self) -> APA102CPiDraw {
+    pub fn build(self: Box<Self>) -> APA102CPiDraw {
         APA102CPiDraw::from_builder(self)
     }
 }
 
+#[typetag::serde]
 impl DrawBuilder for APA102CPiDrawBuilder {
 
-    fn build(self, timer: Timer) -> Box<dyn Draw> {
+    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
         Box::new(self.timer(timer).build())
     }
 }
@@ -144,15 +145,17 @@ pub struct APA102CPiDraw {
 
 impl APA102CPiDraw {
     /// Constructs a builder object with safe default values.
-    pub fn builder() -> APA102CPiDrawBuilder {
-        APA102CPiDrawBuilder {
-            data_pin: DEFAULT_DAT_PIN,
-            clock_pin: DEFAULT_CLK_PIN,
-            timer: Timer::new(None),
-        }
+    pub fn builder() -> Box<APA102CPiDrawBuilder> {
+        Box::new(
+            APA102CPiDrawBuilder {
+                data_pin: DEFAULT_DAT_PIN,
+                clock_pin: DEFAULT_CLK_PIN,
+                timer: Timer::new(None),
+            }
+        )
     }
 
-    fn from_builder(builder: APA102CPiDrawBuilder) -> Self {
+    fn from_builder(builder: Box<APA102CPiDrawBuilder>) -> Self {
         let gpio = gpio::Gpio::new().unwrap();
 
         Self::new(

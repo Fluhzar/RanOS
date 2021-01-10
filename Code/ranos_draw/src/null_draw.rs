@@ -19,20 +19,21 @@ pub struct NullDrawBuilder {
 
 impl NullDrawBuilder {
     /// Sets the timer.
-    pub fn timer(mut self, timer: Timer) -> Self {
+    pub fn timer(mut self: Box<Self>, timer: Timer) -> Box<Self> {
         self.timer = timer;
 
         self
     }
 
     /// Constructs a [`NullDraw`](NullDraw) object.
-    pub fn build(self) -> NullDraw {
+    pub fn build(self: Box<Self>) -> NullDraw {
         NullDraw::from_builder(self)
     }
 }
 
+#[typetag::serde]
 impl DrawBuilder for NullDrawBuilder {
-    fn build(self, timer: Timer) -> Box<dyn Draw> {
+    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
         Box::new(self.timer(timer).build())
     }
 }
@@ -48,13 +49,15 @@ pub struct NullDraw {
 
 impl NullDraw {
     /// Constructs a builder object with safe default values.
-    pub fn builder() -> NullDrawBuilder {
-        NullDrawBuilder {
-            timer: Timer::new(None),
-        }
+    pub fn builder() -> Box<NullDrawBuilder> {
+        Box::new(
+            NullDrawBuilder {
+                timer: Timer::new(None),
+            }
+        )
     }
 
-    fn from_builder(builder: NullDrawBuilder) -> Self {
+    fn from_builder(builder: Box<NullDrawBuilder>) -> Self {
         Self::new(builder.timer)
     }
 

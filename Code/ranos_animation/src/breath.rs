@@ -45,6 +45,7 @@ impl BreathBuilder {
     }
 }
 
+#[typetag::serde]
 impl AnimationBuilder for BreathBuilder {
     fn build(self: Box<Self>) -> Box<dyn Animation> {
         Box::new(self.build())

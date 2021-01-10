@@ -9,13 +9,13 @@ extern crate ranos_ds;
 
 use std::time::Duration;
 
+use ranos_ds::collections::frame::Frame;
+
 pub use color_order::ColorOrder;
 pub use breath::Breath;
 pub use cycle::Cycle;
 pub use rainbow::Rainbow;
 pub use strobe::Strobe;
-
-use ranos_ds::collections::frame::Frame;
 
 pub mod color_order;
 pub mod breath;
@@ -56,6 +56,7 @@ pub trait Animation: std::fmt::Debug {
 }
 
 /// Trait for building animation types.
+#[typetag::serde]
 pub trait AnimationBuilder: std::fmt::Debug {
     /// Creates a new animation object from the builder.
     fn build(self: Box<Self>) -> Box<dyn Animation>;

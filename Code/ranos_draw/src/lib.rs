@@ -50,6 +50,7 @@ pub trait Draw {
     fn stats(&self) -> DrawStats;
 }
 
+#[typetag::serde]
 /// Defines the behavior of a builder of a type that implements [`Draw`][crate::Draw].
 pub trait DrawBuilder {
     /// Builds [`Draw`][crate::Draw] object, returning it boxed up.
@@ -57,7 +58,7 @@ pub trait DrawBuilder {
     /// # Parameters
     ///
     /// * `timer` - A pre-built [`Timer`][ranos_core::Timer].
-    fn build(self, timer: Timer) -> Box<dyn Draw>;
+    fn build(self: Box<Self>, timer: Timer) -> Box<dyn Draw>;
 }
 
 /// Type for tracking statistics about the drawing.

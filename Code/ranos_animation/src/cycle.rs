@@ -45,6 +45,7 @@ impl CycleBuilder {
     }
 }
 
+#[typetag::serde]
 impl AnimationBuilder for CycleBuilder {
     fn build(self: Box<Self>) -> Box<dyn Animation> {
         Box::new(self.build())

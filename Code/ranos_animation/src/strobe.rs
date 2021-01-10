@@ -58,6 +58,7 @@ impl StrobeBuilder {
     }
 }
 
+#[typetag::serde]
 impl AnimationBuilder for StrobeBuilder {
     fn build(self: Box<Self>) -> Box<dyn Animation> {
         Box::new(self.build())

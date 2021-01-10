@@ -23,27 +23,28 @@ impl TermDrawBuilder {
     /// Sets the maximum number of LEDs to draw per line.
     ///
     /// If this parameter is not set, the default value of `8` will be used instead.
-    pub fn max_width(mut self, width: usize) -> Self {
+    pub fn max_width(mut self: Box<Self>, width: usize) -> Box<Self> {
         self.max_width = width;
 
         self
     }
 
     /// Sets the timer.
-    pub fn timer(mut self, timer: Timer) -> Self {
+    pub fn timer(mut self: Box<Self>, timer: Timer) -> Box<Self> {
         self.timer = timer;
 
         self
     }
 
     /// Constructs a [`TermDraw`](TermDraw) object.
-    pub fn build(self) -> TermDraw {
+    pub fn build(self: Box<Self>) -> TermDraw {
         TermDraw::from_builder(self)
     }
 }
 
+#[typetag::serde]
 impl DrawBuilder for TermDrawBuilder {
-    fn build(mut self, timer: Timer) -> Box<dyn Draw> {
+    fn build(mut self: Box<Self>, timer: Timer) -> Box<dyn Draw> {
         self.timer = timer;
         Box::new(TermDraw::from_builder(self))
     }
@@ -71,14 +72,16 @@ pub struct TermDraw {
 
 impl TermDraw {
     /// Constructs a builder object with safe default values.
-    pub fn builder() -> TermDrawBuilder {
-        TermDrawBuilder {
-            max_width: 8,
-            timer: Timer::new(None),
-        }
+    pub fn builder() -> Box<TermDrawBuilder> {
+        Box::new(
+            TermDrawBuilder {
+                max_width: 8,
+                timer: Timer::new(None),
+            }
+        )
     }
 
-    fn from_builder(builder: TermDrawBuilder) -> Self {
+    fn from_builder(builder: Box<TermDrawBuilder>) -> Self {
         Self::new(builder.max_width, builder.timer)
     }
 

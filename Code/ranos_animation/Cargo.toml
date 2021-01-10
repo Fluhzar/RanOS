@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 
+typetag = "0.1.6"
 serde = { version = "^1.0.118", features = ["derive"] }
 
 ranos_core = { path = "../ranos_core", version = "0.1" }
