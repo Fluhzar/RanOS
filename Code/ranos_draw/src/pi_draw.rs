@@ -124,16 +124,17 @@ mod builder_test {
     fn test_serialize() {
         let builder = APA102CPiDraw::builder();
 
-        let data = serde_json::ser::to_string(&builder).unwrap();
+        let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"{"data_pin":6,"clock_pin":5,"timer":{"target_dt":null},"displays":[]}"#;
+        // eprintln!("{}", data);
+        let expected = r#"(data_pin:6,clock_pin:5,brightness:1,timer:(target_dt:None),displays:[])"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"{"data_pin":6,"clock_pin":5,"timer":{"target_dt":null},"displays":[]}"#;
-        let data: APA102CPiDrawBuilder = serde_json::de::from_str(input).unwrap();
+        let input = r#"(data_pin:6,clock_pin:5,brightness:1,timer:(target_dt:None),displays:[])"#;
+        let data: APA102CPiDrawBuilder = ron::de::from_str(input).unwrap();
 
         assert_eq!(data.data_pin, DEFAULT_DAT_PIN);
         assert_eq!(data.clock_pin, DEFAULT_CLK_PIN);

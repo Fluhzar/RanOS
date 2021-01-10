@@ -70,22 +70,23 @@ mod builder_test {
     fn test_serialize() {
         let builder: Box<dyn DrawBuilder> = NullDraw::builder();
 
-        let data = serde_json::ser::to_string(&builder).unwrap();
+        let data = ron::ser::to_string(&builder).unwrap();
 
+        // eprintln!("{}", data);
         assert_eq!(
             data,
-            r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#
+            r#"(type:"NullDrawBuilder",value:(timer:(target_dt:None),displays:[]))"#
         );
     }
 
     #[test]
     fn test_deserialize() {
         let input =
-            r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#;
+            r#"(type:"NullDrawBuilder",value:(timer:(target_dt:None),displays:[]))"#;
 
         assert_eq!(
-            serde_json::ser::to_string(
-                &serde_json::de::from_str::<Box<dyn DrawBuilder>>(input).unwrap()
+            ron::ser::to_string(
+                &ron::de::from_str::<Box<dyn DrawBuilder>>(input).unwrap()
             )
             .unwrap(),
             input

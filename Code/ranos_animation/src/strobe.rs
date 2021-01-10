@@ -76,17 +76,17 @@ mod builder_test {
     fn test_serialize() {
         let builder = Strobe::builder();
 
-        let data = serde_json::ser::to_string(&builder).unwrap();
+        let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"{"runtime":{"secs":8,"nanos":0},"period":{"secs":0,"nanos":500000000},"duty":0.25,"color":[255,255,255]}"#;
+        let expected = r#"(runtime:(secs:8,nanos:0),period:(secs:0,nanos:500000000),duty:0.25,color:(255,255,255))"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"{"runtime":{"secs":8,"nanos":0},"period":{"secs":0,"nanos":500000000},"duty":0.25,"color":[255,255,255]}"#;
+        let input = r#"(runtime:(secs:8,nanos:0),period:(secs:0,nanos:500000000),duty:0.25,color:(255,255,255))"#;
 
-        let data: StrobeBuilder = serde_json::de::from_str(input).unwrap();
+        let data: StrobeBuilder = ron::de::from_str(input).unwrap();
 
         assert_eq!(data.runtime, Duration::from_secs(8));
         assert_eq!(

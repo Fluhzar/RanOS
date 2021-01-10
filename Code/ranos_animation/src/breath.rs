@@ -63,17 +63,17 @@ mod builder_test {
     fn test_serialize() {
         let builder = Breath::builder();
 
-        let data = serde_json::ser::to_string(&builder).unwrap();
+        let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"{"runtime":{"secs":18,"nanos":0},"breath_duration":{"secs":3,"nanos":0},"order":{"Ordered":[[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]]}}"#;
+        let expected = r#"(runtime:(secs:18,nanos:0),breath_duration:(secs:3,nanos:0),order:Ordered([(255,0,0),(255,255,0),(0,255,0),(0,255,255),(0,0,255),(255,0,255)]))"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"{"runtime":{"secs":18,"nanos":0},"breath_duration":{"secs":3,"nanos":0},"order":{"Ordered":[[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]]}}"#;
+        let input = r#"(runtime:(secs:18,nanos:0),breath_duration:(secs:3,nanos:0),order:Ordered([(255,0,0),(255,255,0),(0,255,0),(0,255,255),(0,0,255),(255,0,255)]))"#;
 
-        let data: BreathBuilder = serde_json::de::from_str(input).unwrap();
+        let data: BreathBuilder = ron::de::from_str(input).unwrap();
 
         assert_eq!(data.runtime, Duration::from_secs(18));
         assert_eq!(data.breath_duration, Duration::from_secs(3));

@@ -95,17 +95,17 @@ mod builder_test {
     fn test_serialize() {
         let builder = Rainbow::builder();
 
-        let data = serde_json::ser::to_string(&builder).unwrap();
+        let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"{"runtime":{"secs":16,"nanos":0},"rainbow_length":{"secs":2,"nanos":0},"sat":1.0,"val":1.0,"arc":1.0,"step":1}"#;
+        let expected = r#"(runtime:(secs:16,nanos:0),rainbow_length:(secs:2,nanos:0),sat:1,val:1,arc:1,step:1)"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"{"runtime":{"secs":16,"nanos":0},"rainbow_length":{"secs":2,"nanos":0},"sat":1.0,"val":1.0,"arc":1.0,"step":1}"#;
+        let input = r#"(runtime:(secs:16,nanos:0),rainbow_length:(secs:2,nanos:0),sat:1,val:1,arc:1,step:1)"#;
 
-        let data: RainbowBuilder = serde_json::de::from_str(input).unwrap();
+        let data: RainbowBuilder = ron::de::from_str(input).unwrap();
 
         assert_eq!(data.runtime, Duration::from_secs(16));
         assert_eq!(data.rainbow_length, Duration::from_secs(2));

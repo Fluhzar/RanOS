@@ -67,17 +67,18 @@ mod builder_test {
     fn test_serialize() {
         let builder = NullDraw::builder();
 
-        let data = serde_json::ser::to_string(&builder).unwrap();
+        let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"{"timer":{"target_dt":null},"displays":[]}"#;
+        // eprintln!("{}", data);
+        let expected = r#"(timer:(target_dt:None),displays:[])"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"{"timer":{"target_dt":null},"displays":[]}"#;
+        let input = r#"(timer:(target_dt:None),displays:[])"#;
 
-        let data: NullDrawBuilder = serde_json::de::from_str(input).unwrap();
+        let data: NullDrawBuilder = ron::de::from_str(input).unwrap();
 
         assert_eq!(data.timer, Timer::new(None));
         assert_eq!(data.displays.len(), 0);

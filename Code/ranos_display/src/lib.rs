@@ -91,17 +91,17 @@ mod builder_test {
     fn test_serializer() {
         let builder = Display::builder();
 
-        let data = serde_json::ser::to_string(&builder).unwrap();
+        let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"{"brightness":1.0,"size":64,"animation_builders":[]}"#;
+        let expected = r#"(brightness:1,size:64,animation_builders:[])"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserializer() {
-        let input = r#"{"brightness":1.0,"size":64,"animation_builders":[]}"#;
+        let input = r#"(brightness:1,size:64,animation_builders:[])"#;
 
-        let data: DisplayBuilder = serde_json::de::from_str(input).unwrap();
+        let data: DisplayBuilder = ron::de::from_str(input).unwrap();
 
         assert_eq!(data.brightness, 1.0);
         assert_eq!(data.size, 64);

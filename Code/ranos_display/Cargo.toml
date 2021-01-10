@@ -14,4 +14,4 @@ ranos_ds = { path = "../ranos_ds" }
 ranos_animation = { path = "../ranos_animation" }
 
 [dev-dependencies]
-serde_json = "1.0"
+ron = "0.6"
