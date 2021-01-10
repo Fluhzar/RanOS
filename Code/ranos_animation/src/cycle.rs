@@ -19,34 +19,34 @@ pub struct CycleBuilder {
 
 impl CycleBuilder {
     /// Sets the length of time the animation should run for.
-    pub fn runtime(mut self, runtime: Duration) -> Self {
+    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
         self.runtime = runtime;
 
         self
     }
 
     /// Sets the duration a single color is drawn for.
-    pub fn cycle_period(mut self, cycle_period: Duration) -> Self {
+    pub fn cycle_period(mut self: Box<Self>, cycle_period: Duration) -> Box<Self> {
         self.cycle_period = cycle_period;
 
         self
     }
 
     /// Sets a given order that the animation cycles through.
-    pub fn order(mut self, order: ColorOrder) -> Self {
+    pub fn order(mut self: Box<Self>, order: ColorOrder) -> Box<Self> {
         self.order = order;
 
         self
     }
 
     /// Constructs a [`Cycle`](Cycle) object.
-    pub fn build(self) -> Cycle {
+    pub fn build(self: Box<Self>) -> Cycle {
         Cycle::from_builder(self)
     }
 }
 
 impl AnimationBuilder for CycleBuilder {
-    fn build(self) -> Box<dyn Animation> {
+    fn build(self: Box<Self>) -> Box<dyn Animation> {
         Box::new(self.build())
     }
 }
@@ -69,19 +69,21 @@ pub struct Cycle {
 
 impl Cycle {
     /// Constructs a builder object with safe default values.
-    pub fn builder() -> CycleBuilder {
-        CycleBuilder {
-            runtime: Duration::from_secs_f64(60.0/165.0*3.0*15.0),
-            cycle_period: Duration::from_secs_f64(60.0/165.0),
-            order: ColorOrder::Ordered(vec![
-                RGB::from_code(0xFF0000, RGBOrder::RGB),
-                RGB::from_code(0x00FF00, RGBOrder::RGB),
-                RGB::from_code(0x0000FF, RGBOrder::RGB),
-            ]),
-        }
+    pub fn builder() -> Box<CycleBuilder> {
+        Box::new(
+            CycleBuilder {
+                runtime: Duration::from_secs_f64(60.0/165.0*3.0*15.0),
+                cycle_period: Duration::from_secs_f64(60.0/165.0),
+                order: ColorOrder::Ordered(vec![
+                    RGB::from_code(0xFF0000, RGBOrder::RGB),
+                    RGB::from_code(0x00FF00, RGBOrder::RGB),
+                    RGB::from_code(0x0000FF, RGBOrder::RGB),
+                ]),
+            }
+        )
     }
 
-    fn from_builder(builder: CycleBuilder) -> Self {
+    fn from_builder(builder: Box<CycleBuilder>) -> Self {
         Self::new(builder.runtime, builder.cycle_period, builder.order)
     }
 

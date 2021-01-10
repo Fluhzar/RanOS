@@ -56,7 +56,7 @@ pub trait Animation: std::fmt::Debug {
 }
 
 /// Trait for building animation types.
-pub trait AnimationBuilder {
+pub trait AnimationBuilder: std::fmt::Debug {
     /// Creates a new animation object from the builder.
-    fn build(self) -> Box<dyn Animation>;
+    fn build(self: Box<Self>) -> Box<dyn Animation>;
 }

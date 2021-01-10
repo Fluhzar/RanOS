@@ -23,14 +23,14 @@ pub struct StrobeBuilder {
 
 impl StrobeBuilder {
     /// Sets the length of time the animation should run for.
-    pub fn runtime(mut self, runtime: Duration) -> Self {
+    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
         self.runtime = runtime;
 
         self
     }
 
     /// Sets the period, the amount of time before the strobe pattern repeats.
-    pub fn period(mut self, period: Duration) -> Self {
+    pub fn period(mut self: Box<Self>, period: Duration) -> Box<Self> {
         self.period = period;
 
         self
@@ -38,7 +38,7 @@ impl StrobeBuilder {
 
     /// Sets the duty cycle, a value in the range of [0, 1) representing the
     /// percentage of time that the LEDs are on within the `period`.
-    pub fn duty(mut self, duty: f64) -> Self {
+    pub fn duty(mut self: Box<Self>, duty: f64) -> Box<Self> {
         let duty = duty.min(1.0).max(0.0);
         self.duty = duty;
 
@@ -46,20 +46,20 @@ impl StrobeBuilder {
     }
 
     /// Sets the color that will be strobing.
-    pub fn color(mut self, color: RGB) -> Self {
+    pub fn color(mut self: Box<Self>, color: RGB) -> Box<Self> {
         self.color = color;
 
         self
     }
 
     /// Constructs a [`Strobe`](Strobe) object.
-    pub fn build(self) -> Strobe {
+    pub fn build(self: Box<Self>) -> Strobe {
         Strobe::from_builder(self)
     }
 }
 
 impl AnimationBuilder for StrobeBuilder {
-    fn build(self) -> Box<dyn Animation> {
+    fn build(self: Box<Self>) -> Box<dyn Animation> {
         Box::new(self.build())
     }
 }
@@ -88,16 +88,18 @@ pub struct Strobe {
 
 impl Strobe {
     /// Constructs a builder object with safe default values.
-    pub fn builder() -> StrobeBuilder {
-        StrobeBuilder {
-            runtime: Duration::from_secs(8),
-            period: Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
-            duty: 1.0 / ((1 << 2) as f64),
-            color: RGB::from_code(0xFFFFFF, RGBOrder::RGB),
-        }
+    pub fn builder() -> Box<StrobeBuilder> {
+        Box::new(
+            StrobeBuilder {
+                runtime: Duration::from_secs(8),
+                period: Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
+                duty: 1.0 / ((1 << 2) as f64),
+                color: RGB::from_code(0xFFFFFF, RGBOrder::RGB),
+            }
+        )
     }
 
-    fn from_builder(builder: StrobeBuilder) -> Self {
+    fn from_builder(builder: Box<StrobeBuilder>) -> Self {
         Self::new(builder.runtime, builder.period, builder.duty, builder.color)
     }
 

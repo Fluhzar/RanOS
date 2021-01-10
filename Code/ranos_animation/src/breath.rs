@@ -19,34 +19,34 @@ pub struct BreathBuilder {
 
 impl BreathBuilder {
     /// Sets the length of time the animation should run for.
-    pub fn runtime(mut self, runtime: Duration) -> Self {
+    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
         self.runtime = runtime;
 
         self
     }
 
     /// Sets the duration a single color is drawn for, from black up to full color back down to black.
-    pub fn breath_duration(mut self, breath_duration: Duration) -> Self {
+    pub fn breath_duration(mut self: Box<Self>, breath_duration: Duration) -> Box<Self> {
         self.breath_duration = breath_duration;
 
         self
     }
 
     /// Sets a given order that the animation cycles through.
-    pub fn order(mut self, order: ColorOrder) -> Self {
+    pub fn order(mut self: Box<Self>, order: ColorOrder) -> Box<Self> {
         self.order = order;
 
         self
     }
 
     /// Constructs a [`Breath`](Breath) object.
-    pub fn build(self) -> Breath {
+    pub fn build(self: Box<Self>) -> Breath {
         Breath::from_builder(self)
     }
 }
 
 impl AnimationBuilder for BreathBuilder {
-    fn build(self) -> Box<dyn Animation> {
+    fn build(self: Box<Self>) -> Box<dyn Animation> {
         Box::new(self.build())
     }
 }
@@ -71,22 +71,24 @@ pub struct Breath {
 
 impl Breath {
     /// Constructs a builder object with safe default values.
-    pub fn builder() -> BreathBuilder {
-        BreathBuilder {
-            runtime: Duration::from_secs(18),
-            breath_duration: Duration::from_secs(3),
-            order: ColorOrder::Ordered(vec![
-                RGB::from_hsv(0.0, 1.0, 1.0),
-                RGB::from_hsv(60.0, 1.0, 1.0),
-                RGB::from_hsv(120.0, 1.0, 1.0),
-                RGB::from_hsv(180.0, 1.0, 1.0),
-                RGB::from_hsv(240.0, 1.0, 1.0),
-                RGB::from_hsv(300.0, 1.0, 1.0),
-            ]),
-        }
+    pub fn builder() -> Box<BreathBuilder> {
+        Box::new(
+            BreathBuilder {
+                runtime: Duration::from_secs(18),
+                breath_duration: Duration::from_secs(3),
+                order: ColorOrder::Ordered(vec![
+                    RGB::from_hsv(0.0, 1.0, 1.0),
+                    RGB::from_hsv(60.0, 1.0, 1.0),
+                    RGB::from_hsv(120.0, 1.0, 1.0),
+                    RGB::from_hsv(180.0, 1.0, 1.0),
+                    RGB::from_hsv(240.0, 1.0, 1.0),
+                    RGB::from_hsv(300.0, 1.0, 1.0),
+                ]),
+            }
+        )
     }
 
-    fn from_builder(builder: BreathBuilder) -> Self {
+    fn from_builder(builder: Box<BreathBuilder>) -> Self {
         Self::new(builder.runtime, builder.breath_duration, builder.order)
     }
 
