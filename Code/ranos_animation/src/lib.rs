@@ -56,7 +56,7 @@ pub trait Animation: std::fmt::Debug {
 }
 
 /// Trait for building animation types.
-#[typetag::serde]
+#[typetag::serde(tag = "type")]
 pub trait AnimationBuilder: std::fmt::Debug {
     /// Creates a new animation object from the builder.
     fn build(self: Box<Self>) -> Box<dyn Animation>;

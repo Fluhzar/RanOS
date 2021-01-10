@@ -44,12 +44,12 @@ pub trait Draw {
     fn stats(&self) -> DrawStats;
 }
 
-#[typetag::serde]
 /// Defines the behavior of a builder of a type that implements [`Draw`][crate::Draw].
 ///
 /// Note: As the trait's functions return `Box<dyn DrawBuilder>` rather than `Box<Self>`, be sure to set any parameters for the
 /// specific `Draw`-implementing type you're using before calling these functions, as the original type will be inaccessible
 /// after calling one of the functions from this trait.
+#[typetag::serde(tag = "type")]
 pub trait DrawBuilder {
     /// Sets the timer parameter from a pre-built object.
     fn timer(self: Box<Self>, timer: Timer) -> Box<dyn DrawBuilder>;

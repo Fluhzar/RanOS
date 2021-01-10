@@ -2,10 +2,18 @@
 
 use std::time::{Duration, Instant};
 
+use serde::{Serialize, Deserialize};
+
+fn default_instant() -> Instant {
+    Instant::now()
+}
+
 /// Timer struct that will keep track of the time spent between pings.
-#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq, Serialize, Deserialize)]
 pub struct Timer {
+    #[serde(skip, default = "default_instant")]
     ctime: Instant,
+    #[serde(skip, default = "default_instant")]
     ptime: Instant,
     dt: Duration,
     target_dt: Option<Duration>,

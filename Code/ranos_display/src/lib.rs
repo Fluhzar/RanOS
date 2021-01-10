@@ -1,12 +1,63 @@
-use std::time::Duration;
+use std::{
+    iter::Iterator,
+    time::Duration
+};
 
-use ranos_animation::{Animation, AnimationState};
+use serde::{Serialize, Deserialize};
+
+use ranos_animation::{Animation, AnimationState, AnimationBuilder};
 use ranos_ds::collections::Frame;
 
 pub enum DisplayState {
     Continue,
     Last,
     Err,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DisplayBuilder {
+    brightness: f32,
+    size: usize,
+    animation_builders: Vec<Box<dyn AnimationBuilder>>,
+}
+
+impl DisplayBuilder {
+    pub fn brightness(mut self, brightness: f32) -> Self {
+        self.brightness = brightness;
+
+        self
+    }
+
+    pub fn size(mut self, size: usize) -> Self {
+        self.size = size;
+
+        self
+    }
+
+    pub fn dimensions(mut self, width: usize, height: usize) -> Self {
+        self.size = width*height;
+
+        self
+    }
+
+    pub fn add_animation_builder(mut self, animation: Box<dyn AnimationBuilder>) -> Self {
+        self.animation_builders.push(animation);
+
+        self
+    }
+
+    pub fn add_animation_builders<I>(mut self, iter: I) -> Self
+    where
+        I: Iterator<Item = Box<dyn AnimationBuilder>>,
+    {
+        self.animation_builders.extend(iter);
+
+        self
+    }
+
+    pub fn build(self) -> Display {
+        Display::from_builder(self)
+    }
 }
 
 #[derive(Debug)]
@@ -17,22 +68,26 @@ pub struct Display {
 }
 
 impl Display {
-    pub fn new(brightness: f32, size: usize, animations: Vec<Box<dyn Animation>>) -> Self {
-        Display {
-            id: ranos_core::id::generate(),
-            frame: Frame::new(brightness, size),
-            animations,
+    pub fn builder() -> DisplayBuilder {
+        DisplayBuilder {
+            brightness: 1.0,
+            size: 64,
+            animation_builders: Vec::new(),
         }
     }
 
-    pub fn from_iter<I>(brightness: f32, size: usize, iter: I) -> Self
+    fn from_builder(mut builder: DisplayBuilder) -> Self {
+        Self::with_iter(builder.brightness, builder.size, builder.animation_builders.drain(0..))
+    }
+
+    fn with_iter<I>(brightness: f32, size: usize, iter: I) -> Self
     where
-        I: std::iter::Iterator<Item = Box<dyn Animation>>,
+        I: Iterator<Item = Box<dyn AnimationBuilder>>,
     {
         Display {
             id: ranos_core::id::generate(),
             frame: Frame::new(brightness, size),
-            animations: iter.collect(),
+            animations: iter.map(|ab| ab.build()).collect(),
         }
     }
 
