@@ -224,7 +224,7 @@ pub(self) mod display {
             ron::ser::to_writer_pretty(
                 file,
                 &Display::builder()
-                    .add_animation_builder(
+                    .animation(
                         Rainbow::builder()
                             .runtime(Duration::from_secs_f64(8.0))
                             .rainbow_length(Duration::from_secs(4))
@@ -233,7 +233,7 @@ pub(self) mod display {
                             .arc(1.0)
                             .step(1),
                     )
-                    .add_animation_builder(
+                    .animation(
                         Breath::builder()
                             .runtime(Duration::from_secs_f64(8.0))
                             .breath_duration(Duration::from_secs(4))
@@ -322,7 +322,7 @@ pub(self) mod draw {
                     as Box<dyn DrawBuilder>)
                     .display(
                         Display::builder()
-                            .add_animation_builder(
+                            .animation(
                                 Rainbow::builder()
                                     .runtime(Duration::from_secs_f64(8.0))
                                     .rainbow_length(Duration::from_secs(4))
@@ -331,7 +331,7 @@ pub(self) mod draw {
                                     .arc(1.0)
                                     .step(1),
                             )
-                            .add_animation_builder(
+                            .animation(
                                 Breath::builder()
                                     .runtime(Duration::from_secs_f64(8.0))
                                     .breath_duration(Duration::from_secs(4))

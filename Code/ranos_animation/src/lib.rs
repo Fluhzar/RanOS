@@ -23,7 +23,7 @@ pub mod cycle;
 pub mod rainbow;
 pub mod strobe;
 
-/// Enum denoting different end-states that an [`Animation`][crate::Animation]
+/// Enum denoting different end-states that an [`Animation`](crate::Animation)
 /// object may return.
 ///
 /// The `ErrRetry` state is given for use in statistical tracking and more
