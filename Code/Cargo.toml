@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "ranos",
     "ranos_doc",
     "ranos_animation",
     "ranos_draw",
