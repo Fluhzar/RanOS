@@ -12,9 +12,9 @@ use super::*;
 /// Builder for [`NullDraw`](NullDraw).
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename = "NullDraw")]
-pub struct NullDrawBuilder {
-    timer: Timer,
-    displays: VecDeque<DisplayBuilder>,
+pub struct NullDrawBuilder { // Fields public to crate for testing purposes, see `DrawBuilder` tests.
+    pub(crate) timer: Timer,
+    pub(crate) displays: VecDeque<DisplayBuilder>,
 }
 
 impl NullDrawBuilder {
@@ -54,6 +54,36 @@ impl DrawBuilder for NullDrawBuilder {
 
     fn build(self: Box<Self>) -> Box<dyn Draw> {
         Box::new(self.build())
+    }
+}
+
+#[cfg(test)]
+mod builder_test {
+    use std::collections::VecDeque;
+    use ranos_core::Timer;
+    use crate::NullDrawBuilder;
+
+    #[test]
+    fn test_serialize() {
+        let builder = NullDrawBuilder {
+            timer: Timer::new(None),
+            displays: VecDeque::new(),
+        };
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"timer":{"target_dt":null},"displays":[]}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"timer":{"target_dt":null},"displays":[]}"#;
+
+        let data: NullDrawBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.timer, Timer::new(None));
+        assert_eq!(data.displays.len(), 0);
     }
 }
 

@@ -68,6 +68,39 @@ impl DrawBuilder for TermDrawBuilder {
     }
 }
 
+#[cfg(test)]
+mod builder_test {
+    use std::collections::VecDeque;
+    use ranos_core::Timer;
+
+    use crate::TermDrawBuilder;
+
+    #[test]
+    fn test_serialize() {
+        let builder = TermDrawBuilder {
+            max_width: 8,
+            timer: Timer::new(None),
+            displays: VecDeque::new(),
+        };
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"max_width":8,"timer":{"target_dt":null},"displays":[]}"#.to_owned();
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"max_width":8,"timer":{"target_dt":null},"displays":[]}"#;
+
+        let data: TermDrawBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.max_width, 8);
+        assert_eq!(data.timer, Timer::new(None));
+        assert_eq!(data.displays.len(), 0);
+    }
+}
+
 /// Emulates an LED display by writing whitespace with specified colored
 /// backgrounds to a terminal that supports full RGB colors.
 ///

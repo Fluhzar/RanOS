@@ -65,6 +65,32 @@ pub trait DrawBuilder {
     fn build(self: Box<Self>) -> Box<dyn Draw>;
 }
 
+#[cfg(test)]
+mod builder_test {
+    use std::collections::VecDeque;
+    use ranos_core::Timer;
+    use crate::{DrawBuilder, NullDraw, NullDrawBuilder};
+
+    #[test]
+    fn test_serialize() {
+        let builder: Box<dyn DrawBuilder> = NullDraw::builder();
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        assert_eq!(data, r#"{"type":"NullDrawBuilder","timer":{"target_dt":null},"displays":[]}"#);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"type":"NullDrawBuilder","timer":{"target_dt":null},"displays":[]}"#;
+
+        let data: NullDrawBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.timer, Timer::new(None));
+        assert_eq!(data.displays.len(), 0);
+    }
+}
+
 /// Type for tracking statistics about the drawing.
 #[derive(Debug, Copy, Clone)]
 pub struct DrawStats {

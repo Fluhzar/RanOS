@@ -105,6 +105,39 @@ impl DrawBuilder for APA102CPiDrawBuilder {
     }
 }
 
+#[cfg(test)]
+mod builder_test {
+    use std::collections::VecDeque;
+    use ranos_core::Timer;
+    use super::{APA102CPiDrawBuilder, DEFAULT_CLK_PIN, DEFAULT_DAT_PIN};
+
+    #[test]
+    fn test_serialize() {
+        let builder = APA102CPiDrawBuilder {
+            data_pin: DEFAULT_DAT_PIN,
+            clock_pin: DEFAULT_CLK_PIN,
+            timer: Timer::new(None),
+            displays: VecDeque::new(),
+        };
+
+        let data = serde_json::ser::to_string(&builder).unwrap();
+
+        let expected = r#"{"data_pin":6,"clock_pin":5,"timer":{"target_dt":null},"displays":[]}"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"{"data_pin":6,"clock_pin":5,"timer":{"target_dt":null},"displays":[]}"#;
+        let data: APA102CPiDrawBuilder = serde_json::de::from_str(input).unwrap();
+
+        assert_eq!(data.data_pin, DEFAULT_DAT_PIN);
+        assert_eq!(data.clock_pin, DEFAULT_CLK_PIN);
+        assert_eq!(data.timer, Timer::new(None));
+        assert_eq!(data.displays.len(), 0);
+    }
+}
+
 /// Struct that draws [APA102C][0] LEDs through the Raspberry Pi's GPIO pins.
 ///
 /// To create a `APA102CPiDraw` object, use the associated [builder](APA102CPiDrawBuilder) which can be accessed by calling
