@@ -70,18 +70,12 @@ impl DrawBuilder for TermDrawBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use std::collections::VecDeque;
     use ranos_core::Timer;
-
-    use crate::TermDrawBuilder;
+    use crate::{TermDraw, TermDrawBuilder};
 
     #[test]
     fn test_serialize() {
-        let builder = TermDrawBuilder {
-            max_width: 8,
-            timer: Timer::new(None),
-            displays: VecDeque::new(),
-        };
+        let builder = TermDraw::builder();
 
         let data = serde_json::ser::to_string(&builder).unwrap();
 

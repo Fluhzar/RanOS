@@ -59,16 +59,12 @@ impl DrawBuilder for NullDrawBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use std::collections::VecDeque;
     use ranos_core::Timer;
-    use crate::NullDrawBuilder;
+    use crate::{NullDraw, NullDrawBuilder};
 
     #[test]
     fn test_serialize() {
-        let builder = NullDrawBuilder {
-            timer: Timer::new(None),
-            displays: VecDeque::new(),
-        };
+        let builder = NullDraw::builder();
 
         let data = serde_json::ser::to_string(&builder).unwrap();
 

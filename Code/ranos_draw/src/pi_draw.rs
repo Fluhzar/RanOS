@@ -107,18 +107,12 @@ impl DrawBuilder for APA102CPiDrawBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use std::collections::VecDeque;
     use ranos_core::Timer;
-    use super::{APA102CPiDrawBuilder, DEFAULT_CLK_PIN, DEFAULT_DAT_PIN};
+    use super::{APA102CPiDraw, APA102CPiDrawBuilder, DEFAULT_CLK_PIN, DEFAULT_DAT_PIN};
 
     #[test]
     fn test_serialize() {
-        let builder = APA102CPiDrawBuilder {
-            data_pin: DEFAULT_DAT_PIN,
-            clock_pin: DEFAULT_CLK_PIN,
-            timer: Timer::new(None),
-            displays: VecDeque::new(),
-        };
+        let builder = APA102CPiDraw::builder();
 
         let data = serde_json::ser::to_string(&builder).unwrap();
 

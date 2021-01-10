@@ -67,7 +67,6 @@ pub trait DrawBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use std::collections::VecDeque;
     use ranos_core::Timer;
     use crate::{DrawBuilder, NullDraw, NullDrawBuilder};
 
@@ -84,10 +83,12 @@ mod builder_test {
     fn test_deserialize() {
         let input = r#"{"type":"NullDrawBuilder","timer":{"target_dt":null},"displays":[]}"#;
 
-        let data: NullDrawBuilder = serde_json::de::from_str(input).unwrap();
-
-        assert_eq!(data.timer, Timer::new(None));
-        assert_eq!(data.displays.len(), 0);
+        assert_eq!(
+            serde_json::ser::to_string(
+                &serde_json::de::from_str::<Box<dyn DrawBuilder>>(input).unwrap()
+            ).unwrap(),
+            input
+        );
     }
 }
 
