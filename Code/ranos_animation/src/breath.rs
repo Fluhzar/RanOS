@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use ranos_ds::{const_val::ConstVal, rgb::RGB};
 
@@ -54,10 +54,10 @@ impl AnimationBuilder for BreathBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use std::time::Duration;
-    use ranos_ds::rgb::RGB;
-    use crate::ColorOrder;
     use super::{Breath, BreathBuilder};
+    use crate::ColorOrder;
+    use ranos_ds::rgb::RGB;
+    use std::time::Duration;
 
     #[test]
     fn test_serialize() {
@@ -112,31 +112,25 @@ pub struct Breath {
 impl Breath {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<BreathBuilder> {
-        Box::new(
-            BreathBuilder {
-                runtime: Duration::from_secs(18),
-                breath_duration: Duration::from_secs(3),
-                order: ColorOrder::Ordered(vec![
-                    RGB::from_hsv(0.0, 1.0, 1.0),
-                    RGB::from_hsv(60.0, 1.0, 1.0),
-                    RGB::from_hsv(120.0, 1.0, 1.0),
-                    RGB::from_hsv(180.0, 1.0, 1.0),
-                    RGB::from_hsv(240.0, 1.0, 1.0),
-                    RGB::from_hsv(300.0, 1.0, 1.0),
-                ]),
-            }
-        )
+        Box::new(BreathBuilder {
+            runtime: Duration::from_secs(18),
+            breath_duration: Duration::from_secs(3),
+            order: ColorOrder::Ordered(vec![
+                RGB::from_hsv(0.0, 1.0, 1.0),
+                RGB::from_hsv(60.0, 1.0, 1.0),
+                RGB::from_hsv(120.0, 1.0, 1.0),
+                RGB::from_hsv(180.0, 1.0, 1.0),
+                RGB::from_hsv(240.0, 1.0, 1.0),
+                RGB::from_hsv(300.0, 1.0, 1.0),
+            ]),
+        })
     }
 
     fn from_builder(builder: Box<BreathBuilder>) -> Self {
         Self::new(builder.runtime, builder.breath_duration, builder.order)
     }
 
-    fn new(
-        runtime: Duration,
-        breath_duration: Duration,
-        order: ColorOrder,
-    ) -> Self {
+    fn new(runtime: Duration, breath_duration: Duration, order: ColorOrder) -> Self {
         Self {
             runtime: ConstVal::new(runtime),
             time_remaining: runtime,

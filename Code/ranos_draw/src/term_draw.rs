@@ -3,7 +3,7 @@
 use std::collections::{HashMap, VecDeque};
 
 use colored::Colorize;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use ranos_core::Timer;
 use ranos_display::DisplayState;
@@ -70,8 +70,8 @@ impl DrawBuilder for TermDrawBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use ranos_core::Timer;
     use crate::{TermDraw, TermDrawBuilder};
+    use ranos_core::Timer;
 
     #[test]
     fn test_serialize() {
@@ -118,17 +118,19 @@ pub struct TermDraw {
 impl TermDraw {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<TermDrawBuilder> {
-        Box::new(
-            TermDrawBuilder {
-                max_width: 8,
-                timer: Timer::new(None),
-                displays: VecDeque::new(),
-            }
-        )
+        Box::new(TermDrawBuilder {
+            max_width: 8,
+            timer: Timer::new(None),
+            displays: VecDeque::new(),
+        })
     }
 
     fn from_builder(mut builder: Box<TermDrawBuilder>) -> Self {
-        Self::new(builder.max_width, builder.timer, builder.displays.drain(0..))
+        Self::new(
+            builder.max_width,
+            builder.timer,
+            builder.displays.drain(0..),
+        )
     }
 
     fn new<I>(max_width: usize, timer: Timer, display_iter: I) -> Self
@@ -137,13 +139,11 @@ impl TermDraw {
     {
         let mut ids = Vec::new();
         let displays = display_iter
-            .map(
-                |b| {
-                    let disp = b.build();
-                    ids.push(disp.id());
-                    (disp.id(), (disp, false))
-                }
-            )
+            .map(|b| {
+                let disp = b.build();
+                ids.push(disp.id());
+                (disp.id(), (disp, false))
+            })
             .collect();
         let display_ids = ids;
 
@@ -163,7 +163,8 @@ impl TermDraw {
         let frame = self.displays.get(&display_id).unwrap().0.frame();
 
         // Create output string with enough capacity to minimize reallocations of memory for growing the string's capacity
-        let mut output = String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
+        let mut output =
+            String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
         output.push_str("\x1B[2J"); // ANSI clear-screen code
         output.push_str("\x1B[1;1H"); // ANSI "move cursor to upper-left corner" code
 
@@ -210,7 +211,7 @@ impl Draw for TermDraw {
                             DisplayState::Last => {
                                 *has_finished = true;
                                 num_finished += 1;
-                            },
+                            }
                             DisplayState::Err => return,
                         }
                     }

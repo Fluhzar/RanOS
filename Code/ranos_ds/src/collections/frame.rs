@@ -41,10 +41,7 @@ impl Frame {
 
         let leds = RGB::read_n(reader, len, RGBOrder::RGB)?;
 
-        Ok(Self {
-            brightness,
-            leds,
-        })
+        Ok(Self { brightness, leds })
     }
 
     /// Attempts to write a `Frame` to the `writer`, returning the number of bytes written.

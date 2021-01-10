@@ -2,9 +2,12 @@
 
 use std::time::Duration;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use ranos_ds::{const_val::ConstVal, rgb::{RGB, RGBOrder}};
+use ranos_ds::{
+    const_val::ConstVal,
+    rgb::{RGBOrder, RGB},
+};
 
 use super::*;
 
@@ -54,10 +57,10 @@ impl AnimationBuilder for CycleBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use std::time::Duration;
-    use ranos_ds::rgb::{RGB, RGBOrder};
-    use crate::{ColorOrder, Cycle};
     use super::CycleBuilder;
+    use crate::{ColorOrder, Cycle};
+    use ranos_ds::rgb::{RGBOrder, RGB};
+    use std::time::Duration;
 
     #[test]
     fn test_serialize() {
@@ -75,8 +78,11 @@ mod builder_test {
 
         let data: CycleBuilder = serde_json::de::from_str(input).unwrap();
 
-        assert_eq!(data.runtime, Duration::from_secs_f64(60.0/165.0*3.0*15.0));
-        assert_eq!(data.cycle_period, Duration::from_secs_f64(60.0/165.0));
+        assert_eq!(
+            data.runtime,
+            Duration::from_secs_f64(60.0 / 165.0 * 3.0 * 15.0)
+        );
+        assert_eq!(data.cycle_period, Duration::from_secs_f64(60.0 / 165.0));
         assert_eq!(
             data.order,
             ColorOrder::Ordered(vec![
@@ -107,28 +113,22 @@ pub struct Cycle {
 impl Cycle {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<CycleBuilder> {
-        Box::new(
-            CycleBuilder {
-                runtime: Duration::from_secs_f64(60.0/165.0*3.0*15.0),
-                cycle_period: Duration::from_secs_f64(60.0/165.0),
-                order: ColorOrder::Ordered(vec![
-                    RGB::from_code(0xFF0000, RGBOrder::RGB),
-                    RGB::from_code(0x00FF00, RGBOrder::RGB),
-                    RGB::from_code(0x0000FF, RGBOrder::RGB),
-                ]),
-            }
-        )
+        Box::new(CycleBuilder {
+            runtime: Duration::from_secs_f64(60.0 / 165.0 * 3.0 * 15.0),
+            cycle_period: Duration::from_secs_f64(60.0 / 165.0),
+            order: ColorOrder::Ordered(vec![
+                RGB::from_code(0xFF0000, RGBOrder::RGB),
+                RGB::from_code(0x00FF00, RGBOrder::RGB),
+                RGB::from_code(0x0000FF, RGBOrder::RGB),
+            ]),
+        })
     }
 
     fn from_builder(builder: Box<CycleBuilder>) -> Self {
         Self::new(builder.runtime, builder.cycle_period, builder.order)
     }
 
-    fn new(
-        runtime: Duration,
-        cycle_period: Duration,
-        order: ColorOrder,
-    ) -> Self {
+    fn new(runtime: Duration, cycle_period: Duration, order: ColorOrder) -> Self {
         Self {
             runtime: runtime.into(),
             time_remaining: runtime,
@@ -175,7 +175,7 @@ impl Animation for Cycle {
         } else {
             res = AnimationState::Last;
 
-            Duration::new(0,0)
+            Duration::new(0, 0)
         };
 
         res

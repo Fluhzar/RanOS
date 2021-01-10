@@ -1,11 +1,8 @@
-use std::{
-    iter::Iterator,
-    time::Duration
-};
+use std::{iter::Iterator, time::Duration};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use ranos_animation::{Animation, AnimationState, AnimationBuilder};
+use ranos_animation::{Animation, AnimationBuilder, AnimationState};
 use ranos_ds::collections::Frame;
 
 pub enum DisplayState {
@@ -35,7 +32,7 @@ impl DisplayBuilder {
     }
 
     pub fn dimensions(mut self, width: usize, height: usize) -> Self {
-        self.size = width*height;
+        self.size = width * height;
 
         self
     }
@@ -103,7 +100,11 @@ impl Display {
     }
 
     fn from_builder(mut builder: DisplayBuilder) -> Self {
-        Self::with_iter(builder.brightness, builder.size, builder.animation_builders.drain(0..))
+        Self::with_iter(
+            builder.brightness,
+            builder.size,
+            builder.animation_builders.drain(0..),
+        )
     }
 
     fn with_iter<I>(brightness: f32, size: usize, iter: I) -> Self

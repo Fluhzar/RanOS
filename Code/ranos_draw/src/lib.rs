@@ -11,23 +11,20 @@
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
-extern crate ranos_display;
 extern crate ranos_core;
+extern crate ranos_display;
 
 pub use null_draw::{NullDraw, NullDrawBuilder};
 pub use term_draw::{TermDraw, TermDrawBuilder};
 
 #[cfg(target_os = "linux")]
-pub use pi_draw::{
-    APA102CPiDraw, APA102CPiDrawBuilder,
-    SK9822PiDraw, SK9822PiDrawBuilder,
-};
+pub use pi_draw::{APA102CPiDraw, APA102CPiDrawBuilder, SK9822PiDraw, SK9822PiDrawBuilder};
 
 use std::time::Instant;
 use std::{fmt, ops};
 
-use ranos_display::{Display, DisplayBuilder};
 use ranos_core::Timer;
+use ranos_display::{Display, DisplayBuilder};
 
 pub mod null_draw;
 pub mod term_draw;
@@ -75,17 +72,22 @@ mod builder_test {
 
         let data = serde_json::ser::to_string(&builder).unwrap();
 
-        assert_eq!(data, r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#);
+        assert_eq!(
+            data,
+            r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#
+        );
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#;
+        let input =
+            r#"{"type":"NullDrawBuilder","value":{"timer":{"target_dt":null},"displays":[]}}"#;
 
         assert_eq!(
             serde_json::ser::to_string(
                 &serde_json::de::from_str::<Box<dyn DrawBuilder>>(input).unwrap()
-            ).unwrap(),
+            )
+            .unwrap(),
             input
         );
     }

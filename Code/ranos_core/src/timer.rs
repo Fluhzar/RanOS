@@ -2,7 +2,7 @@
 
 use std::time::{Duration, Instant};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 fn default_instant() -> Instant {
     Instant::now()

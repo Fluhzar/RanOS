@@ -2,7 +2,7 @@
 
 use std::collections::VecDeque;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use ranos_core::Timer;
 use ranos_display::DisplayState;
@@ -12,7 +12,8 @@ use super::*;
 /// Builder for [`NullDraw`](NullDraw).
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename = "NullDraw")]
-pub struct NullDrawBuilder { // Fields public to crate for testing purposes, see `DrawBuilder` tests.
+pub struct NullDrawBuilder {
+    // Fields public to crate for testing purposes, see `DrawBuilder` tests.
     pub(crate) timer: Timer,
     pub(crate) displays: VecDeque<DisplayBuilder>,
 }
@@ -59,8 +60,8 @@ impl DrawBuilder for NullDrawBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use ranos_core::Timer;
     use crate::{NullDraw, NullDrawBuilder};
+    use ranos_core::Timer;
 
     #[test]
     fn test_serialize() {
@@ -95,12 +96,10 @@ pub struct NullDraw {
 impl NullDraw {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<NullDrawBuilder> {
-        Box::new(
-            NullDrawBuilder {
-                timer: Timer::new(None),
-                displays: VecDeque::new(),
-            }
-        )
+        Box::new(NullDrawBuilder {
+            timer: Timer::new(None),
+            displays: VecDeque::new(),
+        })
     }
 
     fn from_builder(mut builder: Box<NullDrawBuilder>) -> Self {
@@ -137,7 +136,10 @@ impl Draw for NullDraw {
                 if !*has_finished {
                     match d.render_frame(dt) {
                         DisplayState::Continue => (),
-                        DisplayState::Last => { *has_finished = true; num_finished += 1; },
+                        DisplayState::Last => {
+                            *has_finished = true;
+                            num_finished += 1;
+                        }
                         DisplayState::Err => return,
                     }
 

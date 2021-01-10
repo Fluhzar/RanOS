@@ -4,12 +4,12 @@
 //!
 //! For more details see the [`APA102CPiDraw`][crate::APA102CPiDraw] documentation.
 
-#![cfg(target_os="linux")]
+#![cfg(target_os = "linux")]
 
 use std::collections::{HashMap, VecDeque};
 
 use rppal::gpio;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use ranos_core::Timer;
 use ranos_display::DisplayState;
@@ -107,8 +107,8 @@ impl DrawBuilder for APA102CPiDrawBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use ranos_core::Timer;
     use super::{APA102CPiDraw, APA102CPiDrawBuilder, DEFAULT_CLK_PIN, DEFAULT_DAT_PIN};
+    use ranos_core::Timer;
 
     #[test]
     fn test_serialize() {
@@ -191,14 +191,12 @@ pub struct APA102CPiDraw {
 impl APA102CPiDraw {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<APA102CPiDrawBuilder> {
-        Box::new(
-            APA102CPiDrawBuilder {
-                data_pin: DEFAULT_DAT_PIN,
-                clock_pin: DEFAULT_CLK_PIN,
-                timer: Timer::new(None),
-                displays: VecDeque::new(),
-            }
-        )
+        Box::new(APA102CPiDrawBuilder {
+            data_pin: DEFAULT_DAT_PIN,
+            clock_pin: DEFAULT_CLK_PIN,
+            timer: Timer::new(None),
+            displays: VecDeque::new(),
+        })
     }
 
     fn from_builder(mut builder: Box<APA102CPiDrawBuilder>) -> Self {
@@ -219,14 +217,12 @@ impl APA102CPiDraw {
         let mut num = 0;
         let mut ids = Vec::new();
         let displays = display_iter
-            .map(
-                |b| {
-                    let disp = b.build();
-                    num += disp.frame_len();
-                    ids.push(disp.id());
-                    (disp.id(), (disp, false))
-                }
-            )
+            .map(|b| {
+                let disp = b.build();
+                num += disp.frame_len();
+                ids.push(disp.id());
+                (disp.id(), (disp, false))
+            })
             .collect();
         let display_ids = ids;
 
@@ -347,9 +343,8 @@ impl APA102CPiDraw {
 
         for i in 0..len {
             self.write_byte(brightness_mask);
-            let color = {
-                self.displays.get(&display_id).unwrap().0.frame()[i].as_tuple(RGBOrder::BGR)
-            };
+            let color =
+                { self.displays.get(&display_id).unwrap().0.frame()[i].as_tuple(RGBOrder::BGR) };
             self.write_byte(color.0);
             self.write_byte(color.1);
             self.write_byte(color.2);
@@ -383,7 +378,7 @@ impl Draw for APA102CPiDraw {
                             DisplayState::Last => {
                                 *has_finished = true;
                                 num_finished += 1;
-                            },
+                            }
                             DisplayState::Err => return,
                         }
                     }
@@ -391,7 +386,7 @@ impl Draw for APA102CPiDraw {
                     d.id()
                 };
 
-                self.write_frame(display_id/*self.displays.get(i).unwrap().0.frame()*/);
+                self.write_frame(display_id);
                 self.stats.inc_frames();
             }
 

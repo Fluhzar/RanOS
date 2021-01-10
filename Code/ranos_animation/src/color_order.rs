@@ -1,6 +1,6 @@
 //! # Color Order
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use ranos_ds::rgb::RGB;
 

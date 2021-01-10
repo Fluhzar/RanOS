@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use ranos_ds::{
     const_val::ConstVal,
@@ -67,10 +67,10 @@ impl AnimationBuilder for StrobeBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use std::time::Duration;
-    use ranos_ds::rgb::{RGB, RGBOrder};
-    use crate::Strobe;
     use super::StrobeBuilder;
+    use crate::Strobe;
+    use ranos_ds::rgb::{RGBOrder, RGB};
+    use std::time::Duration;
 
     #[test]
     fn test_serialize() {
@@ -89,7 +89,10 @@ mod builder_test {
         let data: StrobeBuilder = serde_json::de::from_str(input).unwrap();
 
         assert_eq!(data.runtime, Duration::from_secs(8));
-        assert_eq!(data.period, Duration::from_secs_f64(1.0 / ((1 << 1) as f64)));
+        assert_eq!(
+            data.period,
+            Duration::from_secs_f64(1.0 / ((1 << 1) as f64))
+        );
         assert_eq!(data.duty, 1.0 / ((1 << 2) as f64));
         assert_eq!(data.color, RGB::from_code(0xFFFFFF, RGBOrder::RGB));
     }
@@ -120,21 +123,19 @@ pub struct Strobe {
 impl Strobe {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<StrobeBuilder> {
-        Box::new(
-            StrobeBuilder {
-                runtime: Duration::from_secs(8),
-                period: Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
-                duty: 1.0 / ((1 << 2) as f64),
-                color: RGB::from_code(0xFFFFFF, RGBOrder::RGB),
-            }
-        )
+        Box::new(StrobeBuilder {
+            runtime: Duration::from_secs(8),
+            period: Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
+            duty: 1.0 / ((1 << 2) as f64),
+            color: RGB::from_code(0xFFFFFF, RGBOrder::RGB),
+        })
     }
 
     fn from_builder(builder: Box<StrobeBuilder>) -> Self {
         Self::new(builder.runtime, builder.period, builder.duty, builder.color)
     }
 
-    fn new(runtime: Duration, period: Duration, duty: f64, color: RGB, ) -> Self {
+    fn new(runtime: Duration, period: Duration, duty: f64, color: RGB) -> Self {
         let duty = duty.min(1.0).max(0.0);
 
         Self {

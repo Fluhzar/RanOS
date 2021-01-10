@@ -6,9 +6,7 @@ fn main() {
     let args = std::env::args().collect::<Vec<_>>();
 
     if args.len() > 1 {
-        ron::de::from_reader::<_,Box<dyn DrawBuilder>> (
-            File::open(args[1].as_str()).unwrap()
-        )
+        ron::de::from_reader::<_, Box<dyn DrawBuilder>>(File::open(args[1].as_str()).unwrap())
             .unwrap()
             .build()
             .run();

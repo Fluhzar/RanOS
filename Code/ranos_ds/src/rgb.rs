@@ -2,7 +2,7 @@
 
 use std::io;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Enum defining all possible combinations of color order.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]

@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use ranos_ds::{collections::frame::Frame, const_val::ConstVal, rgb::RGB};
 
@@ -87,9 +87,9 @@ impl AnimationBuilder for RainbowBuilder {
 
 #[cfg(test)]
 mod builder_test {
-    use std::time::Duration;
-    use crate::Rainbow;
     use super::RainbowBuilder;
+    use crate::Rainbow;
+    use std::time::Duration;
 
     #[test]
     fn test_serialize() {
@@ -136,20 +136,25 @@ pub struct Rainbow {
 impl Rainbow {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<RainbowBuilder> {
-        Box::new(
-            RainbowBuilder {
-                runtime: Duration::from_secs(16),
-                rainbow_length: Duration::from_secs(2),
-                sat: 1.0,
-                val: 1.0,
-                arc: 1.0,
-                step: 1,
-            }
-        )
+        Box::new(RainbowBuilder {
+            runtime: Duration::from_secs(16),
+            rainbow_length: Duration::from_secs(2),
+            sat: 1.0,
+            val: 1.0,
+            arc: 1.0,
+            step: 1,
+        })
     }
 
     fn from_builder(builder: Box<RainbowBuilder>) -> Self {
-        Self::new(builder.runtime, builder.rainbow_length, builder.sat, builder.val, builder.arc, builder.step)
+        Self::new(
+            builder.runtime,
+            builder.rainbow_length,
+            builder.sat,
+            builder.val,
+            builder.arc,
+            builder.step,
+        )
     }
 
     fn new(

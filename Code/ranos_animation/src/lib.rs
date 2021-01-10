@@ -11,14 +11,14 @@ use std::time::Duration;
 
 use ranos_ds::collections::frame::Frame;
 
-pub use color_order::ColorOrder;
 pub use breath::Breath;
+pub use color_order::ColorOrder;
 pub use cycle::Cycle;
 pub use rainbow::Rainbow;
 pub use strobe::Strobe;
 
-pub mod color_order;
 pub mod breath;
+pub mod color_order;
 pub mod cycle;
 pub mod rainbow;
 pub mod strobe;
@@ -83,7 +83,8 @@ mod builder_test {
         assert_eq!(
             serde_json::ser::to_string(
                 &serde_json::de::from_str::<Box<dyn AnimationBuilder>>(input).unwrap()
-            ).unwrap(),
+            )
+            .unwrap(),
             input
         );
     }
