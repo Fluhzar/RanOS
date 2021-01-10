@@ -148,6 +148,10 @@ impl Draw for NullDraw {
                 }
 
                 total_leds += d.frame_len();
+
+                if SIGINT.load(Ordering::Relaxed) == true {
+                    return;
+                }
             }
 
             self.stats.set_num(total_leds);

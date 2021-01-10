@@ -20,7 +20,7 @@ pub use term_draw::{TermDraw, TermDrawBuilder};
 #[cfg(target_os = "linux")]
 pub use pi_draw::{APA102CPiDraw, APA102CPiDrawBuilder, SK9822PiDraw, SK9822PiDrawBuilder};
 
-use std::time::Instant;
+use std::{sync::{Arc, atomic::{AtomicBool, Ordering}}, time::Instant};
 use std::{fmt, ops};
 
 use ranos_core::Timer;
@@ -31,6 +31,22 @@ pub mod term_draw;
 
 #[cfg(target_os = "linux")]
 pub mod pi_draw;
+
+#[macro_use]
+extern crate lazy_static;
+
+lazy_static! {
+    static ref SIGINT: Arc<AtomicBool> = {
+        let arc = Arc::new(AtomicBool::new(false));
+
+        {
+            let arc = arc.clone();
+            ctrlc::set_handler(move || arc.store(true, Ordering::Relaxed)).unwrap();
+        }
+
+        arc
+    };
+}
 
 /// Trait defining the ability to draw a frame of colors to LEDs.
 pub trait Draw {

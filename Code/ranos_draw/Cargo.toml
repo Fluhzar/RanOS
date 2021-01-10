@@ -10,6 +10,8 @@ edition = "2018"
 typetag = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 
+ctrlc = "3.1"
+lazy_static = "1.4"
 colored = "2.0"
 
 ranos_core = { path = "../ranos_core" }

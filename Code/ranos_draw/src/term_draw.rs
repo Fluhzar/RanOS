@@ -222,6 +222,10 @@ impl Draw for TermDraw {
 
                 self.write_frame(display_id);
                 self.stats.inc_frames();
+
+                if SIGINT.load(Ordering::Relaxed) == true {
+                    return;
+                }
             }
 
             self.stats.set_num(total_leds);
