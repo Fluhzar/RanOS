@@ -8,7 +8,7 @@
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
-use std::{iter::Iterator, time::Duration};
+use std::{collections::VecDeque, iter::Iterator, time::Duration};
 
 use serde::{Deserialize, Serialize};
 
@@ -31,6 +31,7 @@ pub enum DisplayState {
 pub struct DisplayBuilder {
     brightness: f32,
     size: usize,
+    looping: bool,
     animation_builders: Vec<Box<dyn AnimationBuilder>>,
 }
 
@@ -55,6 +56,13 @@ impl DisplayBuilder {
     /// Calculates the size as `width * height`.
     pub fn dimensions(self, width: usize, height: usize) -> Self {
         self.size(width * height)
+    }
+
+    /// Sets whether the display will loop the animations or not.
+    pub fn looping(mut self, looping: bool) -> Self {
+        self.looping = looping;
+
+        self
     }
 
     /// Add a builder for an animation that will be built at the same time as this builder.
@@ -93,13 +101,13 @@ mod builder_test {
 
         let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"(brightness:1,size:64,animation_builders:[])"#;
+        let expected = r#"(brightness:1,size:64,looping:false,animation_builders:[])"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserializer() {
-        let input = r#"(brightness:1,size:64,animation_builders:[])"#;
+        let input = r#"(brightness:1,size:64,looping:false,animation_builders:[])"#;
 
         let data: DisplayBuilder = ron::de::from_str(input).unwrap();
 
@@ -116,7 +124,8 @@ mod builder_test {
 pub struct Display {
     id: usize,
     frame: Frame,
-    animations: Vec<Box<dyn Animation>>,
+    looping: bool,
+    animations: VecDeque<Box<dyn Animation>>,
 }
 
 impl Display {
@@ -125,6 +134,7 @@ impl Display {
         DisplayBuilder {
             brightness: 1.0,
             size: 64,
+            looping: false,
             animation_builders: Vec::new(),
         }
     }
@@ -133,17 +143,19 @@ impl Display {
         Self::with_iter(
             builder.brightness,
             builder.size,
-            builder.animation_builders.drain(0..).rev(),
+            builder.looping,
+            builder.animation_builders.drain(0..),
         )
     }
 
-    fn with_iter<I>(brightness: f32, size: usize, iter: I) -> Self
+    fn with_iter<I>(brightness: f32, size: usize, looping: bool, iter: I) -> Self
     where
         I: Iterator<Item = Box<dyn AnimationBuilder>>,
     {
         Display {
             id: ranos_core::id::generate(),
             frame: Frame::new(brightness, size),
+            looping,
             animations: iter.map(|ab| ab.build()).collect(),
         }
     }
@@ -163,19 +175,24 @@ impl Display {
         self.frame.len()
     }
 
-    /// Renders a frame from
+    /// Renders a frame from the current animation.
     pub fn render_frame(&mut self, dt: Duration) -> DisplayState {
-        if let Some(mut anim) = self.animations.pop() {
+        if let Some(mut anim) = self.animations.pop_front() {
             match anim.render_frame(&mut self.frame, dt) {
                 AnimationState::Continue => {
-                    self.animations.push(anim);
+                    self.animations.push_front(anim);
                     DisplayState::Continue
                 }
                 AnimationState::Last => {
-                    if self.animations.len() > 0 {
+                    if self.looping {
+                        self.animations.push_back(anim.reset());
                         DisplayState::Continue
                     } else {
-                        DisplayState::Last
+                        if self.animations.len() > 0 {
+                            DisplayState::Continue
+                        } else {
+                            DisplayState::Last
+                        }
                     }
                 }
                 AnimationState::ErrRetry => self.render_frame(dt),

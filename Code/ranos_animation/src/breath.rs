@@ -190,7 +190,7 @@ impl Animation for Breath {
         self.time_remaining
     }
 
-    fn reset(&mut self) {
+    fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
         self.time_remaining = *self.runtime.get();
         self.ind = 0;
         self.current_color = match &self.order {
@@ -199,5 +199,7 @@ impl Animation for Breath {
             ColorOrder::RandomBright => RGB::random_bright(),
         };
         self.vel = *self.vel0.get();
+
+        self
     }
 }

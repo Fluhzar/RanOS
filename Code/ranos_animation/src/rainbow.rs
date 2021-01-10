@@ -215,8 +215,10 @@ impl Animation for Rainbow {
         self.time_remaining
     }
 
-    fn reset(&mut self) {
+    fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
         self.time_remaining = *self.runtime.get();
         self.hue = 0.0;
+
+        self
     }
 }

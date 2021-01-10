@@ -52,7 +52,7 @@ pub trait Animation: std::fmt::Debug {
 
     /// Resets the animation to its pre-run state, appearing as if it were never
     /// run before.
-    fn reset(&mut self);
+    fn reset(self: Box<Self>) -> Box<dyn Animation>;
 }
 
 /// Trait for building animation types.

@@ -189,8 +189,10 @@ impl Animation for Strobe {
         self.time_remaining
     }
 
-    fn reset(&mut self) {
+    fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
         self.time_remaining = *self.runtime.get();
         self.time = 0.0;
+
+        self
     }
 }
