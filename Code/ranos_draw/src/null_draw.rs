@@ -90,8 +90,6 @@ mod builder_test {
 pub struct NullDraw {
     displays: Vec<(Display, bool)>,
     timer: Timer,
-
-    stats: DrawStats,
 }
 
 impl NullDraw {
@@ -114,8 +112,6 @@ impl NullDraw {
         Self {
             displays: display_iter.map(|b| (b.build(), false)).collect(),
             timer,
-
-            stats: DrawStats::new(),
         }
     }
 }
@@ -123,13 +119,11 @@ impl NullDraw {
 impl Draw for NullDraw {
     fn run(&mut self) {
         self.timer.reset();
-        self.stats.reset();
 
         let mut num_finished = 0;
 
         while num_finished < self.displays.len() {
             let dt = self.timer.ping();
-            let mut total_leds = 0;
 
             for i in 0..self.displays.len() {
                 let (d, has_finished) = self.displays.get_mut(i).unwrap();
@@ -143,23 +137,16 @@ impl Draw for NullDraw {
                         }
                         DisplayState::Err => return,
                     }
-
-                    self.stats.inc_frames();
                 }
-
-                total_leds += d.frame_len();
 
                 if SIGINT.load(Ordering::Relaxed) == true {
                     return;
                 }
             }
-
-            self.stats.set_num(total_leds);
-            self.stats.end();
         }
     }
 
-    fn stats(&self) -> DrawStats {
-        self.stats
+    fn stats(&self) -> &TimerStats {
+        self.timer.stats()
     }
 }

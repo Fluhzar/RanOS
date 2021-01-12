@@ -196,8 +196,6 @@ pub struct APA102CPiDraw {
 
     timer: Timer,
 
-    stats: DrawStats,
-
     num: usize,
 }
 
@@ -251,8 +249,6 @@ impl APA102CPiDraw {
             display_ids,
 
             timer,
-
-            stats: DrawStats::new(),
 
             num,
         }
@@ -374,19 +370,15 @@ impl Draw for APA102CPiDraw {
     fn run(&mut self) {
         // Reset timer and stats to track just this run
         self.timer.reset();
-        self.stats.reset();
 
         let mut num_finished = 0;
 
         while num_finished < self.displays.len() {
             let dt = self.timer.ping();
-            let mut total_leds = 0;
 
             for i in 0..self.displays.len() {
                 let display_id = {
                     let (d, has_finished) = self.displays.get_mut(&self.display_ids[i]).unwrap();
-
-                    total_leds += d.frame_len();
 
                     if !*has_finished {
                         match d.render_frame(dt) {
@@ -403,20 +395,16 @@ impl Draw for APA102CPiDraw {
                 };
 
                 self.write_frame(display_id);
-                self.stats.inc_frames();
 
                 if SIGINT.load(Ordering::Relaxed) == true {
                     return;
                 }
             }
-
-            self.stats.set_num(total_leds);
-            self.stats.end();
         }
     }
 
-    fn stats(&self) -> DrawStats {
-        self.stats
+    fn stats(&self) -> &TimerStats {
+        self.timer.stats()
     }
 }
 

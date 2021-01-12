@@ -195,7 +195,7 @@ impl Animation for Rainbow {
             let step = step * (*self.step.get() as f32);
             let step = step / len;
             let step = step * 360.0 * self.arc.get();
-            *led = RGB::from_hsv(self.hue + step, *self.sat.get(), *self.val.get())
+            *led = RGB::from_hsv(self.hue + step, *self.sat.get(), *self.val.get());
         }
 
         let mut res = AnimationState::Continue;
