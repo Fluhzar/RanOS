@@ -29,7 +29,7 @@ impl Excitement {
     ///
     /// * `scalar` - The scalar value to amplify the excitement values by
     /// * `power` - The curve power to attenuate the excitement values by. For
-    /// more information see the [`Curve`](crate::curve::Curve) documentation. Should be in the range of \[-1, 1\].
+    /// more information see the [`Curve`] documentation. Should be in the range of \[-1, 1\].
     /// * `decay` - The rate at which the excitement value decays after a new peak value. Should be in the range of \[0, 1\).
     /// * `bin_range` - The range that the binned values will take from the
     /// spectrum data of the audio samples. The first value of the tuple is
@@ -63,7 +63,7 @@ impl Excitement {
         &self.bins
     }
 
-    // assumes `samples` is one channel, `SIZE` elements
+    /// Updates the excitement value with the given [`SIZE`] samples.
     pub fn update(&mut self, samples: &[f32]) {
         if samples.len() != SIZE {
             return;
@@ -81,21 +81,21 @@ impl Excitement {
         let bin_size = range_size / self.num_bins;
 
         for i in begin..end {
-            let bin_idx = (i-begin) / bin_size;
+            let bin_idx = (i - begin) / bin_size;
             let bin = self.bins.get_mut(bin_idx).unwrap();
-            let spectrum_norm = self.spectrum[i].norm()/(SIZE as f32 / 2.0);
+            let spectrum_norm = self.spectrum[i].norm() / (SIZE as f32 / 2.0);
             *bin += spectrum_norm / (bin_size as f32);
         }
 
         for (i, b) in self.bins.iter_mut().enumerate() {
             let spec_begin = i * bin_size + begin;
-            let spec_end = (i+1) * bin_size + begin;
+            let spec_end = (i + 1) * bin_size + begin;
 
             let mut bin_mean = 0.0;
             for j in spec_begin..spec_end {
                 bin_mean += self.spectrum[j].norm();
             }
-            bin_mean /= (spec_end-spec_begin) as f32;
+            bin_mean /= (spec_end - spec_begin) as f32;
 
             let bin = self.scalar * (bin_mean / (SIZE as f32 / 2.0)) / (bin_size as f32);
             let curved_bin = self.curve.at(bin);

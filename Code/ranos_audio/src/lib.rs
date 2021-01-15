@@ -10,4 +10,4 @@
 pub const SIZE: usize = 1 << 10;
 
 pub mod analysis;
-pub mod engine;
+pub mod player;

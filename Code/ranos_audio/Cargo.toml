@@ -6,7 +6,13 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+audio_out = ["rodio"]
+
 [dependencies]
 rustfft = "5.0"
+wav = "0.5"
+
+rodio = { version = "0.13", optional = true }
 
 ranos_core = { path = "../ranos_core" }

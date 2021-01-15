@@ -19,7 +19,7 @@
 /// input value. To resolve this issue there is a simple test case in the
 /// [`at`](self::Curve::at) function that ensures the correct behavior.
 ///
-/// [0]: https://www.desmos.com/calculator/j71u7sqqb3
+/// [0]: https://www.desmos.com/calculator/uzxxrnudcy
 pub struct Curve {
     power: f32,
 }
