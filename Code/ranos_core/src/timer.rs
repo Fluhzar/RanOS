@@ -1,6 +1,9 @@
 //! # Timer
 
-use std::{fmt::{self, Display, Formatter}, time::{Duration, Instant}};
+use std::{
+    fmt::{self, Display, Formatter},
+    time::{Duration, Instant},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -49,7 +52,11 @@ impl Display for TimerStats {
         let duration = (self.end - self.start).as_secs_f32();
         write!(f, "Duration: {}\n", duration)?;
         write!(f, "Pings: {}\n", self.pings)?;
-        write!(f, "Average ping rate: {} pings/s\n", self.pings as f32 / duration)
+        write!(
+            f,
+            "Average ping rate: {} pings/s\n",
+            self.pings as f32 / duration
+        )
     }
 }
 

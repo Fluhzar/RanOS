@@ -6,9 +6,10 @@ fn main() {
     let args = std::env::args().collect::<Vec<_>>();
 
     if args.len() > 1 {
-        let mut drawer = ron::de::from_reader::<_, Box<dyn DrawBuilder>>(File::open(args[1].as_str()).unwrap())
-            .unwrap()
-            .build();
+        let mut drawer =
+            ron::de::from_reader::<_, Box<dyn DrawBuilder>>(File::open(args[1].as_str()).unwrap())
+                .unwrap()
+                .build();
         drawer.run();
         println!("{}", drawer.stats());
     } else {

@@ -20,9 +20,12 @@ pub use term_draw::{TermDraw, TermDrawBuilder};
 #[cfg(target_os = "linux")]
 pub use pi_draw::{APA102CPiDraw, APA102CPiDrawBuilder, SK9822PiDraw, SK9822PiDrawBuilder};
 
-use std::{sync::{Arc, atomic::{AtomicBool, Ordering}}};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 
-use ranos_core::{Timer, timer::TimerStats};
+use ranos_core::{timer::TimerStats, Timer};
 use ranos_display::{Display, DisplayBuilder};
 
 pub mod null_draw;
@@ -96,14 +99,11 @@ mod builder_test {
 
     #[test]
     fn test_deserialize() {
-        let input =
-            r#"(type:"NullDrawBuilder",value:(timer:(target_dt:None),displays:[]))"#;
+        let input = r#"(type:"NullDrawBuilder",value:(timer:(target_dt:None),displays:[]))"#;
 
         assert_eq!(
-            ron::ser::to_string(
-                &ron::de::from_str::<Box<dyn DrawBuilder>>(input).unwrap()
-            )
-            .unwrap(),
+            ron::ser::to_string(&ron::de::from_str::<Box<dyn DrawBuilder>>(input).unwrap())
+                .unwrap(),
             input
         );
     }

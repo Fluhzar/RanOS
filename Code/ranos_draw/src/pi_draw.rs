@@ -127,7 +127,8 @@ mod builder_test {
         let data = ron::ser::to_string(&builder).unwrap();
 
         // eprintln!("{}", data);
-        let expected = r#"(data_pin:6,clock_pin:5,brightness:1,timer:(target_dt:None),displays:[])"#;
+        let expected =
+            r#"(data_pin:6,clock_pin:5,brightness:1,timer:(target_dt:None),displays:[])"#;
         assert_eq!(data, expected);
     }
 
@@ -347,7 +348,10 @@ impl APA102CPiDraw {
     /// Writes a frame to the LEDs. Uses color order BGR as defined in the
     /// datasheet.
     fn write_frame(&mut self, display_id: usize) {
-        let (brightness_mask, len) = (0xE0 | self.brightness, self.displays.get(&display_id).unwrap().0.frame().len());
+        let (brightness_mask, len) = (
+            0xE0 | self.brightness,
+            self.displays.get(&display_id).unwrap().0.frame().len(),
+        );
 
         self.start_frame();
 

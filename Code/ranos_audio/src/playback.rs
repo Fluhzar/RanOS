@@ -2,13 +2,7 @@
 
 use std::{iter::Iterator, time::Duration};
 
-use rodio::{
-    self,
-    OutputStream,
-    OutputStreamHandle,
-    PlayError,
-    StreamError,
-};
+use rodio::{self, OutputStream, OutputStreamHandle, PlayError, StreamError};
 
 /// Struct for playing audio to the default output device of the running system.
 ///
@@ -25,10 +19,7 @@ impl Output {
     pub fn new() -> Result<Self, StreamError> {
         let (_stream, handle) = OutputStream::try_default()?;
 
-        Ok(Self {
-            _stream,
-            handle,
-        })
+        Ok(Self { _stream, handle })
     }
 
     /// Plays the supplied source to the default output device.
@@ -92,9 +83,9 @@ impl Iterator for Source {
 
 #[cfg(test)]
 mod test {
-    use std::fs::File;
     use super::*;
     use crate::util::*;
+    use std::fs::File;
     extern crate wav;
 
     #[test]

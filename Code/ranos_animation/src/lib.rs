@@ -81,10 +81,8 @@ mod builder_test {
         let input = r#"(type:"CycleBuilder",value:(runtime:(secs:16,nanos:363636363),cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)])))"#;
 
         assert_eq!(
-            ron::ser::to_string(
-                &ron::de::from_str::<Box<dyn AnimationBuilder>>(input).unwrap()
-            )
-            .unwrap(),
+            ron::ser::to_string(&ron::de::from_str::<Box<dyn AnimationBuilder>>(input).unwrap())
+                .unwrap(),
             input
         );
     }
