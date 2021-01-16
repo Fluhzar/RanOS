@@ -13,6 +13,7 @@ pub fn write_base_rons() {
     animation::breath();
     animation::cycle();
     animation::rainbow();
+    animation::solid();
     animation::strobe();
     animation::animation();
 
@@ -27,7 +28,7 @@ pub fn write_base_rons() {
 pub(self) mod animation {
     use std::{fs::File, time::Duration};
 
-    use ranos_animation::{AnimationBuilder, Breath, ColorOrder, Cycle, Rainbow, Strobe};
+    use ranos_animation::{AnimationBuilder, Breath, ColorOrder, Cycle, Rainbow, Solid, Strobe};
     use ranos_ds::rgb::{RGBOrder, RGB};
 
     pub(super) fn breath() {
@@ -158,6 +159,25 @@ pub(self) mod animation {
                     .arc(1.0)
                     .step(1) as Box<dyn AnimationBuilder>),
                 pretty.clone(),
+            )
+            .unwrap();
+        }
+    }
+
+    pub(super) fn solid() {
+        let pretty = ron::ser::PrettyConfig::default();
+
+        // solid
+        {
+            let file = File::create("ignore/animation/solid.ron").unwrap();
+
+            ron::ser::to_writer_pretty(
+                file,
+                &(Solid::builder()
+                    .runtime(Duration::from_secs(8))
+                    .color(RGB::from_code(0x00_FF_FF, RGBOrder::RGB))
+                ),
+                pretty
             )
             .unwrap();
         }
