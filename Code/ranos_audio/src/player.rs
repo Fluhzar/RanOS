@@ -12,11 +12,7 @@ pub struct Player {
 }
 
 impl Player {
-    /// Creates a new player object by reading a WAV file from the given reader.
-    ///
-    /// # Errors
-    ///
-    /// This function will return an error if the reader encountered any errors while reading or if the WAV file is malformed.
+    /// Creates a new player object from the given data and sampling rate.
     pub fn new<R>(mut data: Vec<f32>, sample_rate: usize) -> Self {
         data.extend(vec![0.0; SIZE].iter()); // Add `SIZE` silence to the end of the data so that the last calls to `Self::most_recent_data` will always contain silence.
 
