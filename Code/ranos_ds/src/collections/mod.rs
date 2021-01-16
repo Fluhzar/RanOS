@@ -1,5 +1,3 @@
-//! # Collections
-//!
 //! Module of collections used within this project.
 
 pub use frame::Frame;

@@ -1,5 +1,3 @@
-//! # Curve
-//!
 //! Defines a struct that will take an input value in the range \[-1, 1\] and curve it depending on a configured curve power.
 
 /// Creates a curve of varying properties based on the input power (in a range of \[-1, 1\]).
@@ -17,7 +15,7 @@
 /// Note the special case when `p` equals 0. At this point the above function is
 /// undefined, but a power of 0 is meant to represent no curve applied to the
 /// input value. To resolve this issue there is a simple test case in the
-/// [`at`](self::Curve::at) function that ensures the correct behavior.
+/// [`Self::at`] function that ensures the correct behavior.
 ///
 /// [0]: https://www.desmos.com/calculator/uzxxrnudcy
 pub struct Curve {

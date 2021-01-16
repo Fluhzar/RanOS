@@ -1,6 +1,6 @@
 //! # Display
 //!
-//! Provides a level of abstraction between objects that draw and the animations that get drawn.
+//! Provides a level of abstraction between objects that draw and animations that get drawn.
 //!
 //! May become more generic in the future to facilitate different uses.
 
@@ -15,8 +15,7 @@ use serde::{Deserialize, Serialize};
 use ranos_animation::{Animation, AnimationBuilder, AnimationState};
 use ranos_ds::collections::Frame;
 
-/// Enum denoting different end-states that a [`Display`](crate::Display) object
-/// may return.
+/// Enum denoting different end-states that a [`Display`] object may return.
 pub enum DisplayState {
     /// Denotes that the operation was successful and the object can operate for more iterations
     Continue,
@@ -26,7 +25,7 @@ pub enum DisplayState {
     Err,
 }
 
-/// Trait for building [`Display`](crate::Display)s.
+/// Trait for building [`Display`]s.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DisplayBuilder {
     brightness: f32,
@@ -51,7 +50,7 @@ impl DisplayBuilder {
         self
     }
 
-    /// Alternative to [`DisplayBuilder::size`](crate::DisplayBuilder::size).
+    /// Alternative to [`Self::size`].
     ///
     /// Calculates the size as `width * height`.
     pub fn dimensions(self, width: usize, height: usize) -> Self {
@@ -67,14 +66,14 @@ impl DisplayBuilder {
 
     /// Add a builder for an animation that will be built at the same time as this builder.
     ///
-    /// Note: Multiple [`AnimationBuilder`](ranos_animation::AnimationBuilder)s can be added.
+    /// Note: Multiple [`AnimationBuilder`]s can be added.
     pub fn animation(mut self, animation: Box<dyn AnimationBuilder>) -> Self {
         self.animation_builders.push(animation);
 
         self
     }
 
-    /// Similar to [`DisplayBuilder::animation`](crate::DisplayBuilder::animation), but takes an iterator over
+    /// Similar to [`DisplayBuilder::animation`], but takes an iterator over
     /// animation builders, extending the internal list with the iterator's contents.
     pub fn animation_iter<I>(mut self, iter: I) -> Self
     where
@@ -85,7 +84,7 @@ impl DisplayBuilder {
         self
     }
 
-    /// Builds a [`Display`](crate::Display).
+    /// Builds a [`Display`].
     pub fn build(self) -> Display {
         Display::from_builder(self)
     }
@@ -117,7 +116,7 @@ mod builder_test {
     }
 }
 
-/// Provides a level of abstraction between objects that draw and the animations that get drawn.
+/// Provides a level of abstraction between objects that draw and animations that get drawn.
 ///
 /// May become more generic in the future to facilitate different uses.
 #[derive(Debug)]

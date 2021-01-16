@@ -1,11 +1,12 @@
 //! # Draw
 //!
-//! This module contains the types that will "draw" to the LEDs.
+//! This crate contains the types that will "draw" to the LEDs.
 //!
-//! There are two drawers defined in this module, one being the actual drawer
-//! that will draw the colors to physical LEDs connected to a Raspberry Pi, and
+//! There are three drawers defined in this module, one being the actual drawer
+//! that will draw the colors to physical LEDs connected to a Raspberry Pi,
 //! the second is an emulated LED setup that draws to "LEDs" on the terminal
-//! with a configurable number of "LEDs" per row.
+//! with a configurable number of "LEDs" per row, and the third being a drawer
+//! that has no output, useful for debugging/testing purposes.
 
 #![warn(missing_docs)]
 #![deny(broken_intra_doc_links)]
@@ -59,11 +60,13 @@ pub trait Draw {
     fn stats(&self) -> &TimerStats;
 }
 
-/// Defines the behavior of a builder of a type that implements [`Draw`][crate::Draw].
+/// Defines the behavior of a builder of a type that implements [`Draw`].
 ///
-/// Note: As the trait's functions return `Box<dyn DrawBuilder>` rather than `Box<Self>`, be sure to set any parameters for the
-/// specific `Draw`-implementing type you're using before calling these functions, as the original type will be inaccessible
-/// after calling one of the functions from this trait.
+/// Note: As the trait's functions return `Box<dyn DrawBuilder>` rather than
+/// `Box<Self>`, be sure to set any parameters for the specific
+/// `Draw`-implementing type you're using before calling these functions, as the
+/// original type will be inaccessible after calling one of the functions from
+/// this trait.
 #[typetag::serde(tag = "type", content = "value")]
 pub trait DrawBuilder {
     /// Sets the timer parameter from a pre-built object.
@@ -73,10 +76,10 @@ pub trait DrawBuilder {
     ///
     /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
     ///
-    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    /// Note: Multiple [`DisplayBuilder`]s can be added.
     fn display(self: Box<Self>, display: DisplayBuilder) -> Box<dyn DrawBuilder>;
 
-    /// Builds [`Draw`][crate::Draw] object, returning it boxed up.
+    /// Builds [`Draw`] object, returning it boxed up.
     fn build(self: Box<Self>) -> Box<dyn Draw>;
 }
 

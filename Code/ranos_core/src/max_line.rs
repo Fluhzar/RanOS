@@ -1,12 +1,12 @@
-//! # Max Line
+//! Implements the ability to split string-like types at a maximum length.
 
 /// Trait that defines the ability to split a string-like type into an array of
-/// owned `String`s that have a maximum length up to a given maximum number of
+/// owned [`String`]s that have a maximum length up to a given maximum number of
 /// bytes.
 pub trait MaxLine: std::ops::Deref<Target = str> {
     /// Splits `self`, a string-like type, into separate lines with each line's
-    /// length as close to but less than `max`, and converting any other
-    /// whitespace character to a space.
+    /// length as close to but less than `max` as possible, and converting any
+    /// other whitespace character to a space.
     fn max_line(&self, max: usize) -> Vec<String> {
         let mut out = String::new();
 

@@ -1,4 +1,4 @@
-//! # Rainbow
+//! Classic rainbow-puke animation as seen anywhere that displays how cool and awesome RGB LEDs are.
 
 use std::time::Duration;
 
@@ -8,7 +8,7 @@ use ranos_ds::{collections::frame::Frame, const_val::ConstVal, rgb::RGB};
 
 use super::*;
 
-/// Builder for the [`Rainbow`](Rainbow) animation.
+/// Builder for the [`Rainbow`] animation.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Rainbow")]
 pub struct RainbowBuilder {
@@ -72,7 +72,7 @@ impl RainbowBuilder {
         self
     }
 
-    /// Constructs a [`Rainbow`](Rainbow) object.
+    /// Constructs a [`Rainbow`] object.
     pub fn build(self: Box<Self>) -> Rainbow {
         Rainbow::from_builder(self)
     }

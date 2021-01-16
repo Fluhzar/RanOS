@@ -1,4 +1,4 @@
-//! ConstVal
+//! A wrapper around a value that shouldn't be changed.
 
 /// This struct represents a value that is immutable, and cannot be changed
 /// throughout its lifetime.
@@ -22,7 +22,7 @@ pub struct ConstVal<T> {
 }
 
 impl<T> ConstVal<T> {
-    /// Creates a new `ConstVal` object, wrapping the provided value.
+    /// Creates a new [`ConstVal`] object, wrapping the provided value.
     pub fn new(val: T) -> Self {
         Self { val }
     }

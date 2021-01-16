@@ -1,4 +1,4 @@
-//! # Timer
+//! Type for tracking the passage of time and intervals of time.
 
 use std::{
     fmt::{self, Display, Formatter},
@@ -7,7 +7,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-/// Statistical tracker for the [`Timer`](Timer) struct. Tracks start and end
+/// Statistical tracker for the [`Timer`] struct. Tracks start and end
 /// time as well as the number of pings encountered by the timer.
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct TimerStats {
@@ -79,7 +79,7 @@ pub struct Timer {
 }
 
 impl Timer {
-    /// Creates a new `Timer` object with the given optional target delta time.
+    /// Creates a new [`Timer`] object with the given optional target delta time.
     pub fn new(target_dt: Option<Duration>) -> Self {
         Self {
             stats: TimerStats::new(),
@@ -95,7 +95,7 @@ impl Timer {
         &self.stats
     }
 
-    /// Resets the `Timer` to a brand-new state, as if it were just initialized.
+    /// Resets the [`Timer`] to a brand-new state, as if it were just initialized.
     pub fn reset(&mut self) {
         *self = Timer::new(self.target_dt);
         self.stats.reset();

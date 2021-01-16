@@ -1,4 +1,4 @@
-//! # Breath
+//! A simple breathing animation, drawing a color starting at 0 brightness, then fading to full brightness, and back to 0.
 
 use std::time::Duration;
 
@@ -8,7 +8,7 @@ use ranos_ds::{const_val::ConstVal, rgb::RGB};
 
 use super::*;
 
-/// Builder for the [`Breath`](Breath) animation.
+/// Builder for the [`Breath`] animation.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Breath")]
 pub struct BreathBuilder {
@@ -39,7 +39,7 @@ impl BreathBuilder {
         self
     }
 
-    /// Constructs a [`Breath`](Breath) object.
+    /// Constructs a [`Breath`] object.
     pub fn build(self: Box<Self>) -> Breath {
         Breath::from_builder(self)
     }

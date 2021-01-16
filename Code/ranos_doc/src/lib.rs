@@ -1,6 +1,6 @@
-//! # App
+//! # Doc
 //!
-//! This module contains the application interface that controls the LEDs.
+//! This crate contains code to write out the basic forms of all types that are serializable.
 
 #![warn(missing_docs)]
 #![deny(broken_intra_doc_links)]

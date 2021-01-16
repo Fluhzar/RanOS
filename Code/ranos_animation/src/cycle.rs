@@ -1,4 +1,4 @@
-//! # Cycle
+//! Animation that cycles between colors at a set interval.
 
 use std::time::Duration;
 
@@ -11,7 +11,7 @@ use ranos_ds::{
 
 use super::*;
 
-/// Builder for the [`Cycle`](Cycle) animation.
+/// Builder for the [`Cycle`] animation.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Cycle")]
 pub struct CycleBuilder {
@@ -42,7 +42,7 @@ impl CycleBuilder {
         self
     }
 
-    /// Constructs a [`Cycle`](Cycle) object.
+    /// Constructs a [`Cycle`] object.
     pub fn build(self: Box<Self>) -> Cycle {
         Cycle::from_builder(self)
     }
@@ -95,8 +95,8 @@ mod builder_test {
 }
 
 /// Struct for a simple cycling between colors by either walking a provided list
-/// of colors or generating random colors. Each color is shown for the set amount
-/// of time before proceeding to the next color.
+/// of colors or generating random colors. Each color is shown for the set
+/// amount of time before proceeding to the next color.
 #[derive(Debug)]
 pub struct Cycle {
     runtime: ConstVal<Duration>,

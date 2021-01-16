@@ -1,4 +1,4 @@
-//! Enables playback functionality using [`rodio`]
+//! Enables playback functionality using [`rodio`].
 
 use std::{iter::Iterator, time::Duration};
 

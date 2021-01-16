@@ -1,4 +1,4 @@
-//! # Null Draw
+//! A drawer with no output.
 
 use std::collections::VecDeque;
 
@@ -9,7 +9,7 @@ use ranos_display::DisplayState;
 
 use super::*;
 
-/// Builder for [`NullDraw`](NullDraw).
+/// Builder for [`NullDraw`].
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename = "NullDraw")]
 pub struct NullDrawBuilder {
@@ -30,14 +30,14 @@ impl NullDrawBuilder {
     ///
     /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
     ///
-    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    /// Note: Multiple [`DisplayBuilder`]s can be added.
     pub fn display(mut self: Box<Self>, display: DisplayBuilder) -> Box<Self> {
         self.displays.push_back(display);
 
         self
     }
 
-    /// Constructs a [`NullDraw`](NullDraw) object.
+    /// Constructs a [`NullDraw`] object.
     pub fn build(self: Box<Self>) -> NullDraw {
         NullDraw::from_builder(self)
     }

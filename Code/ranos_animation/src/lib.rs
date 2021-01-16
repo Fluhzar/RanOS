@@ -1,4 +1,4 @@
-//! # Animation
+//! Defines the ability for animations to be rendered.
 
 #![warn(missing_docs)]
 #![deny(broken_intra_doc_links)]
@@ -25,8 +25,7 @@ pub mod rainbow;
 pub mod solid;
 pub mod strobe;
 
-/// Enum denoting different end-states that an [`Animation`](crate::Animation)
-/// object may return.
+/// Enum denoting different end-states that an [`Animation`] object may return.
 ///
 /// The `ErrRetry` state is given for use in statistical tracking and more
 /// complex operations that could fail, but still be able to continue (e.g. file
@@ -42,18 +41,15 @@ pub enum AnimationState {
     ErrFatal,
 }
 
-/// Trait for types that implement animations that sets the LEDs to a given
-/// frame of the animation before being drawn.
+/// Trait for types that implement animations that sets the LEDs to a given frame of the animation before being drawn.
 pub trait Animation: std::fmt::Debug {
     /// Renders the frame with the next frame of the animation given the input `dt`.
     fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState;
 
-    /// Returns the amount of time remaining for this animation to run before
-    /// the drawer to continue to the next animation.
+    /// Returns the amount of time remaining for this animation to run before the drawer to continue to the next animation.
     fn time_remaining(&self) -> Duration;
 
-    /// Resets the animation to its pre-run state, appearing as if it were never
-    /// run before.
+    /// Resets the animation to its pre-run state, appearing as if it were never run before.
     fn reset(self: Box<Self>) -> Box<dyn Animation>;
 }
 

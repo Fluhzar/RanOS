@@ -1,7 +1,5 @@
-//! # ID
-//!
-//! This crate contains a single public function that will generate an unique
-//! identifier. Thanks to the underlying implementation using the [`uid`](uid)
+//! This module contains a single public function that will generate an unique
+//! identifier. Thanks to the underlying implementation using the [`uid`]
 //! this function is thread-safe crate.
 
 use uid::Id as IdT;

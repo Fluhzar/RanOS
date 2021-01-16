@@ -1,4 +1,4 @@
-//! # Terminal Draw
+//! Enables the ability to draw pixels to a terminal window that supports the full range of RGB colors.
 
 use std::collections::{HashMap, VecDeque};
 
@@ -10,7 +10,7 @@ use ranos_display::DisplayState;
 
 use super::*;
 
-/// Builder for [`TermDraw`](TermDraw).
+/// Builder for [`TermDraw`].
 #[derive(Serialize, Deserialize)]
 #[serde(rename = "TermDraw")]
 pub struct TermDrawBuilder {
@@ -40,14 +40,14 @@ impl TermDrawBuilder {
     ///
     /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
     ///
-    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    /// Note: Multiple [`DisplayBuilder`]s can be added.
     pub fn display(mut self: Box<Self>, display: DisplayBuilder) -> Box<Self> {
         self.displays.push_back(display);
 
         self
     }
 
-    /// Constructs a [`TermDraw`](TermDraw) object.
+    /// Constructs a [`TermDraw`] object.
     pub fn build(self: Box<Self>) -> TermDraw {
         TermDraw::from_builder(self)
     }
@@ -96,14 +96,11 @@ mod builder_test {
     }
 }
 
-/// Emulates an LED display by writing whitespace with specified colored
-/// backgrounds to a terminal that supports full RGB colors.
+/// Emulates an LED display by writing whitespace with colored backgrounds to a terminal that supports full RGB colors.
 ///
-/// LEDs are displayed in a rectangular grid with 1 LED's worth of space between
-/// each column and row.
+/// LEDs are displayed in a rectangular grid with 1 LED's worth of space between each column and row.
 ///
-/// To create a `TermDraw` object, use the [associated builder](TermDrawBuilder)
-/// which can be accessed by calling [`TermDraw::builder()`](TermDraw::builder).
+/// To create a [`TermDraw`] object, use the [`TermDrawBuilder`] which can be accessed by calling [`TermDraw::builder()`].
 #[derive(Debug)]
 pub struct TermDraw {
     max_width: usize,
@@ -161,7 +158,7 @@ impl TermDraw {
 
         // Create output string with enough capacity to minimize reallocations of memory for growing the string's capacity
         let mut output =
-            String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2);
+            String::with_capacity(frame.len() * 4 + (frame.len() / self.max_width) * 2 + 16);
         output.push_str("\x1B[2J"); // ANSI clear-screen code
         output.push_str("\x1B[1;1H"); // ANSI "move cursor to upper-left corner" code
 

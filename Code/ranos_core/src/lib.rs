@@ -1,6 +1,6 @@
 //! # Core
 //!
-//! This project contains the core code used in the RanOS project.
+//! This crate contains the core code used in the RanOS project.
 
 #![warn(missing_docs)]
 #![deny(broken_intra_doc_links)]

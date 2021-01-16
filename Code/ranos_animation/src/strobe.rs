@@ -1,5 +1,4 @@
-//! # Strobe
-
+//! A strobing animation.
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
@@ -11,7 +10,7 @@ use ranos_ds::{
 
 use super::*;
 
-/// Builder for the [`Strobe`](Strobe) animation.
+/// Builder for the [`Strobe`] animation.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Strobe")]
 pub struct StrobeBuilder {
@@ -98,14 +97,12 @@ mod builder_test {
     }
 }
 
-/// Struct for animating a flickering light similar to the strobe lights one
-/// might see at concerts or otherwise.
+/// Struct for animating a flickering light similar to the strobe lights one might see at concerts or otherwise.
 ///
-/// Allows for PWM-like control with the ability to define the period and
-/// "duty cycle" of the strobe.
+/// Allows for PWM-like control with the ability to define the period and duty cycle of the strobe effect.
 ///
 /// The `period` is simply the amount of time before the strobe pattern repeats,
-/// and the `duty cycle` being a value in the range of [0, 1) representing the
+/// and the `duty cycle` being a value in the range of \[0, 1) representing the
 /// percentage of time that the LEDs are on within the `period`.
 #[derive(Debug)]
 pub struct Strobe {

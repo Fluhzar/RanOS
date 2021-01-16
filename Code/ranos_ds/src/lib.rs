@@ -1,6 +1,4 @@
-//! # Data Structures
-//!
-//! Module containing the various containers and other data structures.
+//! Module containing the various containers and other complex data structures.
 
 #![warn(missing_docs)]
 #![deny(broken_intra_doc_links)]

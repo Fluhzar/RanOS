@@ -1,10 +1,10 @@
-//! # Color Order
+//! Specifies various orders to choose from.
 
 use serde::{Deserialize, Serialize};
 
 use ranos_ds::rgb::RGB;
 
-/// Color order used by `Breath`, can be a predetermined order or a random order.
+/// Color order used by various animations, can be a predetermined order or a random order.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ColorOrder {
     /// Order determined by random colors generated when needed.

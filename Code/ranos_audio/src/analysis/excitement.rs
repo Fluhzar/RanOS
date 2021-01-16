@@ -1,6 +1,4 @@
-//! # Excitement
-//!
-//! Algorithm adapted from one I made for the Wild Holidays event.
+//! Algorithm adapted from one I made for the Wild Holidays charity event.
 
 use std::sync::Arc;
 

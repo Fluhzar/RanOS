@@ -1,8 +1,8 @@
-//! # Raspberry Pi Draw
+//! This module is designed with the APA102C LEDs in mind. There are
+//! additionally aliases for the SK9822 LEDs, which have a compatible protocol
+//! to the APA102C's.
 //!
-//! This module is designed with the APA102C LEDs in mind. There are additionally aliases for the SK9822 LEDs, which have a compatible protocol to the APA102C's.
-//!
-//! For more details see the [`APA102CPiDraw`][crate::APA102CPiDraw] documentation.
+//! For more details see the [`APA102CPiDraw`] documentation.
 
 #![cfg(target_os = "linux")]
 
@@ -34,14 +34,14 @@ fn bit_to_level(byte: u8, bit: u8) -> gpio::Level {
 /// Local rename of the GPIO pin type.
 pub type Pin = gpio::OutputPin;
 
-/// Type alias of `APA102CPiDrawBuilder` for the compatible SK9822 LEDs
+/// Type alias of [`APA102CPiDrawBuilder`] for the compatible SK9822 LEDs
 pub type SK9822PiDrawBuilder = APA102CPiDrawBuilder;
 
-/// Type alias for the SK9822 LED, which is a clone of the APA102C and compatible with our implementation of the APA102C's data
-/// transmission protocol.
+/// Type alias for the SK9822 LED, which is a clone of the APA102C and
+/// compatible with this module's implementation of the APA102C's data transmission protocol.
 pub type SK9822PiDraw = APA102CPiDraw;
 
-/// Builder for [`APA102CPiDraw`](APA102CPiDraw).
+/// Builder for [`APA102CPiDraw`].
 #[derive(Serialize, Deserialize)]
 #[serde(rename = "APA102CPiDraw")]
 pub struct APA102CPiDrawBuilder {
@@ -87,14 +87,14 @@ impl APA102CPiDrawBuilder {
     ///
     /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
     ///
-    /// Note: Multiple [`DisplayBuilder`](ranos_display::DisplayBuilder)s can be added.
+    /// Note: Multiple [`DisplayBuilder`]s can be added.
     pub fn display(mut self: Box<Self>, display: DisplayBuilder) -> Box<Self> {
         self.displays.push_back(display);
 
         self
     }
 
-    /// Constructs a [`APA102CPiDraw`](APA102CPiDraw) object.
+    /// Constructs a [`APA102CPiDraw`] object.
     pub fn build(self: Box<Self>) -> APA102CPiDraw {
         APA102CPiDraw::from_builder(self)
     }
@@ -146,13 +146,13 @@ mod builder_test {
 
 /// Struct that draws [APA102C][0] LEDs through the Raspberry Pi's GPIO pins.
 ///
-/// To create a `APA102CPiDraw` object, use the associated [builder](APA102CPiDrawBuilder) which can be accessed by calling
-/// [`APA102CPiDraw::builder()`](APA102CPiDraw::builder).
+/// To create a [`APA102CPiDraw`] object, use the associated [builder](APA102CPiDrawBuilder) which can be accessed by calling
+/// [`APA102CPiDraw::builder()`].
 ///
 /// ## Compatibility
 ///
-/// This implementation is also compatible with the SK9822 LEDs, which are more or less a clone of the APA102C LED, though there
-/// are some notable differences seen [here][1] that are accounted for in this implementation.
+/// This implementation is also compatible with the SK9822 LEDs which is more or less a clone of the APA102C LED, though there
+/// are some notable differences, seen [here][1], that are accounted for in this implementation.
 ///
 /// For APA102C LEDs, it generally isn't recommended to have the brightness set to anything other than full as the PWM that
 /// handles the brightness runs at 440Hz, which can cause flicker issues on lower brightness settings. The SK9822 clone gets
@@ -171,17 +171,14 @@ mod builder_test {
 ///
 /// ### Start Frame
 ///
-/// The start frame representing the start of a message to the LEDs as
-/// defined by the [datasheet][2].
+/// The start frame representing the start of a message to the LEDs as defined by the [datasheet][2].
 ///
 /// [2]: https://cdn-shop.adafruit.com/datasheets/APA102.pdf
 ///
 /// ### End Frame
 ///
-/// The end frame representing the end of a message to the LEDs as defined
-/// by the [datasheet][3] with modifications as revealed in
-/// [this blog post][4], and a subsequent [follow-up post][5] discussing the
-/// APA102C clone, the SK9822.
+/// The end frame representing the end of a message to the LEDs as defined by the [datasheet][3] with modifications as revealed
+/// in [this blog post][4], and a subsequent [follow-up post][5] discussing the APA102C clone, the SK9822.
 ///
 /// [3]: https://cdn-shop.adafruit.com/datasheets/APA102.pdf
 /// [4]: https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled/
@@ -255,8 +252,7 @@ impl APA102CPiDraw {
         }
     }
 
-    /// The start frame representing the start of a message to the LEDs as
-    /// defined by the [datasheet][0].
+    /// The start frame representing the start of a message to the LEDs as defined by the [datasheet][0].
     ///
     /// [0]: https://cdn-shop.adafruit.com/datasheets/APA102.pdf
     #[inline]
@@ -269,10 +265,8 @@ impl APA102CPiDraw {
         self.write_byte(0x00);
     }
 
-    /// The end frame representing the end of a message to the LEDs as defined
-    /// by the [datasheet][0] with modifications as revealed in
-    /// [this blog post][1], and a subsequent [follow-up post][2] discussing the
-    /// APA102C clone, the SK9822.
+    /// The end frame representing the end of a message to the LEDs as defined by the [datasheet][0] with modifications as
+    /// revealed in [this blog post][1], and a subsequent [follow-up post][2] discussing the APA102C clone, the SK9822.
     ///
     /// [0]: https://cdn-shop.adafruit.com/datasheets/APA102.pdf
     /// [1]: https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled/
@@ -284,8 +278,7 @@ impl APA102CPiDraw {
         }
     }
 
-    /// Writes a single byte of data to the `data` pin sequentially one bit at a
-    /// time starting with the MSB.
+    /// Writes a single byte of data to the `data` pin sequentially one bit at a time starting with the MSB.
     #[inline]
     fn write_byte(&mut self, byte: u8) {
         self.data.write(bit_to_level(byte, 7));
@@ -321,8 +314,7 @@ impl APA102CPiDraw {
         self.clock.toggle();
     }
 
-    /// Simple function used to ensure the pins are set to low before sending a
-    /// message to the LEDs.
+    /// Simple function used to ensure the pins are set to low before sending a message to the LEDs.
     #[inline]
     fn set_pins_low(&mut self) {
         self.data.set_low();
@@ -345,8 +337,7 @@ impl APA102CPiDraw {
         self.end_frame(len);
     }
 
-    /// Writes a frame to the LEDs. Uses color order BGR as defined in the
-    /// datasheet.
+    /// Writes a frame to the LEDs. Uses color order `BGR` as defined in the datasheet.
     fn write_frame(&mut self, display_id: usize) {
         let (brightness_mask, len) = (
             0xE0 | self.brightness,
@@ -413,8 +404,8 @@ impl Draw for APA102CPiDraw {
 }
 
 impl Drop for APA102CPiDraw {
-    /// For our eye's sake, this custom `Drop` implementation ensures that when the LED controller is stopped, the LEDs will be
-    /// set to off so they don't blind anyone.
+    /// For our eye's sake, this custom `Drop` implementation ensures that when
+    /// the LED controller is stopped, the LEDs will be set to off so they don't blind anyone.
     fn drop(&mut self) {
         self.stop(self.num);
     }

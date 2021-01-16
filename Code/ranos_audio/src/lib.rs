@@ -10,7 +10,7 @@
 pub const SIZE: usize = 1 << 10;
 
 pub mod analysis;
-pub mod player;
+pub mod accessor;
 pub mod util;
 
 #[cfg(feature = "audio_out")]

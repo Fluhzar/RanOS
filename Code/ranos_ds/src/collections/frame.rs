@@ -1,11 +1,11 @@
-//! # Frame
+//! Defines the idea of a frame being a collection of pixels and a brightness.
 
 use std::io;
 use std::slice::{Iter, IterMut};
 
 use crate::rgb::{RGBOrder, RGB};
 
-/// A struct representing a single frame of color values and a brightness.
+/// Struct representing a single frame of color values and a brightness.
 #[repr(C)]
 #[derive(Debug, Default, Clone)]
 pub struct Frame {
@@ -14,7 +14,7 @@ pub struct Frame {
 }
 
 impl Frame {
-    /// Creates a new `Frame` from a given possibly-controlled duration, brightness, and size.
+    /// Creates a new [`Frame`] from a given brightness, and size.
     pub fn new(brightness: f32, size: usize) -> Self {
         let brightness = brightness.min(1.0).max(0.0);
         Self {
@@ -23,7 +23,7 @@ impl Frame {
         }
     }
 
-    /// Attempts to read a `Frame` from the `reader`.
+    /// Attempts to read a [`Frame`] from the `reader`.
     ///
     /// # Errors
     ///
@@ -44,7 +44,7 @@ impl Frame {
         Ok(Self { brightness, leds })
     }
 
-    /// Attempts to write a `Frame` to the `writer`, returning the number of bytes written.
+    /// Attempts to write a [`Frame`] to the `writer`, returning the number of bytes written.
     ///
     /// # Errors
     ///
@@ -65,17 +65,14 @@ impl Frame {
         Ok(count)
     }
 
-    /// Returns the brightness in range [0, 1].
+    /// Returns the brightness in range \[0, 1\].
     pub fn brightness(&self) -> f32 {
         self.brightness
     }
 
     /// Sets the brightness to a given value.
     ///
-    /// # Note
-    ///
-    /// Value should be in the range of [0, 1]. If the value is not within this
-    /// range, it will be clamped to it.
+    /// Note: he value should be in the range of \[0, 1\]. If the value is within this range, it will be clamped to it.
     pub fn set_brightness(&mut self, brightness: f32) {
         let brightness = brightness.min(1.0).max(0.0);
         self.brightness = brightness;
@@ -86,22 +83,22 @@ impl Frame {
         self.leds.len()
     }
 
-    /// Returns the internal buffer as a immutable slice.
+    /// Returns the internal buffer of pixels as a immutable slice.
     pub fn as_slice(&self) -> &[RGB] {
         &self.leds
     }
 
-    /// Returns the internal buffer as a mutable slice.
+    /// Returns the internal buffer of pixels as a mutable slice.
     pub fn as_mut_slice(&mut self) -> &mut [RGB] {
         &mut self.leds
     }
 
-    /// Returns an immutable iterator of the internal buffer.
+    /// Returns an immutable iterator of the internal buffer of pixels.
     pub fn iter(&self) -> Iter<RGB> {
         self.leds.iter()
     }
 
-    /// Returns an mutable iterator of the internal buffer.
+    /// Returns an mutable iterator of the internal buffer of pixels.
     pub fn iter_mut(&mut self) -> IterMut<RGB> {
         self.leds.iter_mut()
     }
