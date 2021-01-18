@@ -1,4 +1,4 @@
-//! Classic rainbow-puke animation as seen anywhere that displays how cool and awesome RGB LEDs are.
+//! Classic rainbow-puke generator as seen anywhere that displays how cool and awesome RGB LEDs are.
 
 use std::time::Duration;
 
@@ -8,7 +8,7 @@ use ranos_ds::{collections::frame::Frame, const_val::ConstVal, rgb::RGB};
 
 use super::*;
 
-/// Builder for the [`Rainbow`] animation.
+/// Builder for the [`Rainbow`] generator.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Rainbow")]
 pub struct RainbowBuilder {
@@ -71,8 +71,8 @@ impl RainbowBuilder {
 }
 
 #[typetag::serde]
-impl AnimationBuilder for RainbowBuilder {
-    fn build(self: Box<Self>) -> Box<dyn Animation> {
+impl GeneratorBuilder for RainbowBuilder {
+    fn build(self: Box<Self>) -> Box<dyn Generator> {
         Box::new(self.build())
     }
 }
@@ -162,8 +162,8 @@ impl Rainbow {
     }
 }
 
-impl Animation for Rainbow {
-    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
+impl Generator for Rainbow {
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState {
         self.hue += self.dh.get() * dt.as_secs_f32();
 
         if self.hue >= 360.0 {
@@ -180,10 +180,10 @@ impl Animation for Rainbow {
             *led = RGB::from_hsv(self.hue + step, *self.sat.get(), *self.val.get());
         }
 
-        AnimationState::Ok
+        GeneratorState::Ok
     }
 
-    fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
+    fn reset(mut self: Box<Self>) -> Box<dyn Generator> {
         self.hue = 0.0;
 
         self

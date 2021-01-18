@@ -1,4 +1,4 @@
-//! A simple breathing animation, drawing a color starting at 0 brightness, then fading to full brightness, and back to 0.
+//! A simple breathing generator, drawing a color starting at 0 brightness, then fading to full brightness, and back to 0.
 
 use std::time::Duration;
 
@@ -8,7 +8,7 @@ use ranos_ds::{const_val::ConstVal, rgb::RGB};
 
 use super::*;
 
-/// Builder for the [`Breath`] animation.
+/// Builder for the [`Breath`] generator.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Breath")]
 pub struct BreathBuilder {
@@ -24,7 +24,7 @@ impl BreathBuilder {
         self
     }
 
-    /// Sets a given order that the animation cycles through.
+    /// Sets a given order that the generator cycles through.
     pub fn order(mut self: Box<Self>, order: ColorOrder) -> Box<Self> {
         self.order = order;
 
@@ -38,8 +38,8 @@ impl BreathBuilder {
 }
 
 #[typetag::serde]
-impl AnimationBuilder for BreathBuilder {
-    fn build(self: Box<Self>) -> Box<dyn Animation> {
+impl GeneratorBuilder for BreathBuilder {
+    fn build(self: Box<Self>) -> Box<dyn Generator> {
         Box::new(self.build())
     }
 }
@@ -135,8 +135,8 @@ impl Breath {
     }
 }
 
-impl Animation for Breath {
-    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
+impl Generator for Breath {
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState {
         self.vel += self.acc.get() * dt.as_secs_f32();
         self.pos += self.vel * dt.as_secs_f32();
 
@@ -157,10 +157,10 @@ impl Animation for Breath {
             *led = self.current_color.scale(self.pos);
         }
 
-        AnimationState::Ok
+        GeneratorState::Ok
     }
 
-    fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
+    fn reset(mut self: Box<Self>) -> Box<dyn Generator> {
         self.ind = 0;
         self.current_color = match &self.order {
             ColorOrder::Ordered(v) => v[0],

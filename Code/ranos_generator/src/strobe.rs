@@ -1,4 +1,4 @@
-//! A strobing animation.
+//! A strobing generator.
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use ranos_ds::{
 
 use super::*;
 
-/// Builder for the [`Strobe`] animation.
+/// Builder for the [`Strobe`] generator.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Strobe")]
 pub struct StrobeBuilder {
@@ -50,8 +50,8 @@ impl StrobeBuilder {
 }
 
 #[typetag::serde]
-impl AnimationBuilder for StrobeBuilder {
-    fn build(self: Box<Self>) -> Box<dyn Animation> {
+impl GeneratorBuilder for StrobeBuilder {
+    fn build(self: Box<Self>) -> Box<dyn Generator> {
         Box::new(self.build())
     }
 }
@@ -133,8 +133,8 @@ impl Strobe {
     }
 }
 
-impl Animation for Strobe {
-    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
+impl Generator for Strobe {
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState {
         // Accumulate the time, clamping it to a range of [0, self.period)
         self.time = (self.time + dt.as_secs_f64()) % self.period.get();
 
@@ -153,10 +153,10 @@ impl Animation for Strobe {
             *led = color;
         }
 
-        AnimationState::Ok
+        GeneratorState::Ok
     }
 
-    fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
+    fn reset(mut self: Box<Self>) -> Box<dyn Generator> {
         self.time = 0.0;
 
         self

@@ -2,10 +2,10 @@
 members = [
     "ranos",
     "ranos_doc",
-    "ranos_animation",
+    "ranos_generator",
     "ranos_filter",
-    "ranos_draw",
     "ranos_display",
+    "ranos_draw",
     "ranos_core",
     "ranos_ds",
     "ranos_audio",

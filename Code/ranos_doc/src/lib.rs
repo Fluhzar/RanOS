@@ -8,14 +8,14 @@
 
 /// Writes default config files to `Code/ignore`.
 ///
-/// Note: the folder `ignore` as well as its sub-folders `animation`, `display`, and `draw` must all exist before this is run.
+/// Note: the folder `ignore` as well as its sub-folders `generator`, `display`, and `draw` must all exist before this is run.
 pub fn write_base_rons() {
-    animation::breath();
-    animation::cycle();
-    animation::rainbow();
-    animation::solid();
-    animation::strobe();
-    animation::animation();
+    generator::breath();
+    generator::cycle();
+    generator::rainbow();
+    generator::solid();
+    generator::strobe();
+    generator::generator();
 
     display::display();
 
@@ -25,10 +25,10 @@ pub fn write_base_rons() {
     draw::draw();
 }
 
-pub(self) mod animation {
+pub(self) mod generator {
     use std::{fs::File, time::Duration};
 
-    use ranos_animation::{AnimationBuilder, Breath, ColorOrder, Cycle, Rainbow, Solid, Strobe};
+    use ranos_generator::{GeneratorBuilder, Breath, ColorOrder, Cycle, Rainbow, Solid, Strobe};
     use ranos_ds::rgb::{RGBOrder, RGB};
 
     pub(super) fn breath() {
@@ -36,14 +36,14 @@ pub(self) mod animation {
 
         // breath_random
         {
-            let file = File::create("ignore/animation/breath_random.ron").unwrap();
+            let file = File::create("ignore/generator/breath_random.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
                 &(Breath::builder()
                     .runtime(Duration::from_secs_f64(8.0))
                     .breath_duration(Duration::from_secs(4))
-                    .order(ColorOrder::Random) as Box<dyn AnimationBuilder>),
+                    .order(ColorOrder::Random) as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
             )
             .unwrap();
@@ -51,7 +51,7 @@ pub(self) mod animation {
 
         // breath_random_bright
         {
-            let file = File::create("ignore/animation/breath_random_bright.ron").unwrap();
+            let file = File::create("ignore/generator/breath_random_bright.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
@@ -59,7 +59,7 @@ pub(self) mod animation {
                     .runtime(Duration::from_secs_f64(8.0))
                     .breath_duration(Duration::from_secs(4))
                     .order(ColorOrder::RandomBright)
-                    as Box<dyn AnimationBuilder>),
+                    as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
             )
             .unwrap();
@@ -67,7 +67,7 @@ pub(self) mod animation {
 
         // breath_ordered
         {
-            let file = File::create("ignore/animation/breath_ordered.ron").unwrap();
+            let file = File::create("ignore/generator/breath_ordered.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
@@ -81,7 +81,7 @@ pub(self) mod animation {
                         RGB::from_hsv(180.0, 1.0, 1.0),
                         RGB::from_hsv(240.0, 1.0, 1.0),
                         RGB::from_hsv(300.0, 1.0, 1.0),
-                    ])) as Box<dyn AnimationBuilder>),
+                    ])) as Box<dyn GeneratorBuilder>),
                 pretty,
             )
             .unwrap();
@@ -93,14 +93,14 @@ pub(self) mod animation {
 
         // cycle_random
         {
-            let file = File::create("ignore/animation/cycle_random.ron").unwrap();
+            let file = File::create("ignore/generator/cycle_random.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
                 &(Cycle::builder()
                     .runtime(Duration::from_secs_f64(8.0))
                     .cycle_period(Duration::from_secs_f64(0.25))
-                    .order(ColorOrder::Random) as Box<dyn AnimationBuilder>),
+                    .order(ColorOrder::Random) as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
             )
             .unwrap();
@@ -108,7 +108,7 @@ pub(self) mod animation {
 
         // cycle_random_bright
         {
-            let file = File::create("ignore/animation/cycle_random_bright.ron").unwrap();
+            let file = File::create("ignore/generator/cycle_random_bright.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
@@ -116,7 +116,7 @@ pub(self) mod animation {
                     .runtime(Duration::from_secs_f64(8.0))
                     .cycle_period(Duration::from_secs_f64(0.25))
                     .order(ColorOrder::RandomBright)
-                    as Box<dyn AnimationBuilder>),
+                    as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
             )
             .unwrap();
@@ -124,7 +124,7 @@ pub(self) mod animation {
 
         // cycle_ordered
         {
-            let file = File::create("ignore/animation/cycle_ordered.ron").unwrap();
+            let file = File::create("ignore/generator/cycle_ordered.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
@@ -135,7 +135,7 @@ pub(self) mod animation {
                         RGB::from_code(0xFF_00_00, ranos_ds::rgb::RGBOrder::RGB),
                         RGB::from_code(0x00_FF_00, ranos_ds::rgb::RGBOrder::RGB),
                         RGB::from_code(0x00_00_FF, ranos_ds::rgb::RGBOrder::RGB),
-                    ])) as Box<dyn AnimationBuilder>),
+                    ])) as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
             )
             .unwrap();
@@ -147,7 +147,7 @@ pub(self) mod animation {
 
         // rainbow
         {
-            let file = File::create("ignore/animation/rainbow.ron").unwrap();
+            let file = File::create("ignore/generator/rainbow.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
@@ -157,7 +157,7 @@ pub(self) mod animation {
                     .saturation(1.0)
                     .value(1.0)
                     .arc(1.0)
-                    .step(1) as Box<dyn AnimationBuilder>),
+                    .step(1) as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
             )
             .unwrap();
@@ -169,7 +169,7 @@ pub(self) mod animation {
 
         // solid
         {
-            let file = File::create("ignore/animation/solid.ron").unwrap();
+            let file = File::create("ignore/generator/solid.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
@@ -188,7 +188,7 @@ pub(self) mod animation {
 
         // strobe
         {
-            let file = File::create("ignore/animation/strobe.ron").unwrap();
+            let file = File::create("ignore/generator/strobe.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
@@ -197,23 +197,23 @@ pub(self) mod animation {
                     .period(Duration::from_secs(1))
                     .duty(0.5)
                     .color(RGB::from_code(0xFF_FF_FF, RGBOrder::RGB))
-                    as Box<dyn AnimationBuilder>),
+                    as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
             )
             .unwrap();
         }
     }
 
-    pub(super) fn animation() {
+    pub(super) fn generator() {
         let pretty = ron::ser::PrettyConfig::default();
 
-        // animation
+        // generator
         {
-            let file = File::create("ignore/animation/animation.ron").unwrap();
+            let file = File::create("ignore/generator/generator.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
-                &(Cycle::builder() as Box<dyn AnimationBuilder>),
+                &(Cycle::builder() as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
             )
             .unwrap();
@@ -224,7 +224,7 @@ pub(self) mod animation {
 pub(self) mod display {
     use std::{fs::File, time::Duration};
 
-    use ranos_animation::{Breath, ColorOrder, Rainbow};
+    use ranos_generator::{Breath, ColorOrder, Rainbow};
     use ranos_display::Display;
 
     pub(super) fn display() {
@@ -237,14 +237,14 @@ pub(self) mod display {
             ron::ser::to_writer_pretty(file, &Display::builder(), pretty.clone()).unwrap();
         }
 
-        // display_with_animations
+        // display_with_generators
         {
-            let file = File::create("ignore/display/display_with_animations.ron").unwrap();
+            let file = File::create("ignore/display/display_with_generators.ron").unwrap();
 
             ron::ser::to_writer_pretty(
                 file,
                 &Display::builder()
-                    .animation(
+                    .generator(
                         Rainbow::builder()
                             .runtime(Duration::from_secs_f64(8.0))
                             .rainbow_length(Duration::from_secs(4))
@@ -253,7 +253,7 @@ pub(self) mod display {
                             .arc(1.0)
                             .step(1),
                     )
-                    .animation(
+                    .generator(
                         Breath::builder()
                             .runtime(Duration::from_secs_f64(8.0))
                             .breath_duration(Duration::from_secs(4))
@@ -269,7 +269,7 @@ pub(self) mod display {
 pub(self) mod draw {
     use std::{fs::File, time::Duration};
 
-    use ranos_animation::{Breath, ColorOrder, Rainbow};
+    use ranos_generator::{Breath, ColorOrder, Rainbow};
     use ranos_core::Timer;
     use ranos_display::Display;
     use ranos_draw::{APA102CPiDraw, DrawBuilder, NullDraw, TermDraw};
@@ -342,7 +342,7 @@ pub(self) mod draw {
                     as Box<dyn DrawBuilder>)
                     .display(
                         Display::builder()
-                            .animation(
+                            .generator(
                                 Rainbow::builder()
                                     .runtime(Duration::from_secs_f64(8.0))
                                     .rainbow_length(Duration::from_secs(4))
@@ -351,7 +351,7 @@ pub(self) mod draw {
                                     .arc(1.0)
                                     .step(1),
                             )
-                            .animation(
+                            .generator(
                                 Breath::builder()
                                     .runtime(Duration::from_secs_f64(8.0))
                                     .breath_duration(Duration::from_secs(4))

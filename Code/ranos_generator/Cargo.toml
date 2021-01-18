@@ -1,5 +1,5 @@
 [package]
-name = "ranos_animation"
+name = "ranos_generator"
 version = "0.3.0"
 authors = ["Fluhzar <fluhzar@pm.me>"]
 edition = "2018"

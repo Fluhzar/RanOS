@@ -28,7 +28,7 @@ impl NullDrawBuilder {
 
     /// Add a builder for a display that will be built at the same time as this builder.
     ///
-    /// Be sure to add animations to the display builder before adding it to the drawer as it will be inaccessible afterwards.
+    /// Be sure to add generators to the display builder before adding it to the drawer as it will be inaccessible afterwards.
     ///
     /// Note: Multiple [`DisplayBuilder`]s can be added.
     pub fn display(mut self: Box<Self>, display: DisplayBuilder) -> Box<Self> {

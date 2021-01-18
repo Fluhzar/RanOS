@@ -11,7 +11,7 @@ serde = { version = "1.0", features = ["derive"] }
 
 ranos_core = { path = "../ranos_core" }
 ranos_ds = { path = "../ranos_ds" }
-ranos_animation = { path = "../ranos_animation" }
+ranos_generator = { path = "../ranos_generator" }
 
 [dev-dependencies]
 ron = "0.6"

@@ -1,4 +1,4 @@
-//! Defines the ability for animations to be rendered.
+//! Defines the ability for generators to be rendered.
 
 #![warn(missing_docs)]
 #![deny(broken_intra_doc_links)]
@@ -25,12 +25,12 @@ pub mod rainbow;
 pub mod solid;
 pub mod strobe;
 
-/// Enum denoting different end-states that an [`Animation`] object may return.
+/// Enum denoting different end-states that an [`Generator`] object may return.
 ///
 /// The `ErrRetry` state is given for use in statistical tracking and more
 /// complex operations that could fail, but still be able to continue (e.g. file
 /// I/O).
-pub enum AnimationState {
+pub enum GeneratorState {
     /// Denotes that the operation was successful.
     Ok,
     /// Denotes that an error occurred but the object can retry the operation.
@@ -42,28 +42,28 @@ pub enum AnimationState {
 }
 
 /// Trait for types that implement types that animates the pixels of a frame.
-pub trait Animation: std::fmt::Debug {
-    /// Renders the frame with the next frame of the animation given the input `dt`.
-    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState;
+pub trait Generator: std::fmt::Debug {
+    /// Renders the frame with the next frame of the generator given the input `dt`.
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState;
 
-    /// Resets the animation to its pre-run state, operating as if it were never run before.
-    fn reset(self: Box<Self>) -> Box<dyn Animation>;
+    /// Resets the generator to its pre-run state, operating as if it were never run before.
+    fn reset(self: Box<Self>) -> Box<dyn Generator>;
 }
 
-/// Trait for building animation types.
+/// Trait for building generator types.
 #[typetag::serde(tag = "type", content = "value")]
-pub trait AnimationBuilder: std::fmt::Debug {
-    /// Creates a new animation object from the builder.
-    fn build(self: Box<Self>) -> Box<dyn Animation>;
+pub trait GeneratorBuilder: std::fmt::Debug {
+    /// Creates a new generator object from the builder.
+    fn build(self: Box<Self>) -> Box<dyn Generator>;
 }
 
 #[cfg(test)]
 mod builder_test {
-    use crate::{AnimationBuilder, Cycle};
+    use crate::{GeneratorBuilder, Cycle};
 
     #[test]
     fn test_serialize() {
-        let builder: Box<dyn AnimationBuilder> = Cycle::builder();
+        let builder: Box<dyn GeneratorBuilder> = Cycle::builder();
 
         let data = ron::ser::to_string(&builder).unwrap();
 
@@ -76,7 +76,7 @@ mod builder_test {
         let input = r#"(type:"CycleBuilder",value:(,cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)])))"#;
 
         assert_eq!(
-            ron::ser::to_string(&ron::de::from_str::<Box<dyn AnimationBuilder>>(input).unwrap())
+            ron::ser::to_string(&ron::de::from_str::<Box<dyn GeneratorBuilder>>(input).unwrap())
                 .unwrap(),
             input
         );

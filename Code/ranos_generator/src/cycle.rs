@@ -1,4 +1,4 @@
-//! Animation that cycles between colors at a set interval.
+//! Generator that cycles between colors at a set interval.
 
 use std::time::Duration;
 
@@ -11,7 +11,7 @@ use ranos_ds::{
 
 use super::*;
 
-/// Builder for the [`Cycle`] animation.
+/// Builder for the [`Cycle`] generator.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Cycle")]
 pub struct CycleBuilder {
@@ -27,7 +27,7 @@ impl CycleBuilder {
         self
     }
 
-    /// Sets a given order that the animation cycles through.
+    /// Sets a given order that the generator cycles through.
     pub fn order(mut self: Box<Self>, order: ColorOrder) -> Box<Self> {
         self.order = order;
 
@@ -41,8 +41,8 @@ impl CycleBuilder {
 }
 
 #[typetag::serde]
-impl AnimationBuilder for CycleBuilder {
-    fn build(self: Box<Self>) -> Box<dyn Animation> {
+impl GeneratorBuilder for CycleBuilder {
+    fn build(self: Box<Self>) -> Box<dyn Generator> {
         Box::new(self.build())
     }
 }
@@ -128,8 +128,8 @@ impl Cycle {
     }
 }
 
-impl Animation for Cycle {
-    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState {
+impl Generator for Cycle {
+    fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState {
         self.cycle_time_remaining = if let Some(d) = self.cycle_time_remaining.checked_sub(dt) {
             d
         } else {
@@ -149,10 +149,10 @@ impl Animation for Cycle {
             self.cycle_period.get().clone() + self.cycle_time_remaining - dt
         };
 
-        AnimationState::Ok
+        GeneratorState::Ok
     }
 
-    fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
+    fn reset(mut self: Box<Self>) -> Box<dyn Generator> {
         self.ind = 0;
         self.current_color = match &self.order {
             ColorOrder::Ordered(v) => v[0],

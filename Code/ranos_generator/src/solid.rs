@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use ranos_ds::{const_val::ConstVal, rgb::{RGB, RGBOrder}};
 use super::*;
 
-/// Builder for the [`Solid`] animation.
+/// Builder for the [`Solid`] generator.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Solid")]
 pub struct SolidBuilder {
@@ -27,8 +27,8 @@ impl SolidBuilder {
 }
 
 #[typetag::serde]
-impl AnimationBuilder for SolidBuilder {
-    fn build(self: Box<Self>) -> Box<dyn Animation> {
+impl GeneratorBuilder for SolidBuilder {
+    fn build(self: Box<Self>) -> Box<dyn Generator> {
         Box::new(self.build())
     }
 }
@@ -83,16 +83,16 @@ impl Solid {
     }
 }
 
-impl Animation for Solid {
-    fn render_frame(&mut self, frame: &mut Frame, _: Duration) -> AnimationState {
+impl Generator for Solid {
+    fn render_frame(&mut self, frame: &mut Frame, _: Duration) -> GeneratorState {
         for led in frame.iter_mut() {
             *led = *self.color.get();
         }
 
-        AnimationState::Ok
+        GeneratorState::Ok
     }
 
-    fn reset(self: Box<Self>) -> Box<dyn Animation> {
+    fn reset(self: Box<Self>) -> Box<dyn Generator> {
         self
     }
 }
