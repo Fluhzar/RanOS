@@ -41,7 +41,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Breath::builder()
-                    .runtime(Duration::from_secs_f64(8.0))
                     .breath_duration(Duration::from_secs(4))
                     .order(ColorOrder::Random) as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
@@ -56,7 +55,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Breath::builder()
-                    .runtime(Duration::from_secs_f64(8.0))
                     .breath_duration(Duration::from_secs(4))
                     .order(ColorOrder::RandomBright)
                     as Box<dyn GeneratorBuilder>),
@@ -72,7 +70,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Breath::builder()
-                    .runtime(Duration::from_secs_f64(8.0))
                     .breath_duration(Duration::from_secs(4))
                     .order(ColorOrder::Ordered(vec![
                         RGB::from_hsv(0.0, 1.0, 1.0),
@@ -98,7 +95,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Cycle::builder()
-                    .runtime(Duration::from_secs_f64(8.0))
                     .cycle_period(Duration::from_secs_f64(0.25))
                     .order(ColorOrder::Random) as Box<dyn GeneratorBuilder>),
                 pretty.clone(),
@@ -113,7 +109,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Cycle::builder()
-                    .runtime(Duration::from_secs_f64(8.0))
                     .cycle_period(Duration::from_secs_f64(0.25))
                     .order(ColorOrder::RandomBright)
                     as Box<dyn GeneratorBuilder>),
@@ -129,7 +124,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Cycle::builder()
-                    .runtime(Duration::from_secs_f64(8.0))
                     .cycle_period(Duration::from_secs_f64(0.25))
                     .order(ColorOrder::Ordered(vec![
                         RGB::from_code(0xFF_00_00, ranos_ds::rgb::RGBOrder::RGB),
@@ -152,7 +146,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Rainbow::builder()
-                    .runtime(Duration::from_secs_f64(8.0))
                     .rainbow_length(Duration::from_secs(4))
                     .saturation(1.0)
                     .value(1.0)
@@ -174,7 +167,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Solid::builder()
-                    .runtime(Duration::from_secs(8))
                     .color(RGB::from_code(0x00_FF_FF, RGBOrder::RGB))
                 ),
                 pretty
@@ -193,7 +185,6 @@ pub(self) mod generator {
             ron::ser::to_writer_pretty(
                 file,
                 &(Strobe::builder()
-                    .runtime(Duration::from_secs_f64(8.0))
                     .period(Duration::from_secs(1))
                     .duty(0.5)
                     .color(RGB::from_code(0xFF_FF_FF, RGBOrder::RGB))
@@ -225,7 +216,7 @@ pub(self) mod display {
     use std::{fs::File, time::Duration};
 
     use ranos_generator::{Breath, ColorOrder, Rainbow};
-    use ranos_display::Display;
+    use ranos_display::{Display, Runtime};
 
     pub(super) fn display() {
         let pretty = ron::ser::PrettyConfig::default();
@@ -246,18 +237,18 @@ pub(self) mod display {
                 &Display::builder()
                     .generator(
                         Rainbow::builder()
-                            .runtime(Duration::from_secs_f64(8.0))
                             .rainbow_length(Duration::from_secs(4))
                             .saturation(1.0)
                             .value(1.0)
                             .arc(1.0)
                             .step(1),
+                        Runtime::Time(Duration::from_secs(8)),
                     )
                     .generator(
                         Breath::builder()
-                            .runtime(Duration::from_secs_f64(8.0))
                             .breath_duration(Duration::from_secs(4))
                             .order(ColorOrder::Random),
+                        Runtime::Trigger,
                     ),
                 pretty.clone(),
             )
@@ -271,7 +262,7 @@ pub(self) mod draw {
 
     use ranos_generator::{Breath, ColorOrder, Rainbow};
     use ranos_core::Timer;
-    use ranos_display::Display;
+    use ranos_display::{Display, Runtime};
     use ranos_draw::{APA102CPiDraw, DrawBuilder, NullDraw, TermDraw};
 
     pub(super) fn null() {
@@ -344,18 +335,18 @@ pub(self) mod draw {
                         Display::builder()
                             .generator(
                                 Rainbow::builder()
-                                    .runtime(Duration::from_secs_f64(8.0))
                                     .rainbow_length(Duration::from_secs(4))
                                     .saturation(1.0)
                                     .value(1.0)
                                     .arc(1.0)
                                     .step(1),
+                                Runtime::Time(Duration::from_secs(8)),
                             )
                             .generator(
                                 Breath::builder()
-                                    .runtime(Duration::from_secs_f64(8.0))
                                     .breath_duration(Duration::from_secs(4))
                                     .order(ColorOrder::Random),
+                                Runtime::Trigger,
                             ),
                     ),
                 pretty.clone(),
