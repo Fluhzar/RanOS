@@ -28,8 +28,8 @@ pub fn write_base_rons() {
 pub(self) mod generator {
     use std::{fs::File, time::Duration};
 
-    use ranos_generator::{GeneratorBuilder, Breath, ColorOrder, Cycle, Rainbow, Solid, Strobe};
     use ranos_ds::rgb::{RGBOrder, RGB};
+    use ranos_generator::{Breath, ColorOrder, Cycle, GeneratorBuilder, Rainbow, Solid, Strobe};
 
     pub(super) fn breath() {
         let pretty = ron::ser::PrettyConfig::default();
@@ -166,10 +166,8 @@ pub(self) mod generator {
 
             ron::ser::to_writer_pretty(
                 file,
-                &(Solid::builder()
-                    .color(RGB::from_code(0x00_FF_FF, RGBOrder::RGB))
-                ),
-                pretty
+                &(Solid::builder().color(RGB::from_code(0x00_FF_FF, RGBOrder::RGB))),
+                pretty,
             )
             .unwrap();
         }
@@ -215,8 +213,8 @@ pub(self) mod generator {
 pub(self) mod display {
     use std::{fs::File, time::Duration};
 
-    use ranos_generator::{Breath, ColorOrder, Rainbow};
     use ranos_display::{Display, Runtime};
+    use ranos_generator::{Breath, ColorOrder, Rainbow};
 
     pub(super) fn display() {
         let pretty = ron::ser::PrettyConfig::default();
@@ -260,10 +258,10 @@ pub(self) mod display {
 pub(self) mod draw {
     use std::{fs::File, time::Duration};
 
-    use ranos_generator::{Breath, ColorOrder, Rainbow};
     use ranos_core::Timer;
     use ranos_display::{Display, Runtime};
     use ranos_draw::{APA102CPiDraw, DrawBuilder, NullDraw, TermDraw};
+    use ranos_generator::{Breath, ColorOrder, Rainbow};
 
     pub(super) fn null() {
         let pretty = ron::ser::PrettyConfig::default();

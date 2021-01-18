@@ -1,9 +1,12 @@
 //! Draws a solid color to all pixels.
 
-use std::time::Duration;
-use serde::{Deserialize, Serialize};
-use ranos_ds::{const_val::ConstVal, rgb::{RGB, RGBOrder}};
 use super::*;
+use ranos_ds::{
+    const_val::ConstVal,
+    rgb::{RGBOrder, RGB},
+};
+use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 /// Builder for the [`Solid`] generator.
 #[derive(Debug, Serialize, Deserialize)]

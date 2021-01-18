@@ -8,12 +8,16 @@
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
-use std::{collections::{HashMap, VecDeque}, iter::Iterator, time::Duration};
+use std::{
+    collections::{HashMap, VecDeque},
+    iter::Iterator,
+    time::Duration,
+};
 
 use serde::{Deserialize, Serialize};
 
-use ranos_generator::{Generator, GeneratorBuilder, GeneratorState};
 use ranos_ds::{collections::Frame, const_val::ConstVal};
+use ranos_generator::{Generator, GeneratorBuilder, GeneratorState};
 
 /// Sets the type of runtime a generator has within the display. Can be a configured time, or an event trigger.
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -117,13 +121,15 @@ mod builder_test {
 
         let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"(brightness:1,size:64,looping:false,generator_builders:[],generator_runtimes:[])"#;
+        let expected =
+            r#"(brightness:1,size:64,looping:false,generator_builders:[],generator_runtimes:[])"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserializer() {
-        let input = r#"(brightness:1,size:64,looping:false,generator_builders:[],generator_runtimes:[])"#;
+        let input =
+            r#"(brightness:1,size:64,looping:false,generator_builders:[],generator_runtimes:[])"#;
 
         let data: DisplayBuilder = ron::de::from_str(input).unwrap();
 
@@ -163,7 +169,10 @@ impl Display {
             builder.brightness,
             builder.size,
             builder.looping,
-            builder.generator_builders.drain(0..).zip(builder.generator_runtimes.drain(0..)),
+            builder
+                .generator_builders
+                .drain(0..)
+                .zip(builder.generator_runtimes.drain(0..)),
         )
     }
 
@@ -209,18 +218,20 @@ impl Display {
             match anim.render_frame(&mut self.frame, dt) {
                 GeneratorState::Ok => {
                     match rt {
-                        Runtime::Time(t) => if let Some(t) = t.checked_sub(dt) {
-                            self.generators.push_front((anim, Runtime::Time(t)));
-                        } else {
-                            if self.looping {
-                                self.generators.push_back((anim, rt));
+                        Runtime::Time(t) => {
+                            if let Some(t) = t.checked_sub(dt) {
+                                self.generators.push_front((anim, Runtime::Time(t)));
+                            } else {
+                                if self.looping {
+                                    self.generators.push_back((anim, rt));
+                                }
+                                // Render the next frame with the remaining dt of this frame.
+                                self.render_frame(dt.checked_sub(t).unwrap());
                             }
-                            // Render the next frame with the remaining dt of this frame.
-                            self.render_frame(dt.checked_sub(t).unwrap());
-                        },
+                        }
                         Runtime::Trigger => {
                             self.trigger_next_generator();
-                        },
+                        }
                     };
 
                     DisplayState::Ok
@@ -230,7 +241,7 @@ impl Display {
                     self.generators.push_front((anim, rt));
 
                     DisplayState::Ok
-                },
+                }
                 GeneratorState::ErrFatal => DisplayState::ErrFatal,
             }
         } else {

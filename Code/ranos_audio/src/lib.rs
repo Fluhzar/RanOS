@@ -9,8 +9,8 @@
 /// Size of the buffer used in all audio calculations.
 pub const SIZE: usize = 1 << 10;
 
-pub mod analysis;
 pub mod accessor;
+pub mod analysis;
 pub mod util;
 
 #[cfg(feature = "audio_out")]

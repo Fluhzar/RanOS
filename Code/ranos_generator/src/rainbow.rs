@@ -145,13 +145,7 @@ impl Rainbow {
         )
     }
 
-    fn new(
-        rainbow_length: Duration,
-        sat: f32,
-        val: f32,
-        arc: f32,
-        step: usize,
-    ) -> Self {
+    fn new(rainbow_length: Duration, sat: f32, val: f32, arc: f32, step: usize) -> Self {
         Self {
             id: ranos_core::id::generate(),
 

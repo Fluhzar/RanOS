@@ -58,7 +58,7 @@ pub trait GeneratorBuilder: std::fmt::Debug {
 
 #[cfg(test)]
 mod builder_test {
-    use crate::{GeneratorBuilder, Cycle};
+    use crate::{Cycle, GeneratorBuilder};
 
     #[test]
     fn test_serialize() {
