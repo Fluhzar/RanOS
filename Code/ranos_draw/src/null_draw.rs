@@ -127,8 +127,8 @@ impl Draw for NullDraw {
                 let d = self.displays.get_mut(i).unwrap();
 
                 match d.render_frame(dt) {
-                    DisplayState::Ok | DisplayState::ErrSkip => (),
-                    DisplayState::Done | DisplayState::ErrFatal => return,
+                    DisplayState::Ok => (),
+                    DisplayState::Done | DisplayState::Err => return,
                 }
 
                 if SIGINT.load(Ordering::Relaxed) == true {

@@ -10,12 +10,14 @@
 ///
 /// Note: the folder `ignore` as well as its sub-folders `generator`, `display`, and `draw` must all exist before this is run.
 pub fn write_base_rons() {
-    generator::breath();
     generator::cycle();
     generator::rainbow();
     generator::solid();
-    generator::strobe();
     generator::generator();
+
+    filter::strobe();
+    filter::breath();
+    filter::filter();
 
     display::display();
 
@@ -29,61 +31,7 @@ pub(self) mod generator {
     use std::{fs::File, time::Duration};
 
     use ranos_ds::rgb::{RGBOrder, RGB};
-    use ranos_generator::{Breath, ColorOrder, Cycle, GeneratorBuilder, Rainbow, Solid, Strobe};
-
-    pub(super) fn breath() {
-        let pretty = ron::ser::PrettyConfig::default();
-
-        // breath_random
-        {
-            let file = File::create("ignore/generator/breath_random.ron").unwrap();
-
-            ron::ser::to_writer_pretty(
-                file,
-                &(Breath::builder()
-                    .breath_duration(Duration::from_secs(4))
-                    .order(ColorOrder::Random) as Box<dyn GeneratorBuilder>),
-                pretty.clone(),
-            )
-            .unwrap();
-        }
-
-        // breath_random_bright
-        {
-            let file = File::create("ignore/generator/breath_random_bright.ron").unwrap();
-
-            ron::ser::to_writer_pretty(
-                file,
-                &(Breath::builder()
-                    .breath_duration(Duration::from_secs(4))
-                    .order(ColorOrder::RandomBright)
-                    as Box<dyn GeneratorBuilder>),
-                pretty.clone(),
-            )
-            .unwrap();
-        }
-
-        // breath_ordered
-        {
-            let file = File::create("ignore/generator/breath_ordered.ron").unwrap();
-
-            ron::ser::to_writer_pretty(
-                file,
-                &(Breath::builder()
-                    .breath_duration(Duration::from_secs(4))
-                    .order(ColorOrder::Ordered(vec![
-                        RGB::from_hsv(0.0, 1.0, 1.0),
-                        RGB::from_hsv(60.0, 1.0, 1.0),
-                        RGB::from_hsv(120.0, 1.0, 1.0),
-                        RGB::from_hsv(180.0, 1.0, 1.0),
-                        RGB::from_hsv(240.0, 1.0, 1.0),
-                        RGB::from_hsv(300.0, 1.0, 1.0),
-                    ])) as Box<dyn GeneratorBuilder>),
-                pretty,
-            )
-            .unwrap();
-        }
-    }
+    use ranos_generator::{ColorOrder, Cycle, GeneratorBuilder, Rainbow, Solid};
 
     pub(super) fn cycle() {
         let pretty = ron::ser::PrettyConfig::default();
@@ -173,26 +121,6 @@ pub(self) mod generator {
         }
     }
 
-    pub(super) fn strobe() {
-        let pretty = ron::ser::PrettyConfig::default();
-
-        // strobe
-        {
-            let file = File::create("ignore/generator/strobe.ron").unwrap();
-
-            ron::ser::to_writer_pretty(
-                file,
-                &(Strobe::builder()
-                    .period(Duration::from_secs(1))
-                    .duty(0.5)
-                    .color(RGB::from_code(0xFF_FF_FF, RGBOrder::RGB))
-                    as Box<dyn GeneratorBuilder>),
-                pretty.clone(),
-            )
-            .unwrap();
-        }
-    }
-
     pub(super) fn generator() {
         let pretty = ron::ser::PrettyConfig::default();
 
@@ -210,11 +138,66 @@ pub(self) mod generator {
     }
 }
 
+pub(self) mod filter {
+    use std::{fs::File, time::Duration};
+
+    use ranos_filter::{self, Breath, FilterBuilder, Strobe};
+
+    pub(super) fn breath() {
+        let pretty = ron::ser::PrettyConfig::default();
+
+        // breath
+        {
+            let file = File::create("ignore/filter/breath.ron").unwrap();
+
+            ron::ser::to_writer_pretty(
+                file,
+                &(Breath::builder().breath_duration(Duration::from_secs(16))),
+                pretty.clone(),
+            )
+            .unwrap();
+        }
+    }
+
+    pub(super) fn strobe() {
+        let pretty = ron::ser::PrettyConfig::default();
+
+        // strobe
+        {
+            let file = File::create("ignore/filter/strobe.ron").unwrap();
+
+            ron::ser::to_writer_pretty(
+                file,
+                &(Strobe::builder().frequency(1.0).duty(0.5) as Box<dyn FilterBuilder>),
+                pretty.clone(),
+            )
+            .unwrap();
+        }
+    }
+
+    pub(super) fn filter() {
+        let pretty = ron::ser::PrettyConfig::default();
+
+        // filter
+        {
+            let file = File::create("ignore/filter/filter.ron").unwrap();
+
+            ron::ser::to_writer_pretty(
+                file,
+                &(Breath::builder() as Box<dyn FilterBuilder>),
+                pretty.clone(),
+            )
+            .unwrap();
+        }
+    }
+}
+
 pub(self) mod display {
     use std::{fs::File, time::Duration};
 
     use ranos_display::{Display, Runtime};
-    use ranos_generator::{Breath, ColorOrder, Rainbow};
+    use ranos_filter::Breath;
+    use ranos_generator::{ColorOrder, Cycle, Rainbow};
 
     pub(super) fn display() {
         let pretty = ron::ser::PrettyConfig::default();
@@ -243,11 +226,12 @@ pub(self) mod display {
                         Runtime::Time(Duration::from_secs(8)),
                     )
                     .generator(
-                        Breath::builder()
-                            .breath_duration(Duration::from_secs(4))
+                        Cycle::builder()
+                            .cycle_period(Duration::from_secs_f32(0.25))
                             .order(ColorOrder::Random),
                         Runtime::Trigger,
-                    ),
+                    )
+                    .filter(Breath::builder().breath_duration(Duration::from_secs(16))),
                 pretty.clone(),
             )
             .unwrap();
@@ -261,7 +245,8 @@ pub(self) mod draw {
     use ranos_core::Timer;
     use ranos_display::{Display, Runtime};
     use ranos_draw::{APA102CPiDraw, DrawBuilder, NullDraw, TermDraw};
-    use ranos_generator::{Breath, ColorOrder, Rainbow};
+    use ranos_filter::Breath;
+    use ranos_generator::{ColorOrder, Cycle, Rainbow};
 
     pub(super) fn null() {
         let pretty = ron::ser::PrettyConfig::default();
@@ -341,11 +326,12 @@ pub(self) mod draw {
                                 Runtime::Time(Duration::from_secs(8)),
                             )
                             .generator(
-                                Breath::builder()
-                                    .breath_duration(Duration::from_secs(4))
+                                Cycle::builder()
+                                    .cycle_period(Duration::from_secs_f32(0.25))
                                     .order(ColorOrder::Random),
                                 Runtime::Trigger,
-                            ),
+                            )
+                            .filter(Breath::builder().breath_duration(Duration::from_secs(16))),
                     ),
                 pretty.clone(),
             )

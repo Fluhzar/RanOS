@@ -11,19 +11,15 @@ use std::time::Duration;
 
 use ranos_ds::collections::frame::Frame;
 
-pub use breath::Breath;
 pub use color_order::ColorOrder;
 pub use cycle::Cycle;
 pub use rainbow::Rainbow;
 pub use solid::Solid;
-pub use strobe::Strobe;
 
-pub mod breath;
 pub mod color_order;
 pub mod cycle;
 pub mod rainbow;
 pub mod solid;
-pub mod strobe;
 
 /// Enum denoting different end-states that an [`Generator`] object may return.
 pub enum GeneratorState {

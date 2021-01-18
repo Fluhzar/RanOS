@@ -2,6 +2,12 @@ use std::{fmt::Debug, time::Duration};
 
 use ranos_ds::collections::Frame;
 
+pub use breath::Breath;
+pub use strobe::Strobe;
+
+pub mod breath;
+pub mod strobe;
+
 /// Enum denoting different end-states that an [`Filter`] object may return.
 ///
 /// The `ErrRetry` state is given for use in statistical tracking and more
@@ -26,7 +32,7 @@ pub trait Filter: Debug {
     fn filter_frame(&mut self, frame: &mut Frame, dt: Duration) -> FilterState;
 
     /// Resets the filter to its pre-run state, operating as if it were never run before
-    fn reset(self: Box<Self>) -> Box<dyn Filter>;
+    fn reset(&mut self);
 }
 
 /// Trait for building filter types.
@@ -34,4 +40,30 @@ pub trait Filter: Debug {
 pub trait FilterBuilder: std::fmt::Debug {
     /// Creates a new filter object from the builder.
     fn build(self: Box<Self>) -> Box<dyn Filter>;
+}
+
+#[cfg(test)]
+mod builder_test {
+    use crate::{Breath, FilterBuilder};
+
+    #[test]
+    fn test_serialize() {
+        let builder: Box<dyn FilterBuilder> = Breath::builder();
+
+        let data = ron::ser::to_string(&builder).unwrap();
+
+        let expected = r#"(type:"BreathBuilder",value:(breath_duration:(secs:3,nanos:0)))"#;
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let input = r#"(type:"BreathBuilder",value:(breath_duration:(secs:3,nanos:0)))"#;
+
+        assert_eq!(
+            ron::ser::to_string(&ron::de::from_str::<Box<dyn FilterBuilder>>(input).unwrap())
+                .unwrap(),
+            input
+        );
+    }
 }

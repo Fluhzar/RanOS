@@ -14,6 +14,7 @@ use std::{
     time::Duration,
 };
 
+use ranos_filter::{Filter, FilterBuilder};
 use serde::{Deserialize, Serialize};
 
 use ranos_ds::{collections::Frame, const_val::ConstVal};
@@ -34,10 +35,8 @@ pub enum DisplayState {
     Ok,
     /// Denotes that the operation was successful and there are no more operations to perform.
     Done,
-    /// Denotes that an error occurred that is not recoverable for this frame, but will not be fatal for following frames.
-    ErrSkip,
     /// Denotes that an error occurred and cannot be recovered from.
-    ErrFatal,
+    Err,
 }
 
 /// Trait for building [`Display`]s.
@@ -48,6 +47,7 @@ pub struct DisplayBuilder {
     looping: bool,
     generator_builders: Vec<Box<dyn GeneratorBuilder>>,
     generator_runtimes: Vec<Runtime>,
+    filter_builders: Vec<Box<dyn FilterBuilder>>,
 }
 
 impl DisplayBuilder {
@@ -92,8 +92,8 @@ impl DisplayBuilder {
         self
     }
 
-    /// Similar to [`DisplayBuilder::generator`], but takes an iterator over
-    /// generator builders, extending the internal list with the iterator's contents.
+    /// Similar to [`Self::generator`], but takes an iterator over generator
+    /// builders, extending the internal list with the iterator's contents.
     pub fn generator_iter<I, R>(mut self, builder_iter: I, runtime_iter: R) -> Self
     where
         I: Iterator<Item = Box<dyn GeneratorBuilder>>,
@@ -101,6 +101,26 @@ impl DisplayBuilder {
     {
         self.generator_builders.extend(builder_iter);
         self.generator_runtimes.extend(runtime_iter);
+
+        self
+    }
+
+    /// Add a builder for a filter that will be built at the same time as this builder.
+    ///
+    /// Note: Multiple [`FilterBuilder`]s can be added.
+    pub fn filter(mut self, builder: Box<dyn FilterBuilder>) -> Self {
+        self.filter_builders.push(builder);
+
+        self
+    }
+
+    /// Similar to [`Self::filter`], but takes an iterator over filter builders,
+    /// extending the internal list with the iterator's contents.
+    pub fn filter_iter<I>(mut self, builder_iter: I) -> Self
+    where
+        I: Iterator<Item = Box<dyn FilterBuilder>>,
+    {
+        self.filter_builders.extend(builder_iter);
 
         self
     }
@@ -146,9 +166,13 @@ mod builder_test {
 #[derive(Debug)]
 pub struct Display {
     id: usize,
+
     frame: Frame,
     looping: bool,
+
     generators: VecDeque<(Box<dyn Generator>, Runtime)>,
+    filters: Vec<Box<dyn Filter>>,
+
     original_runtimes: ConstVal<HashMap<usize, Runtime>>,
 }
 
@@ -161,33 +185,47 @@ impl Display {
             looping: false,
             generator_builders: Vec::new(),
             generator_runtimes: Vec::new(),
+            filter_builders: Vec::new(),
         }
     }
 
     fn from_builder(mut builder: DisplayBuilder) -> Self {
-        Self::with_iter(
+        Self::new(
             builder.brightness,
             builder.size,
             builder.looping,
             builder
                 .generator_builders
                 .drain(0..)
-                .zip(builder.generator_runtimes.drain(0..)),
+                .zip(builder.generator_runtimes.drain(0..))
+                .map(|(ab, rt)| (ab.build(), rt)),
+            builder.filter_builders.drain(0..).map(|fb| fb.build()),
         )
     }
 
-    fn with_iter<I>(brightness: f32, size: usize, looping: bool, iter: I) -> Self
+    fn new<G, F>(
+        brightness: f32,
+        size: usize,
+        looping: bool,
+        generator_iter: G,
+        filter_iter: F,
+    ) -> Self
     where
-        I: Iterator<Item = (Box<dyn GeneratorBuilder>, Runtime)>,
+        G: Iterator<Item = (Box<dyn Generator>, Runtime)>,
+        F: Iterator<Item = Box<dyn Filter>>,
     {
-        let generators: VecDeque<_> = iter.map(|(ab, rt)| (ab.build(), rt)).collect();
+        let generators: VecDeque<_> = generator_iter.collect();
         let runtimes = generators.iter().map(|(g, rt)| (g.id(), *rt)).collect();
 
         Display {
             id: ranos_core::id::generate(),
+
             frame: Frame::new(brightness, size),
             looping,
+
             generators,
+            filters: filter_iter.collect(),
+
             original_runtimes: ConstVal::new(runtimes),
         }
     }
@@ -225,8 +263,8 @@ impl Display {
                                 if self.looping {
                                     self.generators.push_back((anim, rt));
                                 }
-                                // Render the next frame with the remaining dt of this frame.
-                                self.render_frame(dt.checked_sub(t).unwrap());
+                                // // Render the next frame with the remaining `dt` of the current frame.
+                                // self.render_frame(dt.checked_sub(t).unwrap());
                             }
                         }
                         Runtime::Trigger => {
@@ -242,7 +280,7 @@ impl Display {
 
                     DisplayState::Ok
                 }
-                GeneratorState::ErrFatal => DisplayState::ErrFatal,
+                GeneratorState::ErrFatal => DisplayState::Err,
             }
         } else {
             DisplayState::Done

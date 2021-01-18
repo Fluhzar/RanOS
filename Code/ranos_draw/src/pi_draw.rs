@@ -374,8 +374,8 @@ impl Draw for APA102CPiDraw {
                     let d = self.displays.get_mut(&self.display_ids[i]).unwrap();
 
                     match d.render_frame(dt) {
-                        DisplayState::Ok | DisplayState::ErrSkip => (),
-                        DisplayState::Done | DisplayState::ErrFatal => return,
+                        DisplayState::Ok => (),
+                        DisplayState::Done | DisplayState::Err => return,
                     }
 
                     d.id()

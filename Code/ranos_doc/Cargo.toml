@@ -11,6 +11,7 @@ ron = "0.6"
 
 ranos_core = { path="../ranos_core" }
 ranos_generator = { path="../ranos_generator" }
+ranos_filter = { path="../ranos_filter" }
 ranos_display = { path = "../ranos_display" }
 ranos_draw = { path="../ranos_draw" }
 ranos_ds = { path = "../ranos_ds" }
