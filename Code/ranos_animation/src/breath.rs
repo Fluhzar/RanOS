@@ -186,10 +186,6 @@ impl Animation for Breath {
         res
     }
 
-    fn time_remaining(&self) -> Duration {
-        self.time_remaining
-    }
-
     fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
         self.time_remaining = *self.runtime.get();
         self.ind = 0;

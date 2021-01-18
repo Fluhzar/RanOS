@@ -46,9 +46,6 @@ pub trait Animation: std::fmt::Debug {
     /// Renders the frame with the next frame of the animation given the input `dt`.
     fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> AnimationState;
 
-    /// Returns the amount of time remaining for this animation to run before the drawer to continue to the next animation.
-    fn time_remaining(&self) -> Duration;
-
     /// Resets the animation to its pre-run state, operating as if it were never run before.
     fn reset(self: Box<Self>) -> Box<dyn Animation>;
 }
