@@ -196,7 +196,7 @@ pub(self) mod display {
     use std::{fs::File, time::Duration};
 
     use ranos_display::{Display, Runtime};
-    use ranos_filter::Breath;
+    use ranos_filter::{Breath, Strobe};
     use ranos_generator::{ColorOrder, Cycle, Rainbow};
 
     pub(super) fn display() {
@@ -230,8 +230,21 @@ pub(self) mod display {
                             .cycle_period(Duration::from_secs_f32(0.25))
                             .order(ColorOrder::Random),
                         Runtime::Trigger,
-                    )
-                    .filter(Breath::builder().breath_duration(Duration::from_secs(16))),
+                    ),
+                pretty.clone(),
+            )
+            .unwrap();
+        }
+
+        // display_with_filters
+        {
+            let file = File::create("ignore/display/display_with_filters.ron").unwrap();
+
+            ron::ser::to_writer_pretty(
+                file,
+                &Display::builder()
+                    .filter(Breath::builder().breath_duration(Duration::from_secs(16)))
+                    .filter(Strobe::builder().frequency(1.0).duty(0.5)),
                 pretty.clone(),
             )
             .unwrap();
