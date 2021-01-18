@@ -66,13 +66,13 @@ mod builder_test {
 
         let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"(type:"CycleBuilder",value:(,cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)])))"#;
+        let expected = r#"(type:"CycleBuilder",value:(cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)])))"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"(type:"CycleBuilder",value:(,cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)])))"#;
+        let input = r#"(type:"CycleBuilder",value:(cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)])))"#;
 
         assert_eq!(
             ron::ser::to_string(&ron::de::from_str::<Box<dyn GeneratorBuilder>>(input).unwrap())

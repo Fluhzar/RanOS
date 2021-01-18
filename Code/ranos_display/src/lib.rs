@@ -117,19 +117,20 @@ mod builder_test {
 
         let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"(brightness:1,size:64,looping:false,generator_builders:[])"#;
+        let expected = r#"(brightness:1,size:64,looping:false,generator_builders:[],generator_runtimes:[])"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserializer() {
-        let input = r#"(brightness:1,size:64,looping:false,generator_builders:[])"#;
+        let input = r#"(brightness:1,size:64,looping:false,generator_builders:[],generator_runtimes:[])"#;
 
         let data: DisplayBuilder = ron::de::from_str(input).unwrap();
 
         assert_eq!(data.brightness, 1.0);
         assert_eq!(data.size, 64);
         assert_eq!(data.generator_builders.len(), 0);
+        assert_eq!(data.generator_runtimes.len(), 0);
     }
 }
 
