@@ -8,12 +8,12 @@ use ranos_ds::collections::Frame;
 /// complex operations that could fail, but still be able to continue (e.g. file
 /// I/O).
 pub enum FilterState {
-    /// Denotes that the operation was successful and the object can operate for more iterations.
-    Continue,
-    /// Denotes that the operation was successful and the object has nothing more to operate on.
-    Last,
-    /// Denotes that an error occurred but the object can continue to operate.
+    /// Denotes that the operation was successful.
+    Ok,
+    /// Denotes that an error occurred but the object can retry the operation.
     ErrRetry,
+    /// Denotes that an error occurred that is not recoverable for this frame, but will not be fatal for following frames.
+    ErrSkip,
     /// Denotes that an error occurred and cannot be recovered from.
     ErrFatal,
 }
