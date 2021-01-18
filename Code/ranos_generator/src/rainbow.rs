@@ -112,6 +112,8 @@ mod builder_test {
 /// LEDs puking out everything.
 #[derive(Debug)]
 pub struct Rainbow {
+    id: usize,
+
     hue: f32,
     sat: ConstVal<f32>,
     val: ConstVal<f32>,
@@ -151,6 +153,8 @@ impl Rainbow {
         step: usize,
     ) -> Self {
         Self {
+            id: ranos_core::id::generate(),
+
             hue: 0.0,
             sat: ConstVal::new(sat),
             val: ConstVal::new(val),
@@ -163,6 +167,10 @@ impl Rainbow {
 }
 
 impl Generator for Rainbow {
+    fn id(&self) -> usize {
+        self.id
+    }
+
     fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState {
         self.hue += self.dh.get() * dt.as_secs_f32();
 
@@ -183,9 +191,7 @@ impl Generator for Rainbow {
         GeneratorState::Ok
     }
 
-    fn reset(mut self: Box<Self>) -> Box<dyn Generator> {
+    fn reset(&mut self) {
         self.hue = 0.0;
-
-        self
     }
 }

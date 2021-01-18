@@ -1,6 +1,6 @@
 //! # Display
 //!
-//! Provides a level of abstraction between objects that draw and animations that get drawn.
+//! Provides a level of abstraction between objects that draw and generators that get drawn.
 //!
 //! May become more generic in the future to facilitate different uses.
 
@@ -8,21 +8,32 @@
 #![deny(broken_intra_doc_links)]
 #![warn(clippy::all)]
 
-use std::{collections::VecDeque, iter::Iterator, time::Duration};
+use std::{collections::{HashMap, VecDeque}, iter::Iterator, time::Duration};
 
 use serde::{Deserialize, Serialize};
 
-use ranos_animation::{Animation, AnimationBuilder, AnimationState};
-use ranos_ds::collections::Frame;
+use ranos_generator::{Generator, GeneratorBuilder, GeneratorState};
+use ranos_ds::{collections::Frame, const_val::ConstVal};
+
+/// Sets the type of runtime a generator has within the display. Can be a configured time, or an event trigger.
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub enum Runtime {
+    /// The duration of time the generator should run for.
+    Time(Duration),
+    ///
+    Trigger,
+}
 
 /// Enum denoting different end-states that a [`Display`] object may return.
 pub enum DisplayState {
-    /// Denotes that the operation was successful and the object can operate for more iterations
-    Continue,
-    /// Denotes that the operation was successful and the object has nothing more to operate on.
-    Last,
-    /// Denotes that the operation failed and cannot be recovered from.
-    Err,
+    /// Denotes that the operation was successful.
+    Ok,
+    /// Denotes that the operation was successful and there are no more operations to perform.
+    Done,
+    /// Denotes that an error occurred that is not recoverable for this frame, but will not be fatal for following frames.
+    ErrSkip,
+    /// Denotes that an error occurred and cannot be recovered from.
+    ErrFatal,
 }
 
 /// Trait for building [`Display`]s.
@@ -31,7 +42,8 @@ pub struct DisplayBuilder {
     brightness: f32,
     size: usize,
     looping: bool,
-    animation_builders: Vec<Box<dyn AnimationBuilder>>,
+    generator_builders: Vec<Box<dyn GeneratorBuilder>>,
+    generator_runtimes: Vec<Runtime>,
 }
 
 impl DisplayBuilder {
@@ -57,29 +69,34 @@ impl DisplayBuilder {
         self.size(width * height)
     }
 
-    /// Sets whether the display will loop the animations or not.
+    /// Sets whether the display will loop the generators or not.
     pub fn looping(mut self, looping: bool) -> Self {
         self.looping = looping;
 
         self
     }
 
-    /// Add a builder for an animation that will be built at the same time as this builder.
+    /// Add a builder for an generator that will be built at the same time as this builder.
     ///
-    /// Note: Multiple [`AnimationBuilder`]s can be added.
-    pub fn animation(mut self, animation: Box<dyn AnimationBuilder>) -> Self {
-        self.animation_builders.push(animation);
+    /// The `runtime` parameter specifies how long the generator should run for
+    ///
+    /// Note: Multiple [`GeneratorBuilder`]s can be added.
+    pub fn generator(mut self, builder: Box<dyn GeneratorBuilder>, runtime: Runtime) -> Self {
+        self.generator_builders.push(builder);
+        self.generator_runtimes.push(runtime);
 
         self
     }
 
-    /// Similar to [`DisplayBuilder::animation`], but takes an iterator over
-    /// animation builders, extending the internal list with the iterator's contents.
-    pub fn animation_iter<I>(mut self, iter: I) -> Self
+    /// Similar to [`DisplayBuilder::generator`], but takes an iterator over
+    /// generator builders, extending the internal list with the iterator's contents.
+    pub fn generator_iter<I, R>(mut self, builder_iter: I, runtime_iter: R) -> Self
     where
-        I: Iterator<Item = Box<dyn AnimationBuilder>>,
+        I: Iterator<Item = Box<dyn GeneratorBuilder>>,
+        R: Iterator<Item = Runtime>,
     {
-        self.animation_builders.extend(iter);
+        self.generator_builders.extend(builder_iter);
+        self.generator_runtimes.extend(runtime_iter);
 
         self
     }
@@ -100,19 +117,19 @@ mod builder_test {
 
         let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"(brightness:1,size:64,looping:false,animation_builders:[])"#;
+        let expected = r#"(brightness:1,size:64,looping:false,generator_builders:[])"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserializer() {
-        let input = r#"(brightness:1,size:64,looping:false,animation_builders:[])"#;
+        let input = r#"(brightness:1,size:64,looping:false,generator_builders:[])"#;
 
         let data: DisplayBuilder = ron::de::from_str(input).unwrap();
 
         assert_eq!(data.brightness, 1.0);
         assert_eq!(data.size, 64);
-        assert_eq!(data.animation_builders.len(), 0);
+        assert_eq!(data.generator_builders.len(), 0);
     }
 }
 
@@ -124,7 +141,8 @@ pub struct Display {
     id: usize,
     frame: Frame,
     looping: bool,
-    animations: VecDeque<Box<dyn Animation>>,
+    generators: VecDeque<(Box<dyn Generator>, Runtime)>,
+    original_runtimes: ConstVal<HashMap<usize, Runtime>>,
 }
 
 impl Display {
@@ -134,7 +152,8 @@ impl Display {
             brightness: 1.0,
             size: 64,
             looping: false,
-            animation_builders: Vec::new(),
+            generator_builders: Vec::new(),
+            generator_runtimes: Vec::new(),
         }
     }
 
@@ -143,19 +162,23 @@ impl Display {
             builder.brightness,
             builder.size,
             builder.looping,
-            builder.animation_builders.drain(0..),
+            builder.generator_builders.drain(0..).zip(builder.generator_runtimes.drain(0..)),
         )
     }
 
     fn with_iter<I>(brightness: f32, size: usize, looping: bool, iter: I) -> Self
     where
-        I: Iterator<Item = Box<dyn AnimationBuilder>>,
+        I: Iterator<Item = (Box<dyn GeneratorBuilder>, Runtime)>,
     {
+        let generators: VecDeque<_> = iter.map(|(ab, rt)| (ab.build(), rt)).collect();
+        let runtimes = generators.iter().map(|(g, rt)| (g.id(), *rt)).collect();
+
         Display {
             id: ranos_core::id::generate(),
             frame: Frame::new(brightness, size),
             looping,
-            animations: iter.map(|ab| ab.build()).collect(),
+            generators,
+            original_runtimes: ConstVal::new(runtimes),
         }
     }
 
@@ -174,31 +197,51 @@ impl Display {
         self.frame.len()
     }
 
-    /// Renders a frame from the current animation.
+    /// Triggers the display to advance to the next generator.
+    pub fn trigger_next_generator(&mut self) {
+        self.generators.pop_front();
+    }
+
+    /// Renders a frame from the current generator.
     pub fn render_frame(&mut self, dt: Duration) -> DisplayState {
-        if let Some(mut anim) = self.animations.pop_front() {
+        if let Some((mut anim, rt)) = self.generators.pop_front() {
             match anim.render_frame(&mut self.frame, dt) {
-                AnimationState::Continue => {
-                    self.animations.push_front(anim);
-                    DisplayState::Continue
-                }
-                AnimationState::Last => {
-                    if self.looping {
-                        self.animations.push_back(anim.reset());
-                        DisplayState::Continue
-                    } else {
-                        if self.animations.len() > 0 {
-                            DisplayState::Continue
+                GeneratorState::Ok => {
+                    match rt {
+                        Runtime::Time(t) => if let Some(t) = t.checked_sub(dt) {
+                            self.generators.push_front((anim, Runtime::Time(t)));
                         } else {
-                            DisplayState::Last
-                        }
-                    }
+                            if self.looping {
+                                self.generators.push_back((anim, rt));
+                            }
+                            // Render the next frame with the remaining dt of this frame.
+                            self.render_frame(dt.checked_sub(t).unwrap());
+                        },
+                        Runtime::Trigger => {
+                            self.trigger_next_generator();
+                        },
+                    };
+
+                    DisplayState::Ok
                 }
-                AnimationState::ErrRetry => self.render_frame(dt),
-                AnimationState::ErrFatal => DisplayState::Err,
+                GeneratorState::ErrRetry => self.render_frame(dt),
+                GeneratorState::ErrSkip => {
+                    self.generators.push_front((anim, rt));
+
+                    DisplayState::Ok
+                },
+                GeneratorState::ErrFatal => DisplayState::ErrFatal,
             }
         } else {
-            DisplayState::Err
+            DisplayState::Done
+        }
+    }
+
+    /// Resets the display to its pre-run state, operating as if it were never run before.
+    pub fn reset(&mut self) {
+        for (g, rt) in self.generators.iter_mut() {
+            g.reset();
+            *rt = *self.original_runtimes.get().get(&g.id()).unwrap();
         }
     }
 }

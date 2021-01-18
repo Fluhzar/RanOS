@@ -26,10 +26,6 @@ pub mod solid;
 pub mod strobe;
 
 /// Enum denoting different end-states that an [`Generator`] object may return.
-///
-/// The `ErrRetry` state is given for use in statistical tracking and more
-/// complex operations that could fail, but still be able to continue (e.g. file
-/// I/O).
 pub enum GeneratorState {
     /// Denotes that the operation was successful.
     Ok,
@@ -43,11 +39,14 @@ pub enum GeneratorState {
 
 /// Trait for types that implement types that animates the pixels of a frame.
 pub trait Generator: std::fmt::Debug {
+    /// Returns the id of this generator.
+    fn id(&self) -> usize;
+
     /// Renders the frame with the next frame of the generator given the input `dt`.
     fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState;
 
     /// Resets the generator to its pre-run state, operating as if it were never run before.
-    fn reset(self: Box<Self>) -> Box<dyn Generator>;
+    fn reset(&mut self);
 }
 
 /// Trait for building generator types.

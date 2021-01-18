@@ -88,7 +88,7 @@ mod builder_test {
 /// Drawer that doesn't have any form of output.
 #[derive(Debug)]
 pub struct NullDraw {
-    displays: Vec<(Display, bool)>,
+    displays: Vec<Display>,
     timer: Timer,
 }
 
@@ -110,7 +110,7 @@ impl NullDraw {
         I: Iterator<Item = DisplayBuilder>,
     {
         Self {
-            displays: display_iter.map(|b| (b.build(), false)).collect(),
+            displays: display_iter.map(|b| b.build()).collect(),
             timer,
         }
     }
@@ -120,23 +120,15 @@ impl Draw for NullDraw {
     fn run(&mut self) {
         self.timer.reset();
 
-        let mut num_finished = 0;
-
-        while num_finished < self.displays.len() {
+        loop {
             let dt = self.timer.ping();
 
             for i in 0..self.displays.len() {
-                let (d, has_finished) = self.displays.get_mut(i).unwrap();
+                let d = self.displays.get_mut(i).unwrap();
 
-                if !*has_finished {
-                    match d.render_frame(dt) {
-                        DisplayState::Continue => (),
-                        DisplayState::Last => {
-                            *has_finished = true;
-                            num_finished += 1;
-                        }
-                        DisplayState::Err => return,
-                    }
+                match d.render_frame(dt) {
+                    DisplayState::Ok | DisplayState::ErrSkip => (),
+                    DisplayState::Done | DisplayState::ErrFatal => return,
                 }
 
                 if SIGINT.load(Ordering::Relaxed) == true {

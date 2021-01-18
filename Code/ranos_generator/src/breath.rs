@@ -87,6 +87,8 @@ mod builder_test {
 /// parabolic curve from black to the chosen color and back down to black.
 #[derive(Debug)]
 pub struct Breath {
+    id: usize,
+
     order: ColorOrder,
     ind: usize,
     current_color: RGB,
@@ -119,6 +121,8 @@ impl Breath {
 
     fn new(breath_duration: Duration, order: ColorOrder) -> Self {
         Self {
+            id: ranos_core::id::generate(),
+
             order: order.clone(),
             ind: 0,
             current_color: match order {
@@ -136,6 +140,10 @@ impl Breath {
 }
 
 impl Generator for Breath {
+    fn id(&self) -> usize {
+        self.id
+    }
+
     fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState {
         self.vel += self.acc.get() * dt.as_secs_f32();
         self.pos += self.vel * dt.as_secs_f32();
@@ -160,7 +168,7 @@ impl Generator for Breath {
         GeneratorState::Ok
     }
 
-    fn reset(mut self: Box<Self>) -> Box<dyn Generator> {
+    fn reset(&mut self) {
         self.ind = 0;
         self.current_color = match &self.order {
             ColorOrder::Ordered(v) => v[0],
@@ -168,7 +176,5 @@ impl Generator for Breath {
             ColorOrder::RandomBright => RGB::random_bright(),
         };
         self.vel = *self.vel0.get();
-
-        self
     }
 }

@@ -87,6 +87,8 @@ mod builder_test {
 /// amount of time before proceeding to the next color.
 #[derive(Debug)]
 pub struct Cycle {
+    id: usize,
+
     order: ColorOrder,
     ind: usize,
     current_color: RGB,
@@ -114,6 +116,8 @@ impl Cycle {
 
     fn new(cycle_period: Duration, order: ColorOrder) -> Self {
         Self {
+            id: ranos_core::id::generate(),
+
             order: order.clone(),
             ind: 0,
             current_color: match order {
@@ -129,6 +133,10 @@ impl Cycle {
 }
 
 impl Generator for Cycle {
+    fn id(&self) -> usize {
+        self.id
+    }
+
     fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState {
         self.cycle_time_remaining = if let Some(d) = self.cycle_time_remaining.checked_sub(dt) {
             d
@@ -152,7 +160,7 @@ impl Generator for Cycle {
         GeneratorState::Ok
     }
 
-    fn reset(mut self: Box<Self>) -> Box<dyn Generator> {
+    fn reset(&mut self) {
         self.ind = 0;
         self.current_color = match &self.order {
             ColorOrder::Ordered(v) => v[0],
@@ -160,7 +168,5 @@ impl Generator for Cycle {
             ColorOrder::RandomBright => RGB::random_bright(),
         };
         self.cycle_time_remaining = *self.cycle_period.get();
-
-        self
     }
 }

@@ -61,6 +61,7 @@ mod builder_test {
 /// Struct for a simple solid color to be displayed.
 #[derive(Debug)]
 pub struct Solid {
+    id: usize,
     color: ConstVal<RGB>,
 }
 
@@ -78,12 +79,17 @@ impl Solid {
 
     fn new(color: RGB) -> Self {
         Self {
+            id: ranos_core::id::generate(),
             color: ConstVal::new(color),
         }
     }
 }
 
 impl Generator for Solid {
+    fn id(&self) -> usize {
+        self.id
+    }
+
     fn render_frame(&mut self, frame: &mut Frame, _: Duration) -> GeneratorState {
         for led in frame.iter_mut() {
             *led = *self.color.get();
@@ -92,7 +98,5 @@ impl Generator for Solid {
         GeneratorState::Ok
     }
 
-    fn reset(self: Box<Self>) -> Box<dyn Generator> {
-        self
-    }
+    fn reset(&mut self) {}
 }

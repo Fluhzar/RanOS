@@ -97,6 +97,8 @@ mod builder_test {
 /// percentage of time that the LEDs are on within the `period`.
 #[derive(Debug)]
 pub struct Strobe {
+    id: usize,
+
     period: ConstVal<f64>,
     duty: ConstVal<f64>,
 
@@ -123,6 +125,8 @@ impl Strobe {
         let duty = duty.min(1.0).max(0.0);
 
         Self {
+            id: ranos_core::id::generate(),
+
             period: ConstVal::new(period.as_secs_f64()),
             duty: ConstVal::new(duty),
 
@@ -134,6 +138,10 @@ impl Strobe {
 }
 
 impl Generator for Strobe {
+    fn id(&self) -> usize {
+        self.id
+    }
+
     fn render_frame(&mut self, frame: &mut Frame, dt: Duration) -> GeneratorState {
         // Accumulate the time, clamping it to a range of [0, self.period)
         self.time = (self.time + dt.as_secs_f64()) % self.period.get();
@@ -156,9 +164,7 @@ impl Generator for Strobe {
         GeneratorState::Ok
     }
 
-    fn reset(mut self: Box<Self>) -> Box<dyn Generator> {
+    fn reset(&mut self) {
         self.time = 0.0;
-
-        self
     }
 }

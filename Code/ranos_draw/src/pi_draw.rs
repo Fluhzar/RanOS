@@ -189,7 +189,7 @@ pub struct APA102CPiDraw {
 
     brightness: u8,
 
-    displays: HashMap<usize, (Display, bool)>,
+    displays: HashMap<usize, Display>,
     display_ids: Vec<usize>,
 
     timer: Timer,
@@ -232,7 +232,7 @@ impl APA102CPiDraw {
                 let disp = b.build();
                 num += disp.frame_len();
                 ids.push(disp.id());
-                (disp.id(), (disp, false))
+                (disp.id(), disp)
             })
             .collect();
         let display_ids = ids;
@@ -341,7 +341,7 @@ impl APA102CPiDraw {
     fn write_frame(&mut self, display_id: usize) {
         let (brightness_mask, len) = (
             0xE0 | self.brightness,
-            self.displays.get(&display_id).unwrap().0.frame().len(),
+            self.displays.get(&display_id).unwrap().frame().len(),
         );
 
         self.start_frame();
@@ -349,7 +349,7 @@ impl APA102CPiDraw {
         for i in 0..len {
             self.write_byte(brightness_mask);
             let color = {
-                let frame = self.displays.get(&display_id).unwrap().0.frame();
+                let frame = self.displays.get(&display_id).unwrap().frame();
                 frame[i].scale(frame.brightness()).as_tuple(RGBOrder::BGR)
             };
             self.write_byte(color.0);
@@ -366,24 +366,16 @@ impl Draw for APA102CPiDraw {
         // Reset timer and stats to track just this run
         self.timer.reset();
 
-        let mut num_finished = 0;
-
-        while num_finished < self.displays.len() {
+        loop {
             let dt = self.timer.ping();
 
             for i in 0..self.displays.len() {
                 let display_id = {
-                    let (d, has_finished) = self.displays.get_mut(&self.display_ids[i]).unwrap();
+                    let d = self.displays.get_mut(&self.display_ids[i]).unwrap();
 
-                    if !*has_finished {
-                        match d.render_frame(dt) {
-                            DisplayState::Continue => (),
-                            DisplayState::Last => {
-                                *has_finished = true;
-                                num_finished += 1;
-                            }
-                            DisplayState::Err => return,
-                        }
+                    match d.render_frame(dt) {
+                        DisplayState::Ok | DisplayState::ErrSkip => (),
+                        DisplayState::Done | DisplayState::ErrFatal => return,
                     }
 
                     d.id()

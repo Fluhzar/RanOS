@@ -105,7 +105,7 @@ mod builder_test {
 pub struct TermDraw {
     max_width: usize,
 
-    displays: HashMap<usize, (Display, bool)>,
+    displays: HashMap<usize, Display>,
     display_ids: Vec<usize>,
 
     timer: Timer,
@@ -138,7 +138,7 @@ impl TermDraw {
             .map(|b| {
                 let disp = b.build();
                 ids.push(disp.id());
-                (disp.id(), (disp, false))
+                (disp.id(), disp)
             })
             .collect();
         let display_ids = ids;
@@ -154,7 +154,7 @@ impl TermDraw {
     }
 
     fn write_frame(&mut self, display_id: usize) {
-        let frame = self.displays.get(&display_id).unwrap().0.frame();
+        let frame = self.displays.get(&display_id).unwrap().frame();
 
         // Create output string with enough capacity to minimize reallocations of memory for growing the string's capacity
         let mut output =
@@ -186,24 +186,16 @@ impl Draw for TermDraw {
     fn run(&mut self) {
         self.timer.reset();
 
-        let mut num_finished = 0;
-
-        while num_finished < self.displays.len() {
+        loop {
             let dt = self.timer.ping();
 
             for i in 0..self.displays.len() {
                 let display_id = {
-                    let (d, has_finished) = self.displays.get_mut(&self.display_ids[i]).unwrap();
+                    let d = self.displays.get_mut(&self.display_ids[i]).unwrap();
 
-                    if !*has_finished {
-                        match d.render_frame(dt) {
-                            DisplayState::Continue => (),
-                            DisplayState::Last => {
-                                *has_finished = true;
-                                num_finished += 1;
-                            }
-                            DisplayState::Err => return,
-                        }
+                    match d.render_frame(dt) {
+                        DisplayState::Ok | DisplayState::ErrSkip => (),
+                        DisplayState::Done | DisplayState::ErrFatal => return,
                     }
 
                     d.id()
