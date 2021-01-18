@@ -14,20 +14,12 @@ use super::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Strobe")]
 pub struct StrobeBuilder {
-    runtime: Duration,
     period: Duration,
     duty: f64,
     color: RGB,
 }
 
 impl StrobeBuilder {
-    /// Sets the length of time the animation should run for.
-    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
-        self.runtime = runtime;
-
-        self
-    }
-
     /// Sets the period, the amount of time before the strobe pattern repeats.
     pub fn period(mut self: Box<Self>, period: Duration) -> Box<Self> {
         self.period = period;
@@ -77,17 +69,16 @@ mod builder_test {
 
         let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"(runtime:(secs:8,nanos:0),period:(secs:0,nanos:500000000),duty:0.25,color:(255,255,255))"#;
+        let expected = r#"(period:(secs:0,nanos:500000000),duty:0.25,color:(255,255,255))"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"(runtime:(secs:8,nanos:0),period:(secs:0,nanos:500000000),duty:0.25,color:(255,255,255))"#;
+        let input = r#"(period:(secs:0,nanos:500000000),duty:0.25,color:(255,255,255))"#;
 
         let data: StrobeBuilder = ron::de::from_str(input).unwrap();
 
-        assert_eq!(data.runtime, Duration::from_secs(8));
         assert_eq!(
             data.period,
             Duration::from_secs_f64(1.0 / ((1 << 1) as f64))
@@ -106,9 +97,6 @@ mod builder_test {
 /// percentage of time that the LEDs are on within the `period`.
 #[derive(Debug)]
 pub struct Strobe {
-    runtime: ConstVal<Duration>,
-    time_remaining: Duration,
-
     period: ConstVal<f64>,
     duty: ConstVal<f64>,
 
@@ -121,7 +109,6 @@ impl Strobe {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<StrobeBuilder> {
         Box::new(StrobeBuilder {
-            runtime: Duration::from_secs(8),
             period: Duration::from_secs_f64(1.0 / ((1 << 1) as f64)),
             duty: 1.0 / ((1 << 2) as f64),
             color: RGB::from_code(0xFFFFFF, RGBOrder::RGB),
@@ -129,16 +116,13 @@ impl Strobe {
     }
 
     fn from_builder(builder: Box<StrobeBuilder>) -> Self {
-        Self::new(builder.runtime, builder.period, builder.duty, builder.color)
+        Self::new(builder.period, builder.duty, builder.color)
     }
 
-    fn new(runtime: Duration, period: Duration, duty: f64, color: RGB) -> Self {
+    fn new(period: Duration, duty: f64, color: RGB) -> Self {
         let duty = duty.min(1.0).max(0.0);
 
         Self {
-            runtime: ConstVal::new(runtime),
-            time_remaining: runtime,
-
             period: ConstVal::new(period.as_secs_f64()),
             duty: ConstVal::new(duty),
 
@@ -169,21 +153,10 @@ impl Animation for Strobe {
             *led = color;
         }
 
-        let mut res = AnimationState::Continue;
-
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            res = AnimationState::Last;
-
-            Duration::new(0, 0)
-        };
-
-        res
+        AnimationState::Ok
     }
 
     fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
-        self.time_remaining = *self.runtime.get();
         self.time = 0.0;
 
         self

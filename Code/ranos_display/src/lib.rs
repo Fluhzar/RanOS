@@ -116,7 +116,7 @@ mod builder_test {
     }
 }
 
-/// Provides a level of abstraction between objects that draw and animations that get drawn.
+/// Provides a level of abstraction between objects that draw and objects that generate the pixel data.
 ///
 /// May become more generic in the future to facilitate different uses.
 #[derive(Debug)]

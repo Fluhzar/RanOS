@@ -12,7 +12,6 @@ use super::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Rainbow")]
 pub struct RainbowBuilder {
-    runtime: Duration,
     rainbow_length: Duration,
     sat: f32,
     val: f32,
@@ -21,13 +20,6 @@ pub struct RainbowBuilder {
 }
 
 impl RainbowBuilder {
-    /// Sets the length of time the animation should run for.
-    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
-        self.runtime = runtime;
-
-        self
-    }
-
     /// Sets the length of time it takes for the rainbow to fully cycle through all the LEDs.
     pub fn rainbow_length(mut self: Box<Self>, rainbow_length: Duration) -> Box<Self> {
         self.rainbow_length = rainbow_length;
@@ -97,17 +89,16 @@ mod builder_test {
 
         let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"(runtime:(secs:16,nanos:0),rainbow_length:(secs:2,nanos:0),sat:1,val:1,arc:1,step:1)"#;
+        let expected = r#"(rainbow_length:(secs:2,nanos:0),sat:1,val:1,arc:1,step:1)"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"(runtime:(secs:16,nanos:0),rainbow_length:(secs:2,nanos:0),sat:1,val:1,arc:1,step:1)"#;
+        let input = r#"(rainbow_length:(secs:2,nanos:0),sat:1,val:1,arc:1,step:1)"#;
 
         let data: RainbowBuilder = ron::de::from_str(input).unwrap();
 
-        assert_eq!(data.runtime, Duration::from_secs(16));
         assert_eq!(data.rainbow_length, Duration::from_secs(2));
         assert_eq!(data.sat, 1.0);
         assert_eq!(data.val, 1.0);
@@ -121,9 +112,6 @@ mod builder_test {
 /// LEDs puking out everything.
 #[derive(Debug)]
 pub struct Rainbow {
-    runtime: ConstVal<Duration>,
-    time_remaining: Duration,
-
     hue: f32,
     sat: ConstVal<f32>,
     val: ConstVal<f32>,
@@ -137,7 +125,6 @@ impl Rainbow {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<RainbowBuilder> {
         Box::new(RainbowBuilder {
-            runtime: Duration::from_secs(16),
             rainbow_length: Duration::from_secs(2),
             sat: 1.0,
             val: 1.0,
@@ -148,7 +135,6 @@ impl Rainbow {
 
     fn from_builder(builder: Box<RainbowBuilder>) -> Self {
         Self::new(
-            builder.runtime,
             builder.rainbow_length,
             builder.sat,
             builder.val,
@@ -158,7 +144,6 @@ impl Rainbow {
     }
 
     fn new(
-        runtime: Duration,
         rainbow_length: Duration,
         sat: f32,
         val: f32,
@@ -166,9 +151,6 @@ impl Rainbow {
         step: usize,
     ) -> Self {
         Self {
-            runtime: ConstVal::new(runtime),
-            time_remaining: runtime,
-
             hue: 0.0,
             sat: ConstVal::new(sat),
             val: ConstVal::new(val),
@@ -198,21 +180,10 @@ impl Animation for Rainbow {
             *led = RGB::from_hsv(self.hue + step, *self.sat.get(), *self.val.get());
         }
 
-        let mut res = AnimationState::Continue;
-
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            res = AnimationState::Last;
-
-            Duration::new(0, 0)
-        };
-
-        res
+        AnimationState::Ok
     }
 
     fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
-        self.time_remaining = *self.runtime.get();
         self.hue = 0.0;
 
         self

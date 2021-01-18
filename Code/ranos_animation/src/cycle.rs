@@ -15,19 +15,11 @@ use super::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "Cycle")]
 pub struct CycleBuilder {
-    runtime: Duration,
     cycle_period: Duration,
     order: ColorOrder,
 }
 
 impl CycleBuilder {
-    /// Sets the length of time the animation should run for.
-    pub fn runtime(mut self: Box<Self>, runtime: Duration) -> Box<Self> {
-        self.runtime = runtime;
-
-        self
-    }
-
     /// Sets the duration a single color is drawn for.
     pub fn cycle_period(mut self: Box<Self>, cycle_period: Duration) -> Box<Self> {
         self.cycle_period = cycle_period;
@@ -68,20 +60,16 @@ mod builder_test {
 
         let data = ron::ser::to_string(&builder).unwrap();
 
-        let expected = r#"(runtime:(secs:16,nanos:363636363),cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)]))"#;
+        let expected = r#"(cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)]))"#;
         assert_eq!(data, expected);
     }
 
     #[test]
     fn test_deserialize() {
-        let input = r#"(runtime:(secs:16,nanos:363636363),cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)]))"#;
+        let input = r#"(cycle_period:(secs:0,nanos:363636363),order:Ordered([(255,0,0),(0,255,0),(0,0,255)]))"#;
 
         let data: CycleBuilder = ron::de::from_str(input).unwrap();
 
-        assert_eq!(
-            data.runtime,
-            Duration::from_secs_f64(60.0 / 165.0 * 3.0 * 15.0)
-        );
         assert_eq!(data.cycle_period, Duration::from_secs_f64(60.0 / 165.0));
         assert_eq!(
             data.order,
@@ -99,9 +87,6 @@ mod builder_test {
 /// amount of time before proceeding to the next color.
 #[derive(Debug)]
 pub struct Cycle {
-    runtime: ConstVal<Duration>,
-    time_remaining: Duration,
-
     order: ColorOrder,
     ind: usize,
     current_color: RGB,
@@ -114,7 +99,6 @@ impl Cycle {
     /// Constructs a builder object with safe default values.
     pub fn builder() -> Box<CycleBuilder> {
         Box::new(CycleBuilder {
-            runtime: Duration::from_secs_f64(60.0 / 165.0 * 3.0 * 15.0),
             cycle_period: Duration::from_secs_f64(60.0 / 165.0),
             order: ColorOrder::Ordered(vec![
                 RGB::from_code(0xFF0000, RGBOrder::RGB),
@@ -125,14 +109,11 @@ impl Cycle {
     }
 
     fn from_builder(builder: Box<CycleBuilder>) -> Self {
-        Self::new(builder.runtime, builder.cycle_period, builder.order)
+        Self::new(builder.cycle_period, builder.order)
     }
 
-    fn new(runtime: Duration, cycle_period: Duration, order: ColorOrder) -> Self {
+    fn new(cycle_period: Duration, order: ColorOrder) -> Self {
         Self {
-            runtime: runtime.into(),
-            time_remaining: runtime,
-
             order: order.clone(),
             ind: 0,
             current_color: match order {
@@ -168,21 +149,10 @@ impl Animation for Cycle {
             self.cycle_period.get().clone() + self.cycle_time_remaining - dt
         };
 
-        let mut res = AnimationState::Continue;
-
-        self.time_remaining = if let Some(d) = self.time_remaining.checked_sub(dt) {
-            d
-        } else {
-            res = AnimationState::Last;
-
-            Duration::new(0, 0)
-        };
-
-        res
+        AnimationState::Ok
     }
 
     fn reset(mut self: Box<Self>) -> Box<dyn Animation> {
-        self.time_remaining = *self.runtime.get();
         self.ind = 0;
         self.current_color = match &self.order {
             ColorOrder::Ordered(v) => v[0],
