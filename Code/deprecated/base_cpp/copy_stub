@@ -1,4 +1,0 @@
-#!/bin/sh
-
-cp src/util/Stub.hpp src/$1.hpp
-cp src/util/Stub.cpp src/$1.cpp

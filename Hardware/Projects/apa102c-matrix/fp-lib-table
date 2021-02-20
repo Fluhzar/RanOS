@@ -1,5 +1,0 @@
-(fp_lib_table
-  (lib (name Teensy)(type KiCad)(uri ../../KiCAD_Addons/teensy/teensy.pretty)(options "")(descr ""))
-  (lib (name MountingHole_Pad)(type KiCad)(uri ../../KiCAD_Addons/MountingHole_Pad/MountingHole_Pad.pretty)(options "")(descr ""))
-  (lib (name LEDs)(type KiCad)(uri ../../KiCAD_AddOns/LEDs/LEDs.pretty)(options "")(descr ""))
-)

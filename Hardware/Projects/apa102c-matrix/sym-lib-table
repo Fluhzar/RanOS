@@ -1,5 +1,0 @@
-(sym_lib_table
-  (lib (name Teensy)(type Legacy)(uri ${KIPRJMOD}/../../KiCAD_AddOns/teensy/teensy.lib)(options "")(descr ""))
-  (lib (name MountingHole_Pad)(type Legacy)(uri ${KIPRJMOD}/../../KiCAD_AddOns/MountingHole_Pad/MountingHole_Pad.lib)(options "")(descr ""))
-  (lib (name LEDs)(type Legacy)(uri ${KIPRJMOD}/../../KiCAD_AddOns/LEDs/LEDs.lib)(options "")(descr ""))
-)
